@@ -139,7 +139,7 @@ const OnboardingScreen = () => {
                 if (currentIndex < 2) {
                   swiperRef.current?.scrollBy(1)
                 } else {
-                  //   router.replace('/sign-in')
+                  router.replace('/sign-in')
                 }
               }}
             >

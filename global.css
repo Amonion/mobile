@@ -4,7 +4,7 @@
 
 
 .input{
-    @apply h-[50px] flex flex-row items-center text-lg px-5 w-full text-primary dark:text-dark-primary focus:border rounded-full font-rRegular bg-secondary dark:bg-dark-secondary
+    @apply h-[50px] flex flex-row items-center text-lg px-5 w-full text-primary dark:text-dark-primary rounded-full font-rRegular bg-secondary dark:bg-dark-secondary
 }
 
 .selectList{

@@ -7,3 +7,7 @@ export const onboardingBody2 =
 export const onboardingTitle3 = 'Giveaway Alert'
 export const onboardingBody3 =
   'Receive instant alert from community members and app for instant quiz and giveaway prizes to participants.'
+
+export const signinTitle = 'Login'
+export const signupBody =
+  'Hi! welcome back, sign in to catch up with activities you might have missed.'
