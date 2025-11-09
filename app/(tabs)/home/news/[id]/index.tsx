@@ -1,3 +1,5 @@
+import 'react-native-gesture-handler'
+import 'react-native-reanimated'
 import {
   Image,
   Text,
@@ -8,11 +10,12 @@ import {
 } from 'react-native'
 import RenderHtml from 'react-native-render-html'
 import NewsStore from '@/store/news/News'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useLocalSearchParams } from 'expo-router'
 import NewsStat from '@/components/News/NewsStat'
 import { Calendar, User } from 'lucide-react-native'
 import { formatDate } from '@/lib/helpers'
+import { CommentSheet, CommentSheetRef } from '@/components/Sheets/CommentSheet'
 
 const FeaturedNews: React.FC = () => {
   const { newsForm, getANews } = NewsStore()
@@ -21,7 +24,7 @@ const FeaturedNews: React.FC = () => {
   const colorScheme = useColorScheme()
   const isDark = colorScheme === 'dark'
   const color = isDark ? '#BABABA' : '#6E6E6E'
-
+  const commentSheetRef = useRef<CommentSheetRef>(null)
   useEffect(() => {
     if (!newsForm._id) {
       getANews(`/news/${id}`)
@@ -39,7 +42,7 @@ const FeaturedNews: React.FC = () => {
           />
         )}
       </View>
-      <NewsStat />
+      <NewsStat onCommentPress={() => commentSheetRef.current?.open()} />
       <View className="px-3">
         <View className="py-1 gap-4 flex-row cursor-default flex items-center mb-5">
           <View className="flex gap-1 flex-row items-center">
@@ -87,6 +90,8 @@ const FeaturedNews: React.FC = () => {
           // }}
         />
       </View>
+
+      <CommentSheet ref={commentSheetRef} />
     </View>
   )
 }

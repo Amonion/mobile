@@ -15,6 +15,7 @@ import * as NavigationBar from 'expo-navigation-bar'
 import Message from '@/components/Response/Message'
 import { MessageStore } from '@/store/notification/Message'
 import { NewsProvider } from '@/context/NewsContext'
+import { GestureHandlerRootView } from 'react-native-gesture-handler'
 
 SplashScreen.preventAutoHideAsync()
 
@@ -62,16 +63,18 @@ export default function RootLayout() {
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <NewsProvider>
         {message !== null && <Message />}
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="index" />
+              <Stack.Screen
+                name="modal"
+                options={{ presentation: 'modal', title: 'Modal' }}
+              />
+            </Stack>
+          </View>
+        </GestureHandlerRootView>
 
-        <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="index" />
-            <Stack.Screen
-              name="modal"
-              options={{ presentation: 'modal', title: 'Modal' }}
-            />
-          </Stack>
-        </View>
         <StatusBar style="auto" />
       </NewsProvider>
     </ThemeProvider>

@@ -16,7 +16,11 @@ import {
 import * as Haptics from 'expo-haptics'
 import * as Clipboard from 'expo-clipboard'
 
-const NewsStat: React.FC = () => {
+type NewsStatProps = {
+  onCommentPress?: () => void
+}
+
+const NewsStat: React.FC<NewsStatProps> = ({ onCommentPress }) => {
   const { updatePost } = PostStore()
   const { newsForm } = NewsStore()
   const { user } = AuthStore()
@@ -126,10 +130,13 @@ const NewsStat: React.FC = () => {
         <Text className="text">{formatCount(newsForm.bookmarks)}</Text>
       </View>
 
-      <View className="flex gap-1 flex-row items-center">
+      <TouchableOpacity
+        onPress={onCommentPress}
+        className="flex gap-1 flex-row items-center"
+      >
         <MessageCircle size={18} color={color} />
         <Text className="text">{formatCount(newsForm.replies)}</Text>
-      </View>
+      </TouchableOpacity>
 
       <View className="flex gap-1 flex-row items-center">
         <Eye size={18} color={color} />
