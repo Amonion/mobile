@@ -23,10 +23,7 @@ const SignupSuccessful = () => {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={true}
       >
-        <View className="flex-1 items-center px-[15px]">
-          <Text className="text-primary dark:text-dark-primary mb-2 text-3xl">
-            Congratulations
-          </Text>
+        <View className="flex-1 justify-center items-center px-[15px]">
           <Image
             source={
               isDark
@@ -40,9 +37,6 @@ const SignupSuccessful = () => {
             Your account was created successfully
           </Text>
           <TouchableOpacity
-            style={{
-              minHeight: 50,
-            }}
             onPress={() => router.push('/sign-in')}
             activeOpacity={0.7}
             className={` customBtn`}

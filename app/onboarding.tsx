@@ -8,8 +8,10 @@ import {
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import Swiper from 'react-native-swiper'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Feather } from '@expo/vector-icons'
+import * as NavigationBar from 'expo-navigation-bar'
+
 import {
   onboardingBody1,
   onboardingBody2,
@@ -17,7 +19,7 @@ import {
   onboardingTitle1,
   onboardingTitle2,
   onboardingTitle3,
-} from '@/constants/text'
+} from '@/constants/Text'
 
 const OnboardingScreen = () => {
   const insets = useSafeAreaInsets()
@@ -27,6 +29,16 @@ const OnboardingScreen = () => {
   const router = useRouter()
   const swiperRef = useRef<Swiper | null>(null)
   const [currentIndex, setCurrentIndex] = useState(0)
+
+  useEffect(() => {
+    if (isDark) {
+      NavigationBar.setBackgroundColorAsync('#1C1E21')
+      NavigationBar.setButtonStyleAsync('light')
+    } else {
+      NavigationBar.setBackgroundColorAsync('#FFFFFF')
+      NavigationBar.setButtonStyleAsync('dark')
+    }
+  }, [isDark])
 
   return (
     <SafeAreaView

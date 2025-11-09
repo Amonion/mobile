@@ -19,3 +19,9 @@ export const signupBody =
 export const accuountTitle = 'Recover Account'
 export const accountBody =
   'Enter your email and follow the instruction sent to recover your password.'
+
+export const setupTitle1 = 'Select Location Preference'
+export const setupTitle2 = 'Select Location Preference'
+export const setupTitle3 = 'Join The Community'
+export const setupBody3 =
+  'Remember to keep it positive, be respectful, supportive, and follow  our community guidelines to make Schooling Social a safe and inspiring place for everyone.'

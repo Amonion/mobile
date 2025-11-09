@@ -17,9 +17,9 @@ import { validateInputs, ValidationResult } from '@/lib/validateAuthInputs'
 import { Eye, EyeOff } from 'lucide-react-native'
 import Spinner from '@/components/Response/Spinner'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { signinBody, signinTitle } from '@/constants/text'
 import SocketService from '@/store/socket'
 import { PostStore } from '@/store/post/Post'
+import { signinBody, signinTitle } from '@/constants/Text'
 
 const SignIn = () => {
   const colorScheme = useColorScheme()
@@ -64,9 +64,9 @@ const SignIn = () => {
         token
       )
       if (user?.isFirstTime) {
-        // router.replace('/welcome')
+        router.replace('/welcome')
       } else {
-        // router.replace('/home')
+        router.replace('/home')
       }
       PostStore.setState({ postResults: posts })
     } catch (err: any) {

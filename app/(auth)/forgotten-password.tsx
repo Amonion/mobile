@@ -1,5 +1,5 @@
 import Spinner from '@/components/Response/Spinner'
-import { accountBody, accuountTitle } from '@/constants/text'
+import { accountBody, accuountTitle } from '@/constants/Text'
 import { ValidationResult } from '@/lib/validateAuthInputs'
 import { router } from 'expo-router'
 import React, { useState } from 'react'
@@ -55,7 +55,7 @@ const ForgottenPassword = () => {
             </Text>
           </View>
 
-          <View className="mb-[20px]">
+          <View className="mb-[40px]">
             <Text className="text-primary dark:text-dark-primary mb-2 font-semibold">
               Email
             </Text>

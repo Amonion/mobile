@@ -8,7 +8,7 @@
 }
 
 .customBtn{
-    @apply border bg-custom border-custom h-[50px] flex-row justify-center items-center rounded-full
+    @apply border w-full bg-custom border-custom h-[50px] flex-row justify-center items-center rounded-full
 }
 
 .input{

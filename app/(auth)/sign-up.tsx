@@ -20,7 +20,7 @@ import {
 import { validateInputs, ValidationResult } from '@/lib/validateAuthInputs'
 import { MessageStore } from '@/store/notification/Message'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { signupBody, signupTitle } from '@/constants/text'
+import { signupBody, signupTitle } from '@/constants/Text'
 import { Eye, EyeOff } from 'lucide-react-native'
 import Spinner from '@/components/Response/Spinner'
 
@@ -66,7 +66,7 @@ const SignUp = () => {
 
       const res = await signUp(userDetails)
       if (res) {
-        // router.push('/signup-successful')
+        router.push('/signup-successful')
       }
     } catch (err: any) {
       console.log(err)
@@ -262,7 +262,7 @@ const SignUp = () => {
               <Text className="text-primary dark:text-dark-primary mr-2 text-lg">
                 Already have an account?
               </Text>
-              <Pressable onPress={() => router.push('/sign-in')}>
+              <Pressable onPress={() => router.push('/signup-successful')}>
                 <Text className="text-custom text-lg">Sign In</Text>
               </Pressable>
             </View>

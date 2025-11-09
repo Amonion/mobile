@@ -13,6 +13,6 @@ export const signIn = async (form: FormData) => {
 }
 
 export const createAccount = async (form: FormData) => {
-  const response = await api.post('/users/create-accounts', form)
+  const response = await api.post('/users/create-account', form)
   return response.data
 }
