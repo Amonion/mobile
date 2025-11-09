@@ -9,5 +9,13 @@ export const onboardingBody3 =
   'Receive instant alert from community members and app for instant quiz and giveaway prizes to participants.'
 
 export const signinTitle = 'Login'
-export const signupBody =
+export const signinBody =
   'Hi! welcome back, sign in to catch up with activities you might have missed.'
+
+export const signupTitle = 'Register'
+export const signupBody =
+  'Create your Schooling Social account and socialize with students, schools & people.'
+
+export const accuountTitle = 'Recover Account'
+export const accountBody =
+  'Enter your email and follow the instruction sent to recover your password.'

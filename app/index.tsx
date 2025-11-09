@@ -1,9 +1,14 @@
 import { useEffect, useState } from 'react'
 import { View, Image } from 'react-native'
-import { router } from 'expo-router'
+import { router, useRootNavigationState } from 'expo-router'
+import { AuthStore } from '@/store/AuthStore'
+import { useAuthHydration } from '@/lib/useAuthHydration'
 
 const IndexScreen = () => {
   const [loading, setLoading] = useState(true)
+  const { token, user } = AuthStore()
+  const rootState = useRootNavigationState()
+  const hydrated = useAuthHydration()
 
   useEffect(() => {
     const checkAuth = async () => {

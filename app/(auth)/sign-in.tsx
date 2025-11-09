@@ -17,7 +17,9 @@ import { validateInputs, ValidationResult } from '@/lib/validateAuthInputs'
 import { Eye, EyeOff } from 'lucide-react-native'
 import Spinner from '@/components/Response/Spinner'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { signinTitle, signupBody } from '@/constants/text'
+import { signinBody, signinTitle } from '@/constants/text'
+import SocketService from '@/store/socket'
+import { PostStore } from '@/store/post/Post'
 
 const SignIn = () => {
   const colorScheme = useColorScheme()
@@ -52,6 +54,7 @@ const SignIn = () => {
         token,
         posts,
       } = await signIn(userDetails)
+      SocketService.connect(token)
       AuthStore.getState().login(
         user,
         bioUserSettings,
@@ -65,6 +68,7 @@ const SignIn = () => {
       } else {
         // router.replace('/home')
       }
+      PostStore.setState({ postResults: posts })
     } catch (err: any) {
       const msg =
         err.response?.data?.message || 'Something went wrong. Try again.'
@@ -99,7 +103,7 @@ const SignIn = () => {
               {signinTitle}
             </Text>
             <Text className="text-primary text-lg dark:text-dark-primary text-start">
-              {signupBody}
+              {signinBody}
             </Text>
           </View>
 
@@ -170,9 +174,9 @@ const SignIn = () => {
             <Text className="text-primary dark:text-dark-primary mr-2 text-lg">
               {`Forgotten password?`}
             </Text>
-            {/* <Pressable onPress={() => router.push('/forgotten-password')}>
+            <Pressable onPress={() => router.push('/forgotten-password')}>
               <Text className="text-custom text-lg">Click Here</Text>
-            </Pressable> */}
+            </Pressable>
           </View>
 
           <TouchableOpacity
@@ -182,9 +186,7 @@ const SignIn = () => {
             onPress={handleSubmit}
             activeOpacity={0.7}
             disabled={loading}
-            className={`${
-              loading ? 'opacity-50' : ''
-            } bg-custom flex-row justify-center items-center rounded-full`}
+            className={`${loading ? 'opacity-50' : ''} customBtn`}
           >
             {loading ? (
               <Spinner size={40} />
@@ -199,9 +201,9 @@ const SignIn = () => {
             <Text className="text-primary dark:text-dark-primary mr-2 text-lg">
               {`Don't have an account?`}
             </Text>
-            {/* <Pressable onPress={() => router.push('/sign-up')}>
-              <Text className="text-custom text-lg">Click Here</Text>
-            </Pressable> */}
+            <Pressable onPress={() => router.push('/sign-up')}>
+              <Text className="text-custom text-lg">Sign Up</Text>
+            </Pressable>
           </View>
         </View>
       </ScrollView>

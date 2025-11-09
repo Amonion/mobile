@@ -23,6 +23,7 @@ export interface Message {
   messageTitle: string
   isBoxVisible: boolean
   isSuccess: boolean | null
+  onlineMessage: string | null
   message: string | null
   online: boolean | null
   clearMessage: () => void
@@ -37,6 +38,7 @@ export interface Message {
 }
 
 export const MessageStore = create<Message>((set) => ({
+  onlineMessage: null,
   message: null,
   isSuccess: null,
   online: true,

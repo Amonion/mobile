@@ -149,7 +149,10 @@ const OnboardingScreen = () => {
         </View>
 
         <TouchableOpacity className="absolute top-5 right-5">
-          <Text className="text-secondary text-xl dark:text-dark-secondary">
+          <Text
+            onPress={() => router.push('/sign-in')}
+            className="text-secondary text-xl dark:text-dark-secondary"
+          >
             Skip
           </Text>
         </TouchableOpacity>
