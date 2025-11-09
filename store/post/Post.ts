@@ -175,8 +175,7 @@ interface PostState {
   ) => Promise<void>
   updatePost: (
     url: string,
-    updatedItem: FormData | Record<string, unknown>,
-    refreshUrl?: string
+    updatedItem: FormData | Record<string, unknown>
   ) => Promise<void>
   deletePost: (url: string) => Promise<void>
   postItem: (

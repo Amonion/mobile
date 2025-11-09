@@ -10,39 +10,19 @@ import RenderHTML from 'react-native-render-html'
 import { Eye, Heart, MessageCircle } from 'lucide-react-native'
 import Carousel from 'react-native-reanimated-carousel'
 import NewsStore from '@/store/news/News'
-import { router } from 'expo-router'
 
-const FeaturedNews: React.FC = () => {
-  const { featuredNews } = NewsStore()
+const MainNews: React.FC = () => {
+  const { mainNews } = NewsStore()
   const { width } = useWindowDimensions()
 
-  const move = (id: string) => {
-    NewsStore.setState((prev) => {
-      const newsItem = prev.featuredNews.find((item) => item._id === id)
-
-      if (!newsItem) return prev // no change if not found
-
-      return {
-        newsForm: {
-          ...newsItem,
-          views: (newsItem.views ?? 0) + 1, // safely increment views
-        },
-        featuredNews: prev.featuredNews.map((n) =>
-          n._id === id ? { ...n, views: (n.views ?? 0) + 1 } : n
-        ),
-      }
-    })
-    router.push(`/home/news/${id}`)
-  }
-
-  if (featuredNews.length === 0) return null
+  if (mainNews.length === 0) return null
 
   return (
     <View className="mb-1" style={{ height: 260, position: 'relative' }}>
       <Carousel
         width={width}
         height={260}
-        data={featuredNews}
+        data={mainNews}
         autoPlay
         autoPlayInterval={6000}
         scrollAnimationDuration={1200}
@@ -82,7 +62,7 @@ const FeaturedNews: React.FC = () => {
             </View>
 
             <View style={{ position: 'absolute', bottom: 0, padding: 12 }}>
-              <TouchableOpacity onPress={() => move(item._id)}>
+              <TouchableOpacity>
                 <Text
                   style={{
                     color: 'white',
@@ -148,4 +128,4 @@ const FeaturedNews: React.FC = () => {
   )
 }
 
-export default FeaturedNews
+export default MainNews

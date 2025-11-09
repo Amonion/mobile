@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
-export type TableName = 'news' | 'posts' | 'media'
+export type TableName = 'news' | 'posts' | 'featuredNews' | 'mainNews'
 
 const PREFIX = '@localdb:'
 
@@ -21,6 +21,29 @@ export async function saveAll<T>(table: TableName, data: T[]): Promise<void> {
     await AsyncStorage.setItem(tableKey(table), JSON.stringify(data))
   } catch (err) {
     console.error(`Error saving table "${table}"`, err)
+  }
+}
+
+export async function upsertAll<T extends { _id: string }>(
+  table: TableName,
+  data: T[]
+): Promise<void> {
+  try {
+    const existingRaw = await AsyncStorage.getItem(tableKey(table))
+    const existing: T[] = existingRaw ? JSON.parse(existingRaw) : []
+
+    // Create a map of existing items
+    const map = new Map(existing.map((item) => [item._id, item]))
+
+    // Merge new items (overwrite if _id exists)
+    for (const item of data) {
+      map.set(item._id, item)
+    }
+
+    const merged = Array.from(map.values())
+    await AsyncStorage.setItem(tableKey(table), JSON.stringify(merged))
+  } catch (err) {
+    console.error(`Error upserting table "${table}"`, err)
   }
 }
 

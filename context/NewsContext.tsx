@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useEffect, ReactNode } from 'react'
-import { usePathname } from 'expo-router'
 import NewsStore, { News } from '@/store/news/News'
 import { AuthStore } from '@/store/AuthStore'
 import { MessageStore } from '@/store/notification/Message'
@@ -26,16 +25,15 @@ export const NewsProvider: React.FC<NewsProviderProps> = ({ children }) => {
   const url = '/news/feed'
   const { user } = AuthStore()
   const { setMessage } = MessageStore()
-  const { featuredNews, getFeaturedNews, getSavedFeaturedNews } = NewsStore()
-  const pathname = usePathname()
+  const { featuredNews, getBannerNews, getSavedBannersNews } = NewsStore()
 
   useEffect(() => {
     if (featuredNews.length === 0 && user) {
-      getSavedFeaturedNews()
+      getSavedBannersNews()
       const params = `?country=${user.country}&state=${user.state}`
-      getFeaturedNews(`${url}${params}`, setMessage)
+      getBannerNews(`${url}${params}`, setMessage)
     }
-  }, [pathname])
+  }, [])
 
   return (
     <NewsContext.Provider

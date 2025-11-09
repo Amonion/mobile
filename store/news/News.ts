@@ -8,6 +8,8 @@ interface FetchResponse {
   count: number
   page_size: number
   results: News[]
+  mainNews: News[]
+  featuredNews: News[]
   data: News
 }
 
@@ -84,6 +86,7 @@ interface NewsState {
   page_size: number
   news: News[]
   featuredNews: News[]
+  mainNews: News[]
   loading: boolean
   selectedItems: News[]
   searchedNews: News[]
@@ -91,7 +94,7 @@ interface NewsState {
   newsForm: News
   setForm: (key: keyof News, value: News[keyof News]) => void
   resetForm: () => void
-  getFeaturedNews: (
+  getBannerNews: (
     url: string,
     setMessage: (message: string, isError: boolean) => void
   ) => Promise<void>
@@ -99,11 +102,8 @@ interface NewsState {
     url: string,
     setMessage: (message: string, isError: boolean) => void
   ) => Promise<void>
-  getSavedFeaturedNews: () => void
-  getANews: (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void
-  ) => Promise<void>
+  getSavedBannersNews: () => void
+  getANews: (url: string) => Promise<void>
   setProcessedResults: (data: FetchResponse) => void
   setLoading?: (loading: boolean) => void
   updateNews: (
@@ -129,6 +129,7 @@ const NewsStore = create<NewsState>((set) => ({
   page_size: 0,
   news: [],
   featuredNews: [],
+  mainNews: [],
   loading: false,
   selectedItems: [],
   searchedNews: [],
@@ -166,14 +167,16 @@ const NewsStore = create<NewsState>((set) => ({
     set({ loading: loadState })
   },
 
-  getSavedFeaturedNews: async () => {
+  getSavedBannersNews: async () => {
     try {
-      set({ loading: true })
-      const allNews = await getAll<News>('news')
-      const features = allNews.filter((n) => n.isFeatured === true)
-      if (features) {
-        set({ featuredNews: features })
-      }
+      const featuredNews = await getAll<News>('featuredNews')
+      const mainNews = await getAll<News>('mainNews')
+      // if (featuredNews.length > 0) {
+      //   set({ featuredNews })
+      // }
+      // if (mainNews.length > 0) {
+      //   set({ mainNews })
+      // }
     } catch (error: unknown) {
       console.log(error)
     } finally {
@@ -197,29 +200,48 @@ const NewsStore = create<NewsState>((set) => ({
     }
   },
 
-  getFeaturedNews: async (url: string) => {
+  getBannerNews: async (url: string) => {
     try {
       const response = await customRequest({ url })
       const data = response?.data
       if (data) {
-        const storedNews = NewsStore.getState().featuredNews
-        if (data.results.length > 0) {
-          const newNews: News[] = data.results.filter(
-            (item: News) => !storedNews.some((m) => m._id === item._id)
+        const featuredNews = NewsStore.getState().featuredNews
+        const mainNews = NewsStore.getState().mainNews
+
+        if (data.featuredNews.length > 0) {
+          const newNews: News[] = data.featuredNews.filter(
+            (item: News) => !featuredNews.some((m) => m._id === item._id)
           )
-          console.log('saving ', newNews.length, ' news')
           if (newNews.length > 0) {
             set((prev) => {
               return {
                 featuredNews: [...prev.featuredNews, ...newNews],
               }
             })
-            await saveAll('news', newNews)
+            await saveAll('featuredNews', newNews)
           } else {
             console.log('No new moments to add.')
           }
         } else {
-          // deleteAllMomentsFromDB()
+          set({ featuredNews: data.featuredNews })
+        }
+
+        if (data.mainNews.length > 0) {
+          const newNews: News[] = data.mainNews.filter(
+            (item: News) => !mainNews.some((m) => m._id === item._id)
+          )
+          if (newNews.length > 0) {
+            set((prev) => {
+              return {
+                mainNews: [...prev.mainNews, ...newNews],
+              }
+            })
+            await saveAll('mainNews', newNews)
+          } else {
+            console.log('No new moments to add.')
+          }
+        } else {
+          set({ mainNews: data.mainNews })
         }
       }
     } catch (error: unknown) {
@@ -227,10 +249,7 @@ const NewsStore = create<NewsState>((set) => ({
     }
   },
 
-  getANews: async (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void
-  ) => {
+  getANews: async (url: string) => {
     try {
       const response = await customRequest({ url })
 

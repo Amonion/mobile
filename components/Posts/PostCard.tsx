@@ -16,7 +16,7 @@ import {
 } from 'react-native'
 import RenderHtml from 'react-native-render-html'
 import PostStat from './PostStat'
-import { router, usePathname } from 'expo-router'
+import { usePathname } from 'expo-router'
 import PollCard from './PollCard'
 import HomePostMedia from './HomePostMedia'
 import { AuthStore } from '@/store/AuthStore'

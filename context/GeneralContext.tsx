@@ -20,7 +20,7 @@ export const GeneralProvider: React.FC<GeneralProviderProps> = ({
     if (__DEV__) {
       setBaseUrl('http://192.168.1.44:8080/api/v1')
     } else {
-      setBaseUrl('http://192.168.1.44:8080/api/v1')
+      setBaseUrl('https://schoolingsocial-api-v1.onrender.com/api/v1')
     }
   }, [])
 

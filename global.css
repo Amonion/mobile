@@ -2,7 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-
 .btn{
     @apply border border-border dark:border-dark-border h-[50px] flex-row justify-center items-center rounded-full
 }
@@ -17,4 +16,8 @@
 
 .selectList{
     @apply w-full z-50 bg-primary dark:bg-dark-primary absolute left-0  border border-border dark:border-dark-border  max-h-[250px] overflow-auto rounded-[10px]
+}
+
+.text{
+    @apply text-primary dark:text-dark-primary
 }
