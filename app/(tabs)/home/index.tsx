@@ -16,6 +16,7 @@ import { useScrollY } from '@/context/ScrollYContext'
 import { Post, PostStore } from '@/store/post/Post'
 import { AuthStore } from '@/store/AuthStore'
 import PostCard from '@/components/Posts/PostCard'
+import FeaturedNews from '@/components/News/FeaturedNews'
 
 const AnimatedFlatList = Animated.createAnimatedComponent(
   FlatList<Post> // 👈 typed FlatList
@@ -124,9 +125,7 @@ const Home = () => {
         }}
         ListHeaderComponent={
           <View>
-            {/* <HomeNews /> */}
-
-            {/* <Moments /> */}
+            <FeaturedNews />
           </View>
         }
       />

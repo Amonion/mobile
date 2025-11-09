@@ -29,6 +29,7 @@ const AppBarWithDrawer = () => {
       ) : (
         <MinorAppBar />
       )}
+
       <SideDrawer
         visible={drawerVisible}
         onClose={() => setDrawerVisible(false)}

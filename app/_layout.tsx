@@ -14,6 +14,7 @@ import { useFonts } from 'expo-font'
 import * as NavigationBar from 'expo-navigation-bar'
 import Message from '@/components/Response/Message'
 import { MessageStore } from '@/store/notification/Message'
+import { NewsProvider } from '@/context/NewsContext'
 
 SplashScreen.preventAutoHideAsync()
 
@@ -59,18 +60,20 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      {message !== null && <Message />}
+      <NewsProvider>
+        {message !== null && <Message />}
 
-      <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="index" />
-          <Stack.Screen
-            name="modal"
-            options={{ presentation: 'modal', title: 'Modal' }}
-          />
-        </Stack>
-      </View>
-      <StatusBar style="auto" />
+        <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="index" />
+            <Stack.Screen
+              name="modal"
+              options={{ presentation: 'modal', title: 'Modal' }}
+            />
+          </Stack>
+        </View>
+        <StatusBar style="auto" />
+      </NewsProvider>
     </ThemeProvider>
   )
 }

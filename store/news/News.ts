@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import _debounce from 'lodash/debounce'
 import { customRequest } from '@/lib/api'
+import { getAll, saveAll } from '@/lib/localStorage/db'
 
 interface FetchResponse {
   message: string
@@ -168,10 +169,11 @@ const NewsStore = create<NewsState>((set) => ({
   getSavedFeaturedNews: async () => {
     try {
       set({ loading: true })
-      // const features = await getFeaturedNewsFromDB()
-      // if (features) {
-      //   set({ featuredNews: features })
-      // }
+      const allNews = await getAll<News>('news')
+      const features = allNews.filter((n) => n.isFeatured === true)
+      if (features) {
+        set({ featuredNews: features })
+      }
     } catch (error: unknown) {
       console.log(error)
     } finally {
@@ -200,20 +202,19 @@ const NewsStore = create<NewsState>((set) => ({
       const response = await customRequest({ url })
       const data = response?.data
       if (data) {
-        // set({ featuredNews: data.results })
-
         const storedNews = NewsStore.getState().featuredNews
         if (data.results.length > 0) {
           const newNews: News[] = data.results.filter(
             (item: News) => !storedNews.some((m) => m._id === item._id)
           )
+          console.log('saving ', newNews.length, ' news')
           if (newNews.length > 0) {
             set((prev) => {
               return {
                 featuredNews: [...prev.featuredNews, ...newNews],
               }
             })
-            // await saveNewsToDB(newNews)
+            await saveAll('news', newNews)
           } else {
             console.log('No new moments to add.')
           }

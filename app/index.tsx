@@ -16,7 +16,7 @@ const IndexScreen = () => {
           if (user.isFirstTime) {
             router.replace('/welcome')
           } else {
-            router.replace('/onboarding')
+            router.replace('/home')
           }
         } else {
           router.replace('/onboarding')

@@ -5,7 +5,7 @@ export default function HomeLayout() {
   const isDark = useColorScheme() === 'dark'
 
   return (
-    <View className={``}>
+    <View className={`flex-1`}>
       <Stack
         screenOptions={{
           headerShown: false,
