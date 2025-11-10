@@ -18,16 +18,46 @@ import { formatDate } from '@/lib/helpers'
 import { CommentSheet, CommentSheetRef } from '@/components/Sheets/CommentSheet'
 import CommentStore from '@/store/post/Comment'
 import { PostEmpty } from '@/store/post/Post'
+import { AuthStore } from '@/store/AuthStore'
 
 const FeaturedNews: React.FC = () => {
-  const { newsForm, getANews } = NewsStore()
+  const { newsForm, getANews, updateNews } = NewsStore()
   const { mainPost } = CommentStore()
   const { width } = useWindowDimensions()
   const { id } = useLocalSearchParams()
+  const { user } = AuthStore()
   const colorScheme = useColorScheme()
   const isDark = colorScheme === 'dark'
   const color = isDark ? '#BABABA' : '#6E6E6E'
   const commentSheetRef = useRef<CommentSheetRef>(null)
+
+  useEffect(() => {
+    updateNews(`/news/views`, {
+      id,
+      userId: user?._id,
+    })
+
+    const type = newsForm.isFeatured
+      ? 'featuredNews'
+      : newsForm.isMain
+      ? 'mainNews'
+      : 'news'
+
+    NewsStore.setState((prev) => {
+      const list = prev[type] as typeof prev.news
+      const newsItem = list.find((item) => item._id === id)
+      if (!newsItem) return prev
+
+      const updated = list.map((n) =>
+        n._id === id ? { ...n, views: (n.views ?? 0) + 1 } : n
+      )
+
+      return {
+        newsForm: { ...newsItem, views: (newsItem.views ?? 0) + 1 },
+        [type]: updated,
+      }
+    })
+  }, [])
 
   useEffect(() => {
     if (!newsForm._id) {

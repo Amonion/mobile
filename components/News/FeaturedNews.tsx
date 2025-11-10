@@ -20,22 +20,8 @@ const FeaturedNews: React.FC = () => {
   const { width } = useWindowDimensions()
 
   const move = (id: string) => {
-    NewsStore.setState((prev) => {
-      const newsItem = prev.featuredNews.find((item) => item._id === id)
+    CommentStore.setState({ mainPost: { ...PostEmpty, _id: id } })
 
-      if (!newsItem) return prev
-      CommentStore.setState({ mainPost: { ...PostEmpty, _id: id } })
-
-      return {
-        newsForm: {
-          ...newsItem,
-          views: (newsItem.views ?? 0) + 1,
-        },
-        featuredNews: prev.featuredNews.map((n) =>
-          n._id === id ? { ...n, views: (n.views ?? 0) + 1 } : n
-        ),
-      }
-    })
     router.push(`/news/${id}`)
     getComments(`/posts/comments?postType=comment&postId=${id}`)
   }
@@ -69,6 +55,8 @@ const FeaturedNews: React.FC = () => {
                 backgroundColor: 'rgba(0,0,0,0.5)',
               }}
             />
+
+            <View className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
 
             <View
               style={{

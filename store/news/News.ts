@@ -42,6 +42,7 @@ export interface News {
   bookmarked: boolean
   liked: boolean
   isFeatured: boolean
+  isMain: boolean
   seoTitle: string
   seoDescription: string
   isChecked?: boolean
@@ -77,6 +78,7 @@ export const NewsEmpty = {
   bookmarked: false,
   liked: false,
   isFeatured: false,
+  isMain: false,
   seoTitle: '',
   seoDescription: '',
 }
@@ -109,7 +111,6 @@ interface NewsState {
   updateNews: (
     url: string,
     updatedItem: FormData | Record<string, unknown>,
-    setMessage: (message: string, isError: boolean) => void,
     redirect?: () => void
   ) => Promise<void>
   postItem: (
@@ -281,7 +282,7 @@ const NewsStore = create<NewsState>((set) => ({
     }
   }, 1000),
 
-  updateNews: async (url, updatedItem, setMessage, redirect) => {
+  updateNews: async (url, updatedItem, redirect) => {
     set({ loading: true })
     const response = await customRequest({
       url,

@@ -34,7 +34,6 @@ const PostCard: React.FC<PostCardProps> = ({ post, visiblePostId }) => {
   const colorScheme = useColorScheme()
   const isDark = colorScheme === 'dark' ? true : false
   const { deletePost, updatePost, updatePinPost, repostItem } = PostStore()
-
   const { muteUser, blockUser } = SocialStore()
   const { user } = AuthStore()
   const pathName = usePathname()
