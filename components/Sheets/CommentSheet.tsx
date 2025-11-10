@@ -3,20 +3,17 @@ import React, {
   useImperativeHandle,
   useState,
   useEffect,
-  useCallback,
+  useRef,
 } from 'react'
 import {
   Dimensions,
-  Keyboard,
-  Platform,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
-  FlatList,
   useColorScheme,
   BackHandler,
+  Keyboard,
 } from 'react-native'
 import { Gesture, GestureDetector } from 'react-native-gesture-handler'
 import Animated, {
@@ -27,17 +24,20 @@ import Animated, {
   Extrapolate,
   runOnJS,
 } from 'react-native-reanimated'
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { X } from 'lucide-react-native'
+import CommentBox from './CommentBox'
+import CommentSheetInput from './CommentSheetInput'
+import { Comment } from '@/store/post/Comment'
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window')
 
-export interface Comment {
-  id: string
-  author: string
-  text: string
-  createdAt?: string
-}
+const SNAP_TOP = SCREEN_HEIGHT * 0.1 // 90% open
+const SNAP_MID_HIGH = SCREEN_HEIGHT * 0.3 // 70%
+const SNAP_MIDDLE = SCREEN_HEIGHT * 0.5 // 50%
+const SNAP_BOTTOM = SCREEN_HEIGHT // closed
+
+const AnimatedView = Animated.createAnimatedComponent(View)
 
 export interface CommentSheetRef {
   open: (initialComments?: Comment[]) => void
@@ -49,66 +49,63 @@ interface Props {
   initialComments?: Comment[]
 }
 
-const SNAP_TOP = 80
-const SNAP_MIDDLE = SCREEN_HEIGHT * 0.5
-const SNAP_BOTTOM = SCREEN_HEIGHT
-
-const AnimatedView = Animated.createAnimatedComponent(View)
-
 export const CommentSheet = forwardRef<CommentSheetRef, Props>(
   ({ onSubmitComment, initialComments = [] }, ref) => {
-    const [comments, setComments] = useState<Comment[]>(initialComments)
-    const [input, setInput] = useState('')
-    const [keyboardHeight, setKeyboardHeight] = useState(0)
+    const [showSheet, setShowSheet] = useState(false)
     const translateY = useSharedValue(SNAP_BOTTOM)
     const isVisible = useSharedValue(0)
     const colorScheme = useColorScheme()
     const isDark = colorScheme === 'dark'
     const color = isDark ? '#BABABA' : '#6E6E6E'
-    const insets = useSafeAreaInsets()
+    const previousSnap = useRef(SNAP_MIDDLE)
 
     useImperativeHandle(ref, () => ({
-      open: (initial?: Comment[]) => {
-        if (initial) setComments(initial)
-        openSheet()
-      },
+      open: () => openSheet(), // ✅ default open at 50%
       close: () => closeSheet(),
     }))
 
     useEffect(() => {
-      const show = Keyboard.addListener('keyboardDidShow', (e) =>
-        setKeyboardHeight(e.endCoordinates?.height || 300)
-      )
-      const hide = Keyboard.addListener('keyboardDidHide', () =>
-        setKeyboardHeight(0)
-      )
-      return () => {
-        show.remove()
-        hide.remove()
-      }
-    }, [])
-
-    useEffect(() => {
       const onBackPress = () => {
         if (translateY.value < SNAP_BOTTOM) {
-          // sheet is open
           closeSheet()
-          return true // prevent default back action
+          return true
         }
-        return false // allow default back action
+        return false
       }
-
       const subscription = BackHandler.addEventListener(
         'hardwareBackPress',
         onBackPress
       )
-
       return () => subscription.remove()
+    }, [])
+
+    // 🧩 Handle keyboard snap to 70%
+    useEffect(() => {
+      const showSub = Keyboard.addListener('keyboardDidShow', () => {
+        previousSnap.current = translateY.value
+        translateY.value = withSpring(SNAP_MID_HIGH, {
+          damping: 20,
+          stiffness: 120,
+        })
+      })
+      const hideSub = Keyboard.addListener('keyboardDidHide', () => {
+        translateY.value = withSpring(previousSnap.current, {
+          damping: 20,
+          stiffness: 120,
+        })
+      })
+      return () => {
+        showSub.remove()
+        hideSub.remove()
+      }
     }, [])
 
     const openSheet = (to = SNAP_MIDDLE) => {
       isVisible.value = 1
       translateY.value = withSpring(to, { damping: 20, stiffness: 120 })
+      setTimeout(() => {
+        setShowSheet(true)
+      }, 200)
     }
 
     const closeSheet = () => {
@@ -116,10 +113,10 @@ export const CommentSheet = forwardRef<CommentSheetRef, Props>(
         damping: 20,
         stiffness: 120,
       })
+      setShowSheet(false)
       setTimeout(() => runOnJS(() => (isVisible.value = 0))(), 300)
     }
 
-    // 🟢 Reanimated v3 gesture
     const panGesture = Gesture.Pan()
       .onChange((e) => {
         translateY.value = Math.max(0, translateY.value + e.changeY)
@@ -129,9 +126,17 @@ export const CommentSheet = forwardRef<CommentSheetRef, Props>(
         const velocity = e.velocityY
 
         let snapPoint = SNAP_MIDDLE
-        if (endY <= SNAP_TOP + 50) snapPoint = SNAP_TOP
-        else if (endY > SNAP_MIDDLE + 100 || velocity > 800)
-          snapPoint = SNAP_BOTTOM
+
+        if (endY <= SNAP_TOP + 50) {
+          snapPoint = SNAP_TOP // 90%
+        } else if (endY <= SNAP_MID_HIGH + 50) {
+          snapPoint = SNAP_MID_HIGH // 70%
+        } else if (endY <= SNAP_MIDDLE + 80) {
+          snapPoint = SNAP_MIDDLE // 50%
+        } else if (endY > SNAP_MIDDLE + 100 || velocity > 800) {
+          snapPoint = SNAP_BOTTOM // Close
+          runOnJS(setShowSheet)(false)
+        }
 
         translateY.value = withSpring(snapPoint, {
           damping: 20,
@@ -165,32 +170,6 @@ export const CommentSheet = forwardRef<CommentSheetRef, Props>(
       display: isVisible.value ? 'flex' : 'none',
     }))
 
-    const addComment = useCallback(async () => {
-      if (!input.trim()) return
-      const newComment: Comment = {
-        id: Date.now().toString(),
-        author: 'You',
-        text: input.trim(),
-        createdAt: new Date().toISOString(),
-      }
-      setComments((prev) => [newComment, ...prev])
-      setInput('')
-      Keyboard.dismiss()
-      if (onSubmitComment) {
-        await onSubmitComment(newComment.text)
-      }
-    }, [input, onSubmitComment])
-
-    const renderItem = ({ item }: { item: Comment }) => (
-      <View style={styles.commentRow}>
-        <View style={styles.avatar} />
-        <View style={{ flex: 1 }}>
-          <Text style={styles.author}>{item.author}</Text>
-          <Text style={styles.commentText}>{item.text}</Text>
-        </View>
-      </View>
-    )
-
     return (
       <>
         <AnimatedView style={[styles.backdrop, backdropStyle]}>
@@ -201,47 +180,15 @@ export const CommentSheet = forwardRef<CommentSheetRef, Props>(
           />
         </AnimatedView>
 
-        <View
-          className="absolute left-0 w-full flex flex-row"
-          style={{
-            bottom: insets.bottom + 8,
-          }}
+        {showSheet && <CommentSheetInput />}
+
+        <AnimatedView
+          className={`bg-primary dark:bg-dark-primary elevation-20 z-20 absolute left-0 top-0 right-0`}
+          style={[{ height: SCREEN_HEIGHT }, sheetStyle]}
         >
-          <TextInput
-            placeholder="Write a comment..."
-            value={input}
-            onChangeText={setInput}
-            style={[
-              styles.input,
-              {
-                flex: 1,
-                minHeight: 40,
-                maxHeight: 120,
-                textAlignVertical: 'top',
-              },
-            ]}
-            multiline
-            numberOfLines={4}
-            returnKeyType="send"
-            onSubmitEditing={addComment}
-          />
-          <TouchableOpacity onPress={addComment} style={styles.sendBtn}>
-            <Text style={{ color: '#fff', fontWeight: '600' }}>Send</Text>
-          </TouchableOpacity>
-        </View>
-
-        <GestureDetector gesture={panGesture}>
-          <AnimatedView
-            className={`bg-primary dark:bg-dark-primary elevation-20 z-20 absolute left-0 top-0 right-0`}
-            style={[{ height: SCREEN_HEIGHT }, sheetStyle]}
-          >
-            <View className="absolute z-30 h-5 w-full bg-red-500 bottom-10"></View>
-
-            <SafeAreaView
-              edges={['bottom']}
-              style={{ flex: 1, position: 'relative' }}
-            >
-              <View className="h-[40px] px-3 justify-center items-center">
+          <SafeAreaView edges={['bottom']} style={{ flex: 1 }}>
+            <GestureDetector gesture={panGesture}>
+              <View className="h-[50px] px-3 justify-center items-center">
                 <View className="w-[48px] bg-primaryLight dark:bg-dark-primaryLight rounded-full h-[6px]" />
                 <TouchableOpacity
                   onPress={closeSheet}
@@ -250,28 +197,21 @@ export const CommentSheet = forwardRef<CommentSheetRef, Props>(
                   <X size={20} color={color} />
                 </TouchableOpacity>
               </View>
+            </GestureDetector>
 
-              <View className="flex-1 px-3">
-                <Text className="text-secondary text-xl dark:text-dark-secondary">
-                  Comments
-                </Text>
-                <FlatList
-                  data={comments}
-                  keyExtractor={(i) => i.id}
-                  renderItem={renderItem}
-                  keyboardShouldPersistTaps="handled"
-                  contentContainerStyle={{
-                    paddingBottom: Platform.OS === 'ios' ? 120 : 80,
-                  }}
-                />
-              </View>
-            </SafeAreaView>
-          </AnimatedView>
-        </GestureDetector>
+            <View className="flex-1 px-3">
+              <Text className="text-secondary text-xl dark:text-dark-secondary mb-2">
+                Comments
+              </Text>
+              <CommentBox />
+            </View>
+          </SafeAreaView>
+        </AnimatedView>
       </>
     )
   }
 )
+
 CommentSheet.displayName = 'CommentSheet'
 
 const styles = StyleSheet.create({
@@ -279,61 +219,5 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     backgroundColor: '#000',
     zIndex: 10,
-  },
-
-  handle: {
-    width: 48,
-    height: 6,
-    borderRadius: 4,
-    backgroundColor: '#ccc',
-    alignSelf: 'center',
-  },
-
-  commentRow: {
-    flexDirection: 'row',
-    gap: 10,
-    paddingVertical: 8,
-    borderBottomWidth: 0.5,
-    borderBottomColor: '#eee',
-  },
-  avatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#ddd',
-  },
-  author: {
-    fontWeight: '700',
-    fontSize: 14,
-    marginBottom: 4,
-  },
-  commentText: {
-    fontSize: 14,
-    color: '#333',
-  },
-  inputBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
-    backgroundColor: '#fff',
-    paddingBottom: 60,
-    flex: 1,
-  },
-  input: {
-    flex: 1,
-    minHeight: 40,
-    borderRadius: 20,
-    paddingHorizontal: 14,
-    backgroundColor: '#f5f5f5',
-  },
-  sendBtn: {
-    marginLeft: 8,
-    backgroundColor: '#0b84ff',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 18,
   },
 })

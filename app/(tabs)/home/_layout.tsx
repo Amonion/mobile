@@ -10,7 +10,7 @@ export default function HomeLayout() {
         screenOptions={{
           headerShown: false,
           headerStyle: {
-            backgroundColor: isDark ? '#1C1E21' : '#FFFFFF',
+            backgroundColor: isDark ? '#1C1E21' : '#121314',
           },
         }}
       >

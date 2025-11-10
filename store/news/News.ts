@@ -171,12 +171,12 @@ const NewsStore = create<NewsState>((set) => ({
     try {
       const featuredNews = await getAll<News>('featuredNews')
       const mainNews = await getAll<News>('mainNews')
-      // if (featuredNews.length > 0) {
-      //   set({ featuredNews })
-      // }
-      // if (mainNews.length > 0) {
-      //   set({ mainNews })
-      // }
+      if (featuredNews.length > 0) {
+        set({ featuredNews })
+      }
+      if (mainNews.length > 0) {
+        set({ mainNews })
+      }
     } catch (error: unknown) {
       console.log(error)
     } finally {

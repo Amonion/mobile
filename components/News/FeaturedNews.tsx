@@ -11,28 +11,33 @@ import { Eye, Heart, MessageCircle } from 'lucide-react-native'
 import Carousel from 'react-native-reanimated-carousel'
 import NewsStore from '@/store/news/News'
 import { router } from 'expo-router'
+import CommentStore from '@/store/post/Comment'
+import { PostEmpty } from '@/store/post/Post'
 
 const FeaturedNews: React.FC = () => {
   const { featuredNews } = NewsStore()
+  const { getComments } = CommentStore()
   const { width } = useWindowDimensions()
 
   const move = (id: string) => {
     NewsStore.setState((prev) => {
       const newsItem = prev.featuredNews.find((item) => item._id === id)
 
-      if (!newsItem) return prev // no change if not found
+      if (!newsItem) return prev
+      CommentStore.setState({ mainPost: { ...PostEmpty, _id: id } })
 
       return {
         newsForm: {
           ...newsItem,
-          views: (newsItem.views ?? 0) + 1, // safely increment views
+          views: (newsItem.views ?? 0) + 1,
         },
         featuredNews: prev.featuredNews.map((n) =>
           n._id === id ? { ...n, views: (n.views ?? 0) + 1 } : n
         ),
       }
     })
-    router.push(`/home/news/${id}`)
+    router.push(`/news/${id}`)
+    getComments(`/posts/comments?postType=comment&postId=${id}`)
   }
 
   if (featuredNews.length === 0) return null

@@ -16,23 +16,36 @@ import NewsStat from '@/components/News/NewsStat'
 import { Calendar, User } from 'lucide-react-native'
 import { formatDate } from '@/lib/helpers'
 import { CommentSheet, CommentSheetRef } from '@/components/Sheets/CommentSheet'
+import CommentStore from '@/store/post/Comment'
+import { PostEmpty } from '@/store/post/Post'
 
 const FeaturedNews: React.FC = () => {
   const { newsForm, getANews } = NewsStore()
+  const { mainPost } = CommentStore()
   const { width } = useWindowDimensions()
   const { id } = useLocalSearchParams()
   const colorScheme = useColorScheme()
   const isDark = colorScheme === 'dark'
   const color = isDark ? '#BABABA' : '#6E6E6E'
   const commentSheetRef = useRef<CommentSheetRef>(null)
+
   useEffect(() => {
     if (!newsForm._id) {
       getANews(`/news/${id}`)
     }
   }, [newsForm._id])
 
+  useEffect(() => {
+    if (!mainPost._id) {
+      CommentStore.setState({ mainPost: { ...PostEmpty, _id: String(id) } })
+    }
+  }, [mainPost._id])
+
   return (
-    <View className="flex-1" style={{ position: 'relative' }}>
+    <View
+      className="flex-1 bg-secondary dark:bg-dark-secondary"
+      style={{ position: 'relative' }}
+    >
       <View style={{ width, height: 260 }}>
         {newsForm.picture && (
           <Image
