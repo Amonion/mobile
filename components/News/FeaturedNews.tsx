@@ -13,15 +13,20 @@ import NewsStore from '@/store/news/News'
 import { router } from 'expo-router'
 import CommentStore from '@/store/post/Comment'
 import { PostEmpty } from '@/store/post/Post'
+import { LinearGradient } from 'expo-linear-gradient'
 
 const FeaturedNews: React.FC = () => {
-  const { featuredNews } = NewsStore()
+  const featuredNews = NewsStore((state) => state.featuredNews) // ✅ reactive
   const { getComments } = CommentStore()
   const { width } = useWindowDimensions()
 
   const move = (id: string) => {
     CommentStore.setState({ mainPost: { ...PostEmpty, _id: id } })
-
+    // NewsStore.setState((prev) => {
+    //   return {
+    //     newsForm: prev.news.find((item) => item._id === id),
+    //   }
+    // })
     router.push(`/news/${id}`)
     getComments(`/posts/comments?postType=comment&postId=${id}`)
   }
@@ -48,11 +53,14 @@ const FeaturedNews: React.FC = () => {
               />
             )}
 
-            <View
+            <LinearGradient
+              colors={['rgba(0,0,0,0.6)', 'rgba(0,0,0,0.1)', 'transparent']}
+              locations={[0, 0.5, 1]}
+              start={{ x: 0.5, y: 1 }}
+              end={{ x: 0.5, y: 0 }}
               style={{
                 position: 'absolute',
                 inset: 0,
-                backgroundColor: 'rgba(0,0,0,0.5)',
               }}
             />
 

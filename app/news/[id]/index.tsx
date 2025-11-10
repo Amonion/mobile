@@ -19,6 +19,7 @@ import { CommentSheet, CommentSheetRef } from '@/components/Sheets/CommentSheet'
 import CommentStore from '@/store/post/Comment'
 import { PostEmpty } from '@/store/post/Post'
 import { AuthStore } from '@/store/AuthStore'
+import { upsert } from '@/lib/localStorage/db'
 
 const FeaturedNews: React.FC = () => {
   const { newsForm, getANews, updateNews } = NewsStore()
@@ -51,6 +52,8 @@ const FeaturedNews: React.FC = () => {
       const updated = list.map((n) =>
         n._id === id ? { ...n, views: (n.views ?? 0) + 1 } : n
       )
+
+      // upsert(type, {_id: String(id), views: (newsItem.views ?? 0) + 1})
 
       return {
         newsForm: { ...newsItem, views: (newsItem.views ?? 0) + 1 },
@@ -112,7 +115,7 @@ const FeaturedNews: React.FC = () => {
           source={{ html: newsForm.content }}
           baseStyle={{
             color: isDark ? '#EFEFEF' : '#3A3A3A',
-            fontSize: 17,
+            fontSize: 16,
             fontWeight: 400,
             lineHeight: 23,
           }}

@@ -92,13 +92,13 @@ const CommentSheetInput: React.FC = () => {
 
     setText('')
     Keyboard.dismiss()
-    // postItem('/posts/comments', formData)
+    postItem('/posts/comments', formData)
   }
 
   return (
     <>
       <View
-        className="absolute bg-primary dark:bg-dark-primary z-30 pt-1 px-3 gap-3 items-center left-0 w-full flex flex-row"
+        className="absolute bg-primary dark:bg-dark-primary z-30 pt-1 pb-2 px-3 gap-3 items-center left-0 w-full flex flex-row"
         style={{
           bottom: insets.bottom,
         }}

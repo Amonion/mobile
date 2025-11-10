@@ -96,15 +96,11 @@ interface NewsState {
   newsForm: News
   setForm: (key: keyof News, value: News[keyof News]) => void
   resetForm: () => void
-  getBannerNews: (
+  getNews: (
     url: string,
     setMessage: (message: string, isError: boolean) => void
   ) => Promise<void>
-  getItems: (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void
-  ) => Promise<void>
-  getSavedBannersNews: () => void
+  getSavedNews: () => void
   getANews: (url: string) => Promise<void>
   setProcessedResults: (data: FetchResponse) => void
   setLoading?: (loading: boolean) => void
@@ -168,15 +164,19 @@ const NewsStore = create<NewsState>((set) => ({
     set({ loading: loadState })
   },
 
-  getSavedBannersNews: async () => {
+  getSavedNews: async () => {
     try {
       const featuredNews = await getAll<News>('featuredNews')
       const mainNews = await getAll<News>('mainNews')
+      const news = await getAll<News>('news')
       if (featuredNews.length > 0) {
         set({ featuredNews })
       }
       if (mainNews.length > 0) {
         set({ mainNews })
+      }
+      if (news.length > 0) {
+        set({ news })
       }
     } catch (error: unknown) {
       console.log(error)
@@ -185,33 +185,19 @@ const NewsStore = create<NewsState>((set) => ({
     }
   },
 
-  getItems: async (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void
-  ) => {
+  getNews: async (url: string) => {
     try {
       const response = await customRequest({ url })
 
       const data = response?.data
       if (data) {
-        NewsStore.getState().setProcessedResults(data)
-      }
-    } catch (error: unknown) {
-      console.log(error)
-    }
-  },
-
-  getBannerNews: async (url: string) => {
-    try {
-      const response = await customRequest({ url })
-      const data = response?.data
-      if (data) {
-        const featuredNews = NewsStore.getState().featuredNews
-        const mainNews = NewsStore.getState().mainNews
-
-        if (data.featuredNews.length > 0) {
-          const newNews: News[] = data.featuredNews.filter(
-            (item: News) => !featuredNews.some((m) => m._id === item._id)
+        const featuredNews = data.results.filter(
+          (item: News) => item.isFeatured
+        )
+        const savedFeaturedNews = NewsStore.getState().featuredNews
+        if (featuredNews.length > 0) {
+          const newNews: News[] = featuredNews.filter(
+            (item: News) => !savedFeaturedNews.some((m) => m._id === item._id)
           )
           if (newNews.length > 0) {
             set((prev) => {
@@ -221,15 +207,15 @@ const NewsStore = create<NewsState>((set) => ({
             })
             await saveAll('featuredNews', newNews)
           } else {
-            console.log('No new moments to add.')
+            console.log('No new featured news to add.')
           }
-        } else {
-          set({ featuredNews: data.featuredNews })
         }
 
-        if (data.mainNews.length > 0) {
-          const newNews: News[] = data.mainNews.filter(
-            (item: News) => !mainNews.some((m) => m._id === item._id)
+        const mainNews = data.results.filter((item: News) => item.isMain)
+        const savedMainNews = NewsStore.getState().mainNews
+        if (mainNews.length > 0) {
+          const newNews: News[] = mainNews.filter(
+            (item: News) => !savedMainNews.some((m) => m._id === item._id)
           )
           if (newNews.length > 0) {
             set((prev) => {
@@ -239,10 +225,28 @@ const NewsStore = create<NewsState>((set) => ({
             })
             await saveAll('mainNews', newNews)
           } else {
-            console.log('No new moments to add.')
+            console.log('No new main news to add.')
           }
-        } else {
-          set({ mainNews: data.mainNews })
+        }
+
+        const news = data.results.filter(
+          (item: News) => !item.isMain && !item.isFeatured
+        )
+        const savedNews = NewsStore.getState().news
+        if (news.length > 0) {
+          const newNews: News[] = news.filter(
+            (item: News) => !savedNews.some((m) => m._id === item._id)
+          )
+          if (newNews.length > 0) {
+            set((prev) => {
+              return {
+                news: [...prev.news, ...newNews],
+              }
+            })
+            await saveAll('news', newNews)
+          } else {
+            console.log('No new news to add.')
+          }
         }
       }
     } catch (error: unknown) {
@@ -298,8 +302,7 @@ const NewsStore = create<NewsState>((set) => ({
 
   postItem: async (
     url: string,
-    updatedItem: FormData | Record<string, unknown>,
-    setMessage: (message: string, isError: boolean) => void
+    updatedItem: FormData | Record<string, unknown>
   ) => {
     set({ loading: true })
     const response = await customRequest({

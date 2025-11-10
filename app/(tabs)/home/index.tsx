@@ -108,7 +108,7 @@ const Home = () => {
   const keyExtractor = useCallback((item: Post) => item._id, [])
 
   return (
-    <View className="flex-1 relative">
+    <View className="flex-1 bg-secondary dark:bg-dark-secondary relative">
       <AnimatedFlatList
         data={postResults}
         keyExtractor={keyExtractor}

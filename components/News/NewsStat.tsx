@@ -22,17 +22,17 @@ type NewsStatProps = {
 
 const NewsStat: React.FC<NewsStatProps> = ({ onCommentPress }) => {
   const { updatePost } = PostStore()
-  const { newsForm } = NewsStore()
+  const { news, newsForm } = NewsStore()
+  const currentNews = news.find((n) => n._id === newsForm._id) || newsForm
   const { user } = AuthStore()
   const newsLink = `https://schoolingsocial.com/news/${newsForm._id}?action=shared`
-
   const colorScheme = useColorScheme()
   const isDark = colorScheme === 'dark'
   const color = isDark ? '#BABABA' : '#6E6E6E'
 
   const handleLike = async () => {
     NewsStore.setState((state) => {
-      const updatedPosts = state.news.map((p) =>
+      const updatedNews = state.news.map((p) =>
         p._id === newsForm._id
           ? {
               ...p,
@@ -42,15 +42,21 @@ const NewsStat: React.FC<NewsStatProps> = ({ onCommentPress }) => {
           : p
       )
 
-      return { news: updatedPosts }
+      const updatedNewsForm =
+        state.newsForm && state.newsForm._id === newsForm._id
+          ? {
+              ...state.newsForm,
+              liked: !state.newsForm.liked,
+              likes: state.newsForm.liked
+                ? state.newsForm.likes - 1
+                : state.newsForm.likes + 1,
+            }
+          : state.newsForm
+
+      return { news: updatedNews, newsForm: updatedNewsForm }
     })
 
-    const updatedPost = NewsStore.getState().news.find(
-      (p) => p._id === newsForm._id
-    )
-
-    updatePost(`/posts/stats`, {
-      likes: updatedPost?.liked,
+    updatePost(`/news/like`, {
       id: newsForm._id,
       userId: user?._id,
     })
@@ -58,7 +64,7 @@ const NewsStat: React.FC<NewsStatProps> = ({ onCommentPress }) => {
 
   const handleBookmark = async () => {
     NewsStore.setState((state) => {
-      const news = state.news.map((p) =>
+      const updatedNews = state.news.map((p) =>
         p._id === newsForm._id
           ? {
               ...p,
@@ -68,15 +74,23 @@ const NewsStat: React.FC<NewsStatProps> = ({ onCommentPress }) => {
           : p
       )
 
-      return { news: news }
+      const updatedNewsForm =
+        state.newsForm && state.newsForm._id === newsForm._id
+          ? {
+              ...state.newsForm,
+              bookmarked: !state.newsForm.bookmarked,
+              bookmarks: state.newsForm.bookmarked
+                ? state.newsForm.bookmarks - 1
+                : state.newsForm.bookmarks + 1,
+            }
+          : state.newsForm
+
+      console.log(updatedNewsForm.bookmarks)
+
+      return { news: updatedNews, newsForm: updatedNewsForm }
     })
 
-    const updatedNews = NewsStore.getState().news.find(
-      (p) => p._id === newsForm._id
-    )
-
-    updatePost(`/posts/stats`, {
-      bookmarks: updatedNews?.bookmarked,
+    updatePost(`/news/bookmark`, {
       id: newsForm._id,
       userId: user?._id,
     })
@@ -100,47 +114,43 @@ const NewsStat: React.FC<NewsStatProps> = ({ onCommentPress }) => {
 
   return (
     <View className="py-3 flex-row cursor-default flex items-center justify-between px-3">
-      <View className="flex gap-1 flex-row items-center">
-        <TouchableOpacity
-          onPress={handleLike}
-          activeOpacity={0.7}
-          style={{ flexDirection: 'row', alignItems: 'center' }}
-        >
-          <Heart
-            size={18}
-            color={newsForm.liked ? '#DA3986' : color}
-            fill={newsForm.liked ? '#DA3986' : 'transparent'}
-          />
-        </TouchableOpacity>
-        <Text className="text">{formatCount(newsForm.likes)}</Text>
-      </View>
+      <TouchableOpacity
+        onPress={handleLike}
+        activeOpacity={0.7}
+        className="flex gap-1 flex-row items-center"
+      >
+        <Heart
+          size={18}
+          color={currentNews.liked ? '#DA3986' : color}
+          fill={currentNews.liked ? '#DA3986' : 'transparent'}
+        />
+        <Text className="text">{formatCount(currentNews.likes)}</Text>
+      </TouchableOpacity>
 
-      <View className="flex gap-1 flex-row items-center">
-        <TouchableOpacity
-          onPress={handleBookmark}
-          activeOpacity={0.7}
-          style={{ flexDirection: 'row', alignItems: 'center' }}
-        >
-          <Bookmark
-            size={18}
-            color={color}
-            fill={newsForm.bookmarked ? color : 'transparent'}
-          />
-        </TouchableOpacity>
-        <Text className="text">{formatCount(newsForm.bookmarks)}</Text>
-      </View>
+      <TouchableOpacity
+        onPress={handleBookmark}
+        activeOpacity={0.7}
+        className="flex gap-1 flex-row items-center"
+      >
+        <Bookmark
+          size={18}
+          color={currentNews.bookmarked ? '#DA3986' : color}
+          fill={currentNews.bookmarked ? '#DA3986' : 'transparent'}
+        />
+        <Text className="text">{formatCount(currentNews.bookmarks)}</Text>
+      </TouchableOpacity>
 
       <TouchableOpacity
         onPress={onCommentPress}
         className="flex gap-1 flex-row items-center"
       >
         <MessageCircle size={18} color={color} />
-        <Text className="text">{formatCount(newsForm.replies)}</Text>
+        <Text className="text">{formatCount(currentNews.replies)}</Text>
       </TouchableOpacity>
 
       <View className="flex gap-1 flex-row items-center">
         <Eye size={18} color={color} />
-        <Text className="text">{formatCount(newsForm.views)}</Text>
+        <Text className="text">{formatCount(currentNews.views)}</Text>
       </View>
 
       <TouchableOpacity className="post_stat relative" onPress={handleShare}>

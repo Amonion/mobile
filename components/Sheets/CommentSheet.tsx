@@ -23,6 +23,7 @@ import Animated, {
   interpolate,
   Extrapolate,
   runOnJS,
+  useDerivedValue,
 } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { X } from 'lucide-react-native'
@@ -53,6 +54,9 @@ export const CommentSheet = forwardRef<CommentSheetRef, Props>(
   ({ onSubmitComment, initialComments = [] }, ref) => {
     const [showSheet, setShowSheet] = useState(false)
     const translateY = useSharedValue(SNAP_BOTTOM)
+    const visibleHeight = useDerivedValue(
+      () => SCREEN_HEIGHT - translateY.value
+    )
     const isVisible = useSharedValue(0)
     const colorScheme = useColorScheme()
     const isDark = colorScheme === 'dark'
@@ -79,7 +83,6 @@ export const CommentSheet = forwardRef<CommentSheetRef, Props>(
       return () => subscription.remove()
     }, [])
 
-    // 🧩 Handle keyboard snap to 70%
     useEffect(() => {
       const showSub = Keyboard.addListener('keyboardDidShow', () => {
         previousSnap.current = translateY.value
@@ -203,7 +206,10 @@ export const CommentSheet = forwardRef<CommentSheetRef, Props>(
               <Text className="text-secondary text-xl dark:text-dark-secondary mb-2">
                 Comments
               </Text>
-              <CommentBox />
+              <CommentBox
+                translateY={translateY}
+                visibleHeight={visibleHeight}
+              />
             </View>
           </SafeAreaView>
         </AnimatedView>

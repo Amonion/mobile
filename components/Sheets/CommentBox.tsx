@@ -1,12 +1,19 @@
 import { Platform, FlatList } from 'react-native'
-
+import type { SharedValue } from 'react-native-reanimated'
 import EachComment from './EachComment'
 import { useEffect } from 'react'
 import CommentStore from '@/store/post/Comment'
 import { AuthStore } from '@/store/AuthStore'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import NewsStore from '@/store/news/News'
+import Animated, { useAnimatedStyle } from 'react-native-reanimated'
 
-const CommentBox: React.FC = () => {
+interface CommentBoxProps {
+  translateY: SharedValue<number>
+  visibleHeight: SharedValue<number>
+}
+
+const CommentBox: React.FC<CommentBoxProps> = ({ visibleHeight }) => {
   const {
     mainPost,
     postedComment,
@@ -23,8 +30,19 @@ const CommentBox: React.FC = () => {
   const { user } = AuthStore()
   const insets = useSafeAreaInsets()
 
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      height: visibleHeight.value - 100,
+    }
+  })
+
   useEffect(() => {
-    console.log(insets.bottom)
+    return () => {
+      CommentStore.setState({ comments: [] })
+    }
+  }, [])
+
+  useEffect(() => {
     if (mainPost._id !== tempComment.postId) return
 
     CommentStore.setState((prev) => {
@@ -77,17 +95,70 @@ const CommentBox: React.FC = () => {
     resetActiveComment()
   }, [tempComment])
 
+  useEffect(() => {
+    if (!postedComment._id || !postedComment.uniqueId) return
+
+    if (postedComment.level === 1) {
+      NewsStore.setState((state) => ({
+        newsForm: {
+          ...state.newsForm,
+          replies: (state.newsForm.replies || 0) + 1,
+        },
+      }))
+    } else {
+      CommentStore.setState((prev) => {
+        let didIncrement = false
+
+        const replaceComment = (
+          commentsList: typeof prev.comments
+        ): typeof prev.comments => {
+          return commentsList.map((comment) => {
+            if (!didIncrement && comment._id === postedComment.replyToId) {
+              didIncrement = true
+              return {
+                ...comment,
+                replies: comment.replies + 1,
+                comments: replaceComment(comment.comments),
+              }
+            }
+
+            if (comment.uniqueId === postedComment.uniqueId) {
+              return {
+                ...comment,
+                ...postedComment,
+              }
+            }
+
+            return {
+              ...comment,
+              comments: replaceComment(comment.comments),
+            }
+          })
+        }
+
+        return {
+          comments: replaceComment(prev.comments),
+        }
+      })
+    }
+
+    resetPostedComment()
+  }, [postedComment])
+
   return (
     <>
-      <FlatList
-        data={comments}
-        keyExtractor={(i) => i._id}
-        renderItem={({ item }) => <EachComment comment={item} />}
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{
-          paddingBottom: Platform.OS === 'ios' ? 120 : insets.bottom + 170,
-        }}
-      />
+      <Animated.View style={[{ flexGrow: 0 }, animatedStyle]}>
+        <FlatList
+          data={comments}
+          keyExtractor={(i) => i._id}
+          renderItem={({ item }) => <EachComment comment={item} />}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{
+            paddingBottom: Platform.OS === 'ios' ? 120 : insets.bottom + 70,
+          }}
+          showsVerticalScrollIndicator={false}
+        />
+      </Animated.View>
     </>
   )
 }

@@ -139,7 +139,7 @@ const EachComment: React.FC<EachCommentProps> = ({
           source={{ html: truncateString(comment.content, 220) }}
           baseStyle={{
             color: isDark ? '#848484' : '#6E6E6E',
-            fontSize: 12,
+            fontSize: 14,
             fontWeight: 400,
             lineHeight: 20,
             marginBottom: 8,

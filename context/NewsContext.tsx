@@ -4,7 +4,7 @@ import { AuthStore } from '@/store/AuthStore'
 import { MessageStore } from '@/store/notification/Message'
 
 interface NewsContextType {
-  featuredNews: News[]
+  news: News[]
 }
 
 const NewsContext = createContext<NewsContextType | undefined>(undefined)
@@ -22,23 +22,24 @@ interface NewsProviderProps {
 }
 
 export const NewsProvider: React.FC<NewsProviderProps> = ({ children }) => {
-  const url = '/news/feed'
   const { user } = AuthStore()
   const { setMessage } = MessageStore()
-  const { featuredNews, getBannerNews, getSavedBannersNews } = NewsStore()
+  const { news, getNews, getSavedNews } = NewsStore()
 
   useEffect(() => {
-    if (featuredNews.length === 0 && user) {
-      getSavedBannersNews()
-      const params = `?country=${user.country}&state=${user.state}`
-      getBannerNews(`${url}${params}`, setMessage)
+    if (news.length === 0 && user) {
+      getSavedNews()
+      getNews(
+        `/news/?country=${user.country}&state=${user.state}&page_size=20&page=0`,
+        setMessage
+      )
     }
   }, [])
 
   return (
     <NewsContext.Provider
       value={{
-        featuredNews,
+        news,
       }}
     >
       {children}

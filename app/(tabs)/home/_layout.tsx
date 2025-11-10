@@ -1,17 +1,12 @@
 import { Stack } from 'expo-router'
-import { useColorScheme, View } from 'react-native'
+import { View } from 'react-native'
 
 export default function HomeLayout() {
-  const isDark = useColorScheme() === 'dark'
-
   return (
-    <View className={`flex-1`}>
+    <View className={`flex-1 bg-secondary dark:bg-dark-secondary`}>
       <Stack
         screenOptions={{
           headerShown: false,
-          headerStyle: {
-            backgroundColor: isDark ? '#1C1E21' : '#121314',
-          },
         }}
       >
         <Stack.Screen name="notifications" />
