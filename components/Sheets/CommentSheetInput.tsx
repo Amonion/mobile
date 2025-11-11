@@ -92,7 +92,7 @@ const CommentSheetInput: React.FC = () => {
 
     setText('')
     Keyboard.dismiss()
-    // postItem('/comments', formData)
+    postItem('/comments', formData)
   }
 
   return (
