@@ -4,7 +4,6 @@ import {
   Image,
   ScrollView,
   Text,
-  TouchableOpacity,
   useColorScheme,
   useWindowDimensions,
   View,
@@ -23,7 +22,10 @@ import { AuthStore } from '@/store/AuthStore'
 import { upsert } from '@/lib/localStorage/db'
 
 const FeaturedNews: React.FC = () => {
-  const { newsForm, newsType, getANews, updateNews } = NewsStore()
+  const newsForm = NewsStore((state) => state.newsForm)
+  const newsType = NewsStore((state) => state.newsType)
+  const getANews = NewsStore((state) => state.getANews)
+  const updateNews = NewsStore((state) => state.updateNews)
   const { mainPost } = CommentStore()
   const { width } = useWindowDimensions()
   const { id } = useLocalSearchParams()
@@ -50,7 +52,6 @@ const FeaturedNews: React.FC = () => {
 
   useEffect(() => {
     if (!newsForm._id && pathname === `/news/${id}`) {
-      console.log(newsForm)
       getANews(`/news/${id}`)
     }
   }, [newsForm._id, pathname])
@@ -75,16 +76,19 @@ const FeaturedNews: React.FC = () => {
           />
         )}
       </View>
-      <NewsStat onCommentPress={() => commentSheetRef.current?.open()} />
+      <NewsStat
+        newsForm={newsForm}
+        onCommentPress={() => commentSheetRef.current?.open()}
+      />
       <View className="px-4 flex-1">
-        <View className="py-1 gap-4 flex-row cursor-default flex items-center mb-5">
+        <View className="py-1 gap-4 flex-row cursor-default flex items-center mb-1">
           <View className="flex gap-1 flex-row items-center">
             <User size={18} color={color} />
             <Text className="text">{newsForm.author}</Text>
           </View>
 
           <View className="flex gap-1 flex-row items-center">
-            <Calendar size={18} color={color} />
+            <Calendar size={16} color={color} />
             <Text className="text">
               {formatDate(String(newsForm.publishedAt))}
             </Text>

@@ -4,6 +4,7 @@ import NewsStore, { News } from '@/store/news/News'
 import NewsCard from '@/components/News/NewsCard'
 import MainNews from '@/components/News/MainNews'
 import { CommentSheet, CommentSheetRef } from '@/components/Sheets/CommentSheet'
+import TopNews from '@/components/News/TopNews'
 
 const AnimatedFlatList = Animated.createAnimatedComponent(
   FlatList<News> // 👈 typed FlatList
@@ -47,6 +48,7 @@ const NewsPage = () => {
         ListHeaderComponent={
           <View>
             <MainNews />
+            <TopNews />
           </View>
         }
       />

@@ -1,4 +1,4 @@
-import { formatRelativeDate, truncateString } from '@/lib/helpers'
+import { formatRelativeDate } from '@/lib/helpers'
 import React from 'react'
 import {
   View,
@@ -13,7 +13,8 @@ import NewsStat from './NewsStat'
 import { router } from 'expo-router'
 import CommentStore from '@/store/post/Comment'
 import { PostEmpty } from '@/store/post/Post'
-import { CalendarClock, Clock } from 'lucide-react-native'
+import { Clock } from 'lucide-react-native'
+import { AuthStore } from '@/store/AuthStore'
 
 interface NewsCardProps {
   news: News
@@ -26,6 +27,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ news, onCommentPress }) => {
   const colorScheme = useColorScheme()
   const color = colorScheme === 'dark' ? '#6E6E6E' : '#BABABA'
   const { getComments } = CommentStore()
+  const { user } = AuthStore()
 
   const move = () => {
     CommentStore.setState({ mainPost: { ...PostEmpty, _id: news._id } })
@@ -39,7 +41,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ news, onCommentPress }) => {
     })
 
     router.push(`/news/${news._id}`)
-    getComments(`/posts/comments?postType=comment&postId=${news._id}`)
+    getComments(`/comments?postId=${news._id}&ordering=score&myId=${user?._id}`)
   }
 
   return (
@@ -69,7 +71,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ news, onCommentPress }) => {
           />
         </View>
 
-        <NewsStat onCommentPress={onCommentPress} />
+        <NewsStat newsForm={news} onCommentPress={onCommentPress} />
       </View>
     </>
   )

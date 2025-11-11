@@ -14,6 +14,7 @@ import {
   useColorScheme,
   BackHandler,
   Keyboard,
+  Image,
 } from 'react-native'
 import { Gesture, GestureDetector } from 'react-native-gesture-handler'
 import Animated, {
@@ -26,17 +27,17 @@ import Animated, {
   useDerivedValue,
 } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { X } from 'lucide-react-native'
+import { MessageCircle, X } from 'lucide-react-native'
 import CommentBox from './CommentBox'
 import CommentSheetInput from './CommentSheetInput'
-import { Comment } from '@/store/post/Comment'
+import CommentStore, { Comment } from '@/store/post/Comment'
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window')
 
-const SNAP_TOP = SCREEN_HEIGHT * 0.1 // 90% open
-const SNAP_MID_HIGH = SCREEN_HEIGHT * 0.3 // 70%
-const SNAP_MIDDLE = SCREEN_HEIGHT * 0.5 // 50%
-const SNAP_BOTTOM = SCREEN_HEIGHT // closed
+const SNAP_TOP = SCREEN_HEIGHT * 0.1
+const SNAP_MID_HIGH = SCREEN_HEIGHT * 0.3
+const SNAP_MIDDLE = SCREEN_HEIGHT * 0.5
+const SNAP_BOTTOM = SCREEN_HEIGHT
 
 const AnimatedView = Animated.createAnimatedComponent(View)
 
@@ -53,6 +54,7 @@ interface Props {
 export const CommentSheet = forwardRef<CommentSheetRef, Props>(
   ({ onSubmitComment, initialComments = [] }, ref) => {
     const [showSheet, setShowSheet] = useState(false)
+    const { comments } = CommentStore()
     const translateY = useSharedValue(SNAP_BOTTOM)
     const visibleHeight = useDerivedValue(
       () => SCREEN_HEIGHT - translateY.value
@@ -64,7 +66,7 @@ export const CommentSheet = forwardRef<CommentSheetRef, Props>(
     const previousSnap = useRef(SNAP_MIDDLE)
 
     useImperativeHandle(ref, () => ({
-      open: () => openSheet(), // ✅ default open at 50%
+      open: () => openSheet(),
       close: () => closeSheet(),
     }))
 
@@ -106,9 +108,9 @@ export const CommentSheet = forwardRef<CommentSheetRef, Props>(
     const openSheet = (to = SNAP_MIDDLE) => {
       isVisible.value = 1
       translateY.value = withSpring(to, { damping: 20, stiffness: 120 })
-      setTimeout(() => {
-        setShowSheet(true)
-      }, 200)
+      // setTimeout(() => {
+      //   setShowSheet(true)
+      // }, 200)
     }
 
     const closeSheet = () => {
@@ -149,18 +151,6 @@ export const CommentSheet = forwardRef<CommentSheetRef, Props>(
 
     const sheetStyle = useAnimatedStyle(() => ({
       transform: [{ translateY: translateY.value }],
-      borderTopLeftRadius: interpolate(
-        translateY.value,
-        [0, SNAP_BOTTOM],
-        [16, 0],
-        Extrapolate.CLAMP
-      ),
-      borderTopRightRadius: interpolate(
-        translateY.value,
-        [0, SNAP_BOTTOM],
-        [16, 0],
-        Extrapolate.CLAMP
-      ),
     }))
 
     const backdropStyle = useAnimatedStyle(() => ({
@@ -187,17 +177,25 @@ export const CommentSheet = forwardRef<CommentSheetRef, Props>(
 
         <AnimatedView
           className={`bg-primary dark:bg-dark-primary elevation-20 z-20 absolute left-0 top-0 right-0`}
-          style={[{ height: SCREEN_HEIGHT }, sheetStyle]}
+          style={[
+            {
+              height: SCREEN_HEIGHT,
+              borderTopLeftRadius: 16,
+              borderTopRightRadius: 16,
+            },
+            sheetStyle,
+          ]}
         >
           <SafeAreaView edges={['bottom']} style={{ flex: 1 }}>
             <GestureDetector gesture={panGesture}>
               <View className="h-[50px] px-3 justify-center items-center">
                 <View className="w-[48px] bg-primaryLight dark:bg-dark-primaryLight rounded-full h-[6px]" />
+
                 <TouchableOpacity
-                  onPress={closeSheet}
+                  onPress={() => setShowSheet(!showSheet)}
                   className="absolute right-3 p-[6px] top-2"
                 >
-                  <X size={20} color={color} />
+                  <MessageCircle size={18} color={color} />
                 </TouchableOpacity>
               </View>
             </GestureDetector>
@@ -210,6 +208,28 @@ export const CommentSheet = forwardRef<CommentSheetRef, Props>(
                 translateY={translateY}
                 visibleHeight={visibleHeight}
               />
+
+              {/* {comments.length === 0 ? (
+                <View className="items-center">
+                  <Image
+                    source={
+                      isDark
+                        ? require('@/assets/images/NotFoundDark.png')
+                        : require('@/assets/images/NotFoundLight.png')
+                    }
+                    className="w-[150px] h-[120px]"
+                    resizeMode="contain"
+                  />
+                  <Text className="text-lg text-primary dark:text-dark-primary">
+                    No Comments Found
+                  </Text>
+                </View>
+              ) : (
+                <CommentBox
+                  translateY={translateY}
+                  visibleHeight={visibleHeight}
+                />
+              )} */}
             </View>
           </SafeAreaView>
         </AnimatedView>

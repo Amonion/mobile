@@ -318,7 +318,7 @@ const CommentStore = create<CommentState>((set) => ({
     updatedItem: FormData | Record<string, unknown>
   ) => {
     try {
-      set({ loading: true, error: null })
+      set({ loading: true })
 
       const response = await customRequest({
         url,
@@ -333,7 +333,7 @@ const CommentStore = create<CommentState>((set) => ({
     } catch (error) {
       console.log(error)
     } finally {
-      set({ loading: false, error: null })
+      set({ loading: false })
     }
   },
 

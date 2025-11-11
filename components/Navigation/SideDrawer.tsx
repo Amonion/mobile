@@ -13,6 +13,7 @@ import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { AuthStore } from '@/store/AuthStore'
 import ThemeToggle from './ThemeToggle'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 const SCREEN_WIDTH = Dimensions.get('window').width
 
@@ -26,6 +27,7 @@ const SideDrawer = ({
   const [animation] = React.useState(new Animated.Value(-SCREEN_WIDTH))
   const { user, logout } = AuthStore()
   const router = useRouter()
+  const insets = useSafeAreaInsets()
 
   React.useEffect(() => {
     Animated.timing(animation, {
@@ -59,7 +61,10 @@ const SideDrawer = ({
       >
         <TouchableWithoutFeedback onPress={() => {}}>
           <View className="bg-primary dark:bg-dark-primary z-50 shadow-md h-full w-[75%] pt-[10px] px-[20px]">
-            <View className="flex items-center flex-row mb-10">
+            <View
+              style={{ marginTop: insets.top + 5 }}
+              className="flex items-center flex-row mb-10"
+            >
               <View className="w-[60px] h-[60px] mr-3 border border-border dark:border-dark-border rounded-full overflow-hidden">
                 <Image
                   source={

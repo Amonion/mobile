@@ -7,6 +7,7 @@ import { AuthStore } from '@/store/AuthStore'
 import { MessageStore } from '@/store/notification/Message'
 import CommentStore, { CommentEmpty } from '@/store/post/Comment'
 import NewsStore from '@/store/news/News'
+import Spinner from '../Response/Spinner'
 
 const CommentSheetInput: React.FC = () => {
   const [text, setText] = useState('')
@@ -14,7 +15,7 @@ const CommentSheetInput: React.FC = () => {
   const { user } = AuthStore()
   const { setMessage } = MessageStore()
   const { newsForm } = NewsStore()
-  const { commentForm, activeComment, postItem, setTempComment } =
+  const { commentForm, activeComment, loading, postItem, setTempComment } =
     CommentStore()
   const isDark = colorScheme === 'dark'
   const color = isDark ? '#BABABA' : '#6E6E6E'
@@ -32,7 +33,6 @@ const CommentSheetInput: React.FC = () => {
     const formData = {
       to: 'users',
       content: text,
-      editId: '',
       postId: commentForm._id ? commentForm._id : newsForm._id,
       uniqueId: uniqueId,
       replyToId:
@@ -92,7 +92,7 @@ const CommentSheetInput: React.FC = () => {
 
     setText('')
     Keyboard.dismiss()
-    postItem('/posts/comments', formData)
+    // postItem('/comments', formData)
   }
 
   return (
@@ -120,7 +120,11 @@ const CommentSheetInput: React.FC = () => {
           returnKeyType="send"
           onSubmitEditing={submitComment}
         />
-        <Send onPress={submitComment} color={'#DA3986'} size={25} />
+        {loading ? (
+          <Spinner size={25} />
+        ) : (
+          <Send onPress={submitComment} color={'#DA3986'} size={25} />
+        )}
       </View>
     </>
   )

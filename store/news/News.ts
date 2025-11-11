@@ -27,6 +27,7 @@ export interface News {
   isPublished: boolean
   state: string
   country: string
+  scores: number
   views: number
   shares: number
   comments: number
@@ -65,6 +66,7 @@ export const NewsEmpty = {
   isPublished: false,
   state: '',
   country: '',
+  scores: 0,
   views: 0,
   replies: 0,
   comments: 0,

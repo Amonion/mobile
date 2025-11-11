@@ -1,4 +1,11 @@
-import { Platform, FlatList } from 'react-native'
+import {
+  Platform,
+  FlatList,
+  View,
+  Text,
+  Image,
+  useColorScheme,
+} from 'react-native'
 import type { SharedValue } from 'react-native-reanimated'
 import EachComment from './EachComment'
 import { useEffect } from 'react'
@@ -22,14 +29,15 @@ const CommentBox: React.FC<CommentBoxProps> = ({ visibleHeight }) => {
     sort,
     hasMoreComments,
     tempComment,
-    comments,
     getComments,
     resetActiveComment,
     resetPostedComment,
   } = CommentStore()
+  const comments = CommentStore((state) => state.comments)
   const { user } = AuthStore()
   const insets = useSafeAreaInsets()
-
+  const colorScheme = useColorScheme()
+  const isDark = colorScheme === 'dark'
   const animatedStyle = useAnimatedStyle(() => {
     return {
       height: visibleHeight.value - 100,
@@ -93,7 +101,7 @@ const CommentBox: React.FC<CommentBoxProps> = ({ visibleHeight }) => {
     })
 
     resetActiveComment()
-  }, [tempComment])
+  }, [tempComment, mainPost])
 
   useEffect(() => {
     if (!postedComment._id || !postedComment.uniqueId) return
@@ -102,45 +110,45 @@ const CommentBox: React.FC<CommentBoxProps> = ({ visibleHeight }) => {
       NewsStore.setState((state) => ({
         newsForm: {
           ...state.newsForm,
-          replies: (state.newsForm.replies || 0) + 1,
+          replies: state.newsForm.replies + 1,
         },
       }))
-    } else {
-      CommentStore.setState((prev) => {
-        let didIncrement = false
+    }
 
-        const replaceComment = (
-          commentsList: typeof prev.comments
-        ): typeof prev.comments => {
-          return commentsList.map((comment) => {
-            if (!didIncrement && comment._id === postedComment.replyToId) {
-              didIncrement = true
-              return {
-                ...comment,
-                replies: comment.replies + 1,
-                comments: replaceComment(comment.comments),
-              }
-            }
+    CommentStore.setState((prev) => {
+      let didIncrement = false
 
-            if (comment.uniqueId === postedComment.uniqueId) {
-              return {
-                ...comment,
-                ...postedComment,
-              }
-            }
-
+      const replaceComment = (
+        commentsList: typeof prev.comments
+      ): typeof prev.comments => {
+        return commentsList.map((comment) => {
+          if (!didIncrement && comment._id === postedComment.replyToId) {
+            didIncrement = true
             return {
               ...comment,
+              replies: comment.replies + 1,
               comments: replaceComment(comment.comments),
             }
-          })
-        }
+          }
 
-        return {
-          comments: replaceComment(prev.comments),
-        }
-      })
-    }
+          if (comment.uniqueId === postedComment.uniqueId) {
+            return {
+              ...comment,
+              ...postedComment,
+            }
+          }
+
+          return {
+            ...comment,
+            comments: replaceComment(comment.comments),
+          }
+        })
+      }
+
+      return {
+        comments: replaceComment(prev.comments),
+      }
+    })
 
     resetPostedComment()
   }, [postedComment])
@@ -148,16 +156,33 @@ const CommentBox: React.FC<CommentBoxProps> = ({ visibleHeight }) => {
   return (
     <>
       <Animated.View style={[{ flexGrow: 0 }, animatedStyle]}>
-        <FlatList
-          data={comments}
-          keyExtractor={(i) => i._id}
-          renderItem={({ item }) => <EachComment comment={item} />}
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{
-            paddingBottom: Platform.OS === 'ios' ? 120 : insets.bottom + 70,
-          }}
-          showsVerticalScrollIndicator={false}
-        />
+        {comments.length === 0 ? (
+          <View className="items-center">
+            <Image
+              source={
+                isDark
+                  ? require('@/assets/images/NotFoundDark.png')
+                  : require('@/assets/images/NotFoundLight.png')
+              }
+              className="w-[150px] h-[120px]"
+              resizeMode="contain"
+            />
+            <Text className="text-lg text-primary dark:text-dark-primary">
+              No Comments Found
+            </Text>
+          </View>
+        ) : (
+          <FlatList
+            data={comments}
+            keyExtractor={(i) => i._id}
+            renderItem={({ item }) => <EachComment comment={item} />}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={{
+              paddingBottom: Platform.OS === 'ios' ? 120 : insets.bottom + 70,
+            }}
+            showsVerticalScrollIndicator={false}
+          />
+        )}
       </Animated.View>
     </>
   )
