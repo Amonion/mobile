@@ -1,7 +1,8 @@
 import { create } from 'zustand'
 import _debounce from 'lodash/debounce'
+import isEqual from 'lodash/isEqual'
 import { customRequest } from '@/lib/api'
-import { getAll, saveAll } from '@/lib/localStorage/db'
+import { getAll, saveAll, upsert } from '@/lib/localStorage/db'
 
 interface FetchResponse {
   message: string
@@ -15,6 +16,7 @@ interface FetchResponse {
 
 export interface News {
   _id: string
+  username: string
   placeId: string
   title: string
   priority: string
@@ -43,6 +45,7 @@ export interface News {
   liked: boolean
   isFeatured: boolean
   isMain: boolean
+  viewed: boolean
   seoTitle: string
   seoDescription: string
   isChecked?: boolean
@@ -53,6 +56,7 @@ export const NewsEmpty = {
   _id: '',
   placeId: '',
   title: '',
+  username: '',
   priority: '',
   content: '',
   author: '',
@@ -77,6 +81,7 @@ export const NewsEmpty = {
   source: '',
   bookmarked: false,
   liked: false,
+  viewed: false,
   isFeatured: false,
   isMain: false,
   seoTitle: '',
@@ -86,15 +91,19 @@ export const NewsEmpty = {
 interface NewsState {
   count: number
   page_size: number
+  currentPage: number
   news: News[]
   featuredNews: News[]
   mainNews: News[]
   loading: boolean
+  hasMore: boolean
+  newsType: 'featuredNews' | 'mainNews' | 'news'
   selectedItems: News[]
   searchedNews: News[]
   isAllChecked: boolean
   newsForm: News
   setForm: (key: keyof News, value: News[keyof News]) => void
+  setCurrentPage: (page: number) => void
   resetForm: () => void
   getNews: (
     url: string,
@@ -124,10 +133,13 @@ interface NewsState {
 const NewsStore = create<NewsState>((set) => ({
   count: 0,
   page_size: 0,
+  currentPage: 0,
   news: [],
   featuredNews: [],
   mainNews: [],
+  newsType: 'featuredNews',
   loading: false,
+  hasMore: false,
   selectedItems: [],
   searchedNews: [],
   isAllChecked: false,
@@ -160,21 +172,16 @@ const NewsStore = create<NewsState>((set) => ({
     }
   },
 
+  setCurrentPage: (page: number) => {
+    set({ currentPage: page })
+  },
   setLoading: (loadState: boolean) => {
     set({ loading: loadState })
   },
 
   getSavedNews: async () => {
     try {
-      const featuredNews = await getAll<News>('featuredNews')
-      const mainNews = await getAll<News>('mainNews')
       const news = await getAll<News>('news')
-      if (featuredNews.length > 0) {
-        set({ featuredNews })
-      }
-      if (mainNews.length > 0) {
-        set({ mainNews })
-      }
       if (news.length > 0) {
         set({ news })
       }
@@ -188,64 +195,42 @@ const NewsStore = create<NewsState>((set) => ({
   getNews: async (url: string) => {
     try {
       const response = await customRequest({ url })
-
       const data = response?.data
+      set({ currentPage: 1 })
       if (data) {
-        const featuredNews = data.results.filter(
-          (item: News) => item.isFeatured
-        )
-        const savedFeaturedNews = NewsStore.getState().featuredNews
-        if (featuredNews.length > 0) {
-          const newNews: News[] = featuredNews.filter(
-            (item: News) => !savedFeaturedNews.some((m) => m._id === item._id)
-          )
-          if (newNews.length > 0) {
-            set((prev) => {
-              return {
-                featuredNews: [...prev.featuredNews, ...newNews],
-              }
-            })
-            await saveAll('featuredNews', newNews)
-          } else {
-            console.log('No new featured news to add.')
-          }
-        }
-
-        const mainNews = data.results.filter((item: News) => item.isMain)
-        const savedMainNews = NewsStore.getState().mainNews
-        if (mainNews.length > 0) {
-          const newNews: News[] = mainNews.filter(
-            (item: News) => !savedMainNews.some((m) => m._id === item._id)
-          )
-          if (newNews.length > 0) {
-            set((prev) => {
-              return {
-                mainNews: [...prev.mainNews, ...newNews],
-              }
-            })
-            await saveAll('mainNews', newNews)
-          } else {
-            console.log('No new main news to add.')
-          }
-        }
-
-        const news = data.results.filter(
-          (item: News) => !item.isMain && !item.isFeatured
-        )
+        const fetchedNews = data.results
         const savedNews = NewsStore.getState().news
-        if (news.length > 0) {
-          const newNews: News[] = news.filter(
-            (item: News) => !savedNews.some((m) => m._id === item._id)
-          )
-          if (newNews.length > 0) {
-            set((prev) => {
-              return {
-                news: [...prev.news, ...newNews],
-              }
+
+        if (fetchedNews.length > 0) {
+          const merged = [
+            ...fetchedNews,
+            ...savedNews.filter(
+              (localItem) =>
+                !fetchedNews.some(
+                  (apiItem: News) => apiItem._id === localItem._id
+                )
+            ),
+          ]
+
+          const toUpsert = fetchedNews.filter((apiItem: News) => {
+            const existing = savedNews.find(
+              (localItem) => localItem._id === apiItem._id
+            )
+            return !existing || !isEqual(existing, apiItem)
+          })
+
+          if (toUpsert.length > 0) {
+            set({
+              news: merged,
             })
-            await saveAll('news', newNews)
+
+            for (const item of toUpsert) {
+              await upsert('news', item)
+            }
+
+            console.log(`✅ Upserted ${toUpsert.length} featured news item(s).`)
           } else {
-            console.log('No new news to add.')
+            console.log('No new or updated featured news to upsert.')
           }
         }
       }

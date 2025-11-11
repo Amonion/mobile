@@ -11,6 +11,7 @@ const AppBarWithDrawer = () => {
   const { user } = AuthStore()
   const { getUser } = UserStore()
   const pathName = usePathname()
+  const mainPaths = ['/home', '/home/news']
 
   useEffect(() => {
     if (user) {
@@ -24,7 +25,7 @@ const AppBarWithDrawer = () => {
 
   return (
     <>
-      {pathName === '/home' ? (
+      {mainPaths.includes(pathName) ? (
         <MainAppBar onMenuPress={() => setDrawerVisible(true)} />
       ) : (
         <MinorAppBar />

@@ -9,29 +9,39 @@ import { formatCount, formatRelativeDate } from '@/lib/helpers'
 import RenderHTML from 'react-native-render-html'
 import { Eye, Heart, MessageCircle } from 'lucide-react-native'
 import Carousel from 'react-native-reanimated-carousel'
-import NewsStore from '@/store/news/News'
+import NewsStore, { News } from '@/store/news/News'
 import { router } from 'expo-router'
 import CommentStore from '@/store/post/Comment'
 import { PostEmpty } from '@/store/post/Post'
 import { LinearGradient } from 'expo-linear-gradient'
+import { useEffect, useState } from 'react'
 
 const FeaturedNews: React.FC = () => {
-  const featuredNews = NewsStore((state) => state.featuredNews) // ✅ reactive
   const { getComments } = CommentStore()
+  const { news } = NewsStore()
   const { width } = useWindowDimensions()
+  const [featuredNews, setFeatureNews] = useState<News[]>([])
+
+  useEffect(() => {
+    if (news.length > 0) {
+      setFeatureNews(news.filter((item) => item.isFeatured))
+    }
+  }, [news.length])
 
   const move = (id: string) => {
     CommentStore.setState({ mainPost: { ...PostEmpty, _id: id } })
-    // NewsStore.setState((prev) => {
-    //   return {
-    //     newsForm: prev.news.find((item) => item._id === id),
-    //   }
-    // })
+
+    NewsStore.setState((prev) => {
+      const newsItem = prev.news.find((item) => item._id === id)
+      if (!newsItem) return prev
+      return {
+        newsForm: newsItem,
+      }
+    })
+
     router.push(`/news/${id}`)
     getComments(`/posts/comments?postType=comment&postId=${id}`)
   }
-
-  if (featuredNews.length === 0) return null
 
   return (
     <View className="mb-1" style={{ height: 260, position: 'relative' }}>

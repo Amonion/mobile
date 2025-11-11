@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, ReactNode } from 'react'
 import NewsStore, { News } from '@/store/news/News'
 import { AuthStore } from '@/store/AuthStore'
 import { MessageStore } from '@/store/notification/Message'
+// import { clearTable } from '@/lib/localStorage/db'
 
 interface NewsContextType {
   news: News[]
@@ -24,17 +25,18 @@ interface NewsProviderProps {
 export const NewsProvider: React.FC<NewsProviderProps> = ({ children }) => {
   const { user } = AuthStore()
   const { setMessage } = MessageStore()
-  const { news, getNews, getSavedNews } = NewsStore()
+  const { news, currentPage, getNews, getSavedNews } = NewsStore()
 
   useEffect(() => {
-    if (news.length === 0 && user) {
+    // clearTable('news')
+    if (currentPage === 0 && user) {
       getSavedNews()
       getNews(
-        `/news/?country=${user.country}&state=${user.state}&page_size=20&page=0`,
+        `/news/feed/?country=${user.country}&userId=${user._id}&state=${user.state}&page_size=20&page=0`,
         setMessage
       )
     }
-  }, [])
+  }, [user])
 
   return (
     <NewsContext.Provider

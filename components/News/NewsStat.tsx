@@ -22,7 +22,7 @@ type NewsStatProps = {
 
 const NewsStat: React.FC<NewsStatProps> = ({ onCommentPress }) => {
   const { updatePost } = PostStore()
-  const { news, newsForm } = NewsStore()
+  const { news, newsForm, newsType } = NewsStore()
   const currentNews = news.find((n) => n._id === newsForm._id) || newsForm
   const { user } = AuthStore()
   const newsLink = `https://schoolingsocial.com/news/${newsForm._id}?action=shared`
@@ -31,30 +31,32 @@ const NewsStat: React.FC<NewsStatProps> = ({ onCommentPress }) => {
   const color = isDark ? '#BABABA' : '#6E6E6E'
 
   const handleLike = async () => {
-    NewsStore.setState((state) => {
-      const updatedNews = state.news.map((p) =>
-        p._id === newsForm._id
-          ? {
-              ...p,
-              liked: !p.liked,
-              likes: p.liked ? p.likes - 1 : p.likes + 1,
-            }
-          : p
-      )
+    if (newsType === 'featuredNews') {
+      NewsStore.setState((state) => {
+        const updatedNews = state.featuredNews.map((p) =>
+          p._id === newsForm._id
+            ? {
+                ...p,
+                liked: !p.liked,
+                likes: p.liked ? p.likes - 1 : p.likes + 1,
+              }
+            : p
+        )
 
-      const updatedNewsForm =
-        state.newsForm && state.newsForm._id === newsForm._id
-          ? {
-              ...state.newsForm,
-              liked: !state.newsForm.liked,
-              likes: state.newsForm.liked
-                ? state.newsForm.likes - 1
-                : state.newsForm.likes + 1,
-            }
-          : state.newsForm
+        const updatedNewsForm =
+          state.newsForm && state.newsForm._id === newsForm._id
+            ? {
+                ...state.newsForm,
+                liked: !state.newsForm.liked,
+                likes: state.newsForm.liked
+                  ? state.newsForm.likes - 1
+                  : state.newsForm.likes + 1,
+              }
+            : state.newsForm
 
-      return { news: updatedNews, newsForm: updatedNewsForm }
-    })
+        return { featuredNews: updatedNews, newsForm: updatedNewsForm }
+      })
+    }
 
     updatePost(`/news/like`, {
       id: newsForm._id,
@@ -63,32 +65,32 @@ const NewsStat: React.FC<NewsStatProps> = ({ onCommentPress }) => {
   }
 
   const handleBookmark = async () => {
-    NewsStore.setState((state) => {
-      const updatedNews = state.news.map((p) =>
-        p._id === newsForm._id
-          ? {
-              ...p,
-              bookmarked: !p.bookmarked,
-              bookmarks: p.bookmarked ? p.bookmarks - 1 : p.bookmarks + 1,
-            }
-          : p
-      )
+    if (newsType === 'featuredNews') {
+      NewsStore.setState((state) => {
+        const updatedNews = state.featuredNews.map((p) =>
+          p._id === newsForm._id
+            ? {
+                ...p,
+                bookmarked: !p.bookmarked,
+                bookmarks: p.bookmarked ? p.bookmarks - 1 : p.bookmarks + 1,
+              }
+            : p
+        )
 
-      const updatedNewsForm =
-        state.newsForm && state.newsForm._id === newsForm._id
-          ? {
-              ...state.newsForm,
-              bookmarked: !state.newsForm.bookmarked,
-              bookmarks: state.newsForm.bookmarked
-                ? state.newsForm.bookmarks - 1
-                : state.newsForm.bookmarks + 1,
-            }
-          : state.newsForm
+        const updatedNewsForm =
+          state.newsForm && state.newsForm._id === newsForm._id
+            ? {
+                ...state.newsForm,
+                bookmarked: !state.newsForm.bookmarked,
+                bookmarks: state.newsForm.bookmarked
+                  ? state.newsForm.bookmarks - 1
+                  : state.newsForm.bookmarks + 1,
+              }
+            : state.newsForm
 
-      console.log(updatedNewsForm.bookmarks)
-
-      return { news: updatedNews, newsForm: updatedNewsForm }
-    })
+        return { featuredNews: updatedNews, newsForm: updatedNewsForm }
+      })
+    }
 
     updatePost(`/news/bookmark`, {
       id: newsForm._id,

@@ -7,13 +7,13 @@ import {
   Platform,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { useCallback } from 'react'
 import { Bell, Gift, Globe, Megaphone, Menu, Search } from 'lucide-react-native'
-import { NavStore } from '@/store/notification/Navigation'
+import { useRouter } from 'expo-router'
 
 const MainAppBar = ({ onMenuPress }: { onMenuPress: () => void }) => {
   const colorScheme = useColorScheme()
   const isDark = colorScheme === 'dark' ? true : false
+  const router = useRouter()
   // const { setNavBarHeight } = NavStore()
   const insets = useSafeAreaInsets()
 
@@ -56,7 +56,7 @@ const MainAppBar = ({ onMenuPress }: { onMenuPress: () => void }) => {
           <Megaphone size={26} color={isDark ? '#BABABA' : '#6E6E6E'} />
         </TouchableOpacity>
 
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push('/home/news')}>
           <Globe size={26} color={isDark ? '#BABABA' : '#6E6E6E'} />
         </TouchableOpacity>
         <TouchableOpacity>

@@ -9,13 +9,39 @@ import { formatCount, formatRelativeDate } from '@/lib/helpers'
 import RenderHTML from 'react-native-render-html'
 import { Eye, Heart, MessageCircle } from 'lucide-react-native'
 import Carousel from 'react-native-reanimated-carousel'
-import NewsStore from '@/store/news/News'
+import NewsStore, { News } from '@/store/news/News'
+import { useEffect, useState } from 'react'
+import CommentStore from '@/store/post/Comment'
+import { PostEmpty } from '@/store/post/Post'
+import { router } from 'expo-router'
+import { LinearGradient } from 'expo-linear-gradient'
 
 const MainNews: React.FC = () => {
-  const { mainNews } = NewsStore()
   const { width } = useWindowDimensions()
+  const { getComments } = CommentStore()
+  const { news } = NewsStore()
+  const [mainNews, setMainNews] = useState<News[]>([])
 
-  if (mainNews.length === 0) return null
+  useEffect(() => {
+    if (news.length > 0) {
+      setMainNews(news.filter((item) => item.isMain))
+    }
+  }, [news])
+
+  const move = (id: string) => {
+    CommentStore.setState({ mainPost: { ...PostEmpty, _id: id } })
+
+    NewsStore.setState((prev) => {
+      const newsItem = prev.news.find((item) => item._id === id)
+      if (!newsItem) return prev
+      return {
+        newsForm: newsItem,
+      }
+    })
+
+    router.push(`/news/${id}`)
+    getComments(`/posts/comments?postType=comment&postId=${id}`)
+  }
 
   return (
     <View className="mb-1" style={{ height: 260, position: 'relative' }}>
@@ -37,13 +63,18 @@ const MainNews: React.FC = () => {
               />
             )}
 
-            <View
+            <LinearGradient
+              colors={['rgba(0,0,0,0.6)', 'rgba(0,0,0,0.1)', 'transparent']}
+              locations={[0, 0.5, 1]}
+              start={{ x: 0.5, y: 1 }}
+              end={{ x: 0.5, y: 0 }}
               style={{
                 position: 'absolute',
                 inset: 0,
-                backgroundColor: 'rgba(0,0,0,0.5)',
               }}
             />
+
+            <View className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
 
             <View
               style={{
@@ -62,7 +93,7 @@ const MainNews: React.FC = () => {
             </View>
 
             <View style={{ position: 'absolute', bottom: 0, padding: 12 }}>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => move(item._id)}>
                 <Text
                   style={{
                     color: 'white',
