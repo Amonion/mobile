@@ -1,3 +1,4 @@
+import { successfulBody, successfulTitle } from '@/constants/Text'
 import { router } from 'expo-router'
 import React from 'react'
 import {
@@ -25,16 +26,15 @@ const SignupSuccessful = () => {
       >
         <View className="flex-1 justify-center items-center px-[15px]">
           <Image
-            source={
-              isDark
-                ? require('../../assets/images/successDark.png')
-                : require('../../assets/images/success.png')
-            }
+            source={require('../../assets/images/success.png')}
             resizeMode="contain"
             className="w-[450px] h-[250px] mb-5"
           />
-          <Text className="text-primary dark:text-dark-primary mb-10 text-xl">
-            Your account was created successfully
+          <Text className="text-[25px] text-secondary text-center dark:text-dark-secondary mb-6 font-bold">
+            {successfulTitle}
+          </Text>
+          <Text className="text-primary text-lg dark:text-dark-primary text-center mb-10">
+            {successfulBody}
           </Text>
           <TouchableOpacity
             onPress={() => router.push('/sign-in')}

@@ -2,8 +2,13 @@ import 'react-native-gesture-handler'
 import 'react-native-reanimated'
 import {
   Image,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
   useColorScheme,
   useWindowDimensions,
   View,
@@ -20,6 +25,8 @@ import CommentStore from '@/store/post/Comment'
 import { PostEmpty } from '@/store/post/Post'
 import { AuthStore } from '@/store/AuthStore'
 import { upsert } from '@/lib/localStorage/db'
+import CommentSheetInput from '@/components/Sheets/CommentSheetInput'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 const FeaturedNews: React.FC = () => {
   const newsForm = NewsStore((state) => state.newsForm)
@@ -35,6 +42,25 @@ const FeaturedNews: React.FC = () => {
   const color = isDark ? '#BABABA' : '#6E6E6E'
   const commentSheetRef = useRef<CommentSheetRef>(null)
   const pathname = usePathname()
+  const insets = useSafeAreaInsets()
+  // const [keyboardVisible, setKeyboardVisible] = useState(false)
+  // const [keyboardHeight, setKeyboardHeight] = useState(0)
+
+  // useEffect(() => {
+  //   const showListener = Keyboard.addListener('keyboardDidShow', (e) => {
+  //     setKeyboardVisible(true)
+  //     setKeyboardHeight(e.endCoordinates.height)
+  //   })
+  //   const hideListener = Keyboard.addListener('keyboardDidHide', () => {
+  //     setKeyboardVisible(false)
+  //     setKeyboardHeight(0)
+  //   })
+
+  //   return () => {
+  //     showListener.remove()
+  //     hideListener.remove()
+  //   }
+  // }, [])
 
   useEffect(() => {
     const updateNewsViews = async () => {
@@ -63,74 +89,101 @@ const FeaturedNews: React.FC = () => {
   }, [mainPost._id, pathname])
 
   return (
-    <View
-      className="flex-1 bg-secondary dark:bg-dark-secondary"
-      style={{ position: 'relative' }}
-    >
-      <View style={{ width, height: 260 }}>
-        {newsForm.picture && (
-          <Image
-            source={{ uri: String(newsForm.picture) }}
-            style={{ width: '100%', height: '100%' }}
-            resizeMode="cover"
-          />
-        )}
-      </View>
-      <NewsStat
-        newsForm={newsForm}
-        onCommentPress={() => commentSheetRef.current?.open()}
-      />
-      <View className="px-4 flex-1">
-        <View className="py-1 gap-4 flex-row cursor-default flex items-center mb-1">
-          <View className="flex gap-1 flex-row items-center">
-            <User size={18} color={color} />
-            <Text className="text">{newsForm.author}</Text>
-          </View>
+    <View className="flex-1 bg-secondary dark:bg-dark-secondary">
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.bottom + 30 : 0}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={{ flex: 1 }}>
+            <View style={{ width, height: 260 }}>
+              {newsForm.picture && (
+                <Image
+                  source={{ uri: String(newsForm.picture) }}
+                  style={{ width: '100%', height: '100%' }}
+                  resizeMode="cover"
+                />
+              )}
+            </View>
 
-          <View className="flex gap-1 flex-row items-center">
-            <Calendar size={16} color={color} />
-            <Text className="text">
-              {formatDate(String(newsForm.publishedAt))}
-            </Text>
-          </View>
-        </View>
-        <ScrollView
-          contentContainerStyle={{ paddingBottom: 10 }}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          <Text className="text-custom underline dark:text-dark-custom text-xl mb-1">
-            {newsForm.title}
-          </Text>
-          <Text className="text-primaryLight dark:text-dark-primaryLight text-lg mb-5">
-            {newsForm.title}
-          </Text>
-          <RenderHtml
-            contentWidth={width}
-            source={{ html: newsForm.content || '' }}
-            baseStyle={{
-              color: isDark ? '#EFEFEF' : '#3A3A3A',
-              fontSize: 16,
-              fontWeight: 400,
-              lineHeight: 23,
-            }}
-            tagsStyles={{
-              a: { color: '#DA3986', textDecorationLine: 'underline' },
-            }}
-            // renderersProps={{
-            //   a: {
-            //     onPress: (event, href) => {
-            //       Linking.openURL(href).catch((err) =>
-            //         console.error('Failed to open URL:', err)
-            //       )
-            //     },
-            //   },
-            // }}
-          />
-        </ScrollView>
-      </View>
+            <NewsStat
+              newsForm={newsForm}
+              onCommentPress={() => commentSheetRef.current?.open()}
+            />
 
-      <CommentSheet ref={commentSheetRef} />
+            <ScrollView
+              contentContainerStyle={{
+                flexGrow: 1,
+                // paddingBottom: keyboardVisible ? 20 : 80,
+              }}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
+              <View className="py-2 px-3 gap-4 flex-row items-center mb-3">
+                <TouchableOpacity>
+                  <View className="flex gap-1 flex-row items-center">
+                    <User size={18} color={color} />
+                    <Text className="text">{newsForm.author}</Text>
+                  </View>
+                </TouchableOpacity>
+                <TouchableOpacity>
+                  <View className="flex gap-1 flex-row items-center">
+                    <Calendar size={16} color={color} />
+                    <Text className="text">
+                      {formatDate(String(newsForm.publishedAt))}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+
+              <TouchableOpacity
+                activeOpacity={1}
+                hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+                className="px-4 pb-3"
+              >
+                <Text className="text-custom underline text-xl mb-1">
+                  {newsForm.title}
+                </Text>
+                <RenderHtml
+                  contentWidth={width}
+                  source={{ html: newsForm.content || '' }}
+                  baseStyle={{
+                    color: isDark ? '#EFEFEF' : '#3A3A3A',
+                    fontSize: 16,
+                    fontWeight: '400',
+                    lineHeight: 23,
+                    marginBottom: insets.bottom + 60,
+                  }}
+                  tagsStyles={{
+                    a: { color: '#DA3986', textDecorationLine: 'underline' },
+                  }}
+                />
+              </TouchableOpacity>
+            </ScrollView>
+
+            <View
+              style={{
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                backgroundColor: isDark ? '#1C1E21' : '#FFFFFF',
+                paddingBottom: insets.bottom,
+                paddingTop: 12,
+                paddingHorizontal: 12,
+                borderTopWidth: 1,
+                borderTopColor: isDark ? '#333' : '#EEE',
+                zIndex: 100,
+              }}
+            >
+              <CommentSheetInput />
+            </View>
+
+            <CommentSheet ref={commentSheetRef} />
+          </View>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
     </View>
   )
 }

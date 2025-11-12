@@ -25,10 +25,9 @@ import Animated, {
   runOnJS,
   useDerivedValue,
 } from 'react-native-reanimated'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { MessageCircle } from 'lucide-react-native'
 import CommentBox from './CommentBox'
-import CommentSheetInput from './CommentSheetInput'
 import { Comment } from '@/store/post/Comment'
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window')
@@ -62,7 +61,7 @@ export const CommentSheet = forwardRef<CommentSheetRef, Props>(
     const isDark = colorScheme === 'dark'
     const color = isDark ? '#BABABA' : '#6E6E6E'
     const previousSnap = useRef(SNAP_MIDDLE)
-
+    const insets = useSafeAreaInsets()
     useImperativeHandle(ref, () => ({
       open: () => openSheet(),
       close: () => closeSheet(),
@@ -168,8 +167,6 @@ export const CommentSheet = forwardRef<CommentSheetRef, Props>(
           />
         </AnimatedView>
 
-        {showSheet && <CommentSheetInput />}
-
         <AnimatedView
           className={`bg-primary dark:bg-dark-primary elevation-20 z-20 absolute left-0 top-0 right-0`}
           style={[
@@ -188,7 +185,8 @@ export const CommentSheet = forwardRef<CommentSheetRef, Props>(
 
                 <TouchableOpacity
                   onPress={() => setShowSheet(!showSheet)}
-                  className="absolute right-3 p-[6px] top-2"
+                  hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+                  className="absolute right-3 p-3 top-2 -m-3"
                 >
                   <MessageCircle size={22} color={color} />
                 </TouchableOpacity>

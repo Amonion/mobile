@@ -4,7 +4,6 @@ import {
   TouchableOpacity,
   useColorScheme,
   LayoutChangeEvent,
-  Platform,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Bell, Gift, Globe, Megaphone, Menu, Search } from 'lucide-react-native'
@@ -29,12 +28,16 @@ const MainAppBar = ({ onMenuPress }: { onMenuPress: () => void }) => {
     <View
       // onLayout={handleLayout}
       style={{
-        paddingTop: Platform.OS === 'ios' ? 10 : insets.top,
+        paddingTop: insets.top,
       }}
-      className="text px-4 py-2 bg-primary dark:bg-dark-primary border-b border-b-border dark:border-b-dark-border"
+      className="text bg-primary dark:bg-dark-primary border-b border-b-border dark:border-b-dark-border"
     >
-      <View className="flex flex-row w-full relative items-center justify-between mb-2">
-        <TouchableOpacity onPress={onMenuPress} className="sm:hidden">
+      <View className="flex flex-row w-full relative items-center justify-between">
+        <TouchableOpacity
+          hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+          className="p-3"
+          onPress={onMenuPress}
+        >
           <Menu size={26} color={isDark ? '#BABABA' : '#6E6E6E'} />
         </TouchableOpacity>
         <TouchableOpacity className="absolute left-[50%] pt-3 translate-x-[-50%]">
@@ -47,22 +50,38 @@ const MainAppBar = ({ onMenuPress }: { onMenuPress: () => void }) => {
             }}
           />
         </TouchableOpacity>
-        <TouchableOpacity className="sm:hidden">
+        <TouchableOpacity
+          hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+          className="p-3"
+        >
           <Search size={26} color={isDark ? '#BABABA' : '#6E6E6E'} />
         </TouchableOpacity>
       </View>
       <View className="flex flex-row w-full items-center justify-between">
-        <TouchableOpacity>
+        <TouchableOpacity
+          hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+          className="p-3"
+        >
           <Megaphone size={26} color={isDark ? '#BABABA' : '#6E6E6E'} />
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => router.push('/home/news')}>
+        <TouchableOpacity
+          hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+          className="p-3"
+          onPress={() => router.push('/home/news')}
+        >
           <Globe size={26} color={isDark ? '#BABABA' : '#6E6E6E'} />
         </TouchableOpacity>
-        <TouchableOpacity>
+        <TouchableOpacity
+          hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+          className="p-3"
+        >
           <Gift size={26} color={isDark ? '#BABABA' : '#6E6E6E'} />
         </TouchableOpacity>
-        <TouchableOpacity>
+        <TouchableOpacity
+          hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+          className="p-3"
+        >
           <Bell size={26} color={isDark ? '#BABABA' : '#6E6E6E'} />
         </TouchableOpacity>
       </View>

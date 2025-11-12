@@ -18,10 +18,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.schoolingsocial.schooling",
       "infoPlist": {
-        "UIBackgroundModes": [
-          "remote-notification",
-          "remote-notification"
-        ],
+        "UIBackgroundModes": ["remote-notification", "remote-notification"],
         "NSPhotoLibraryUsageDescription": "We need access to your photo library so you can upload images and videos.",
         "NSPhotoLibraryAddUsageDescription": "We need permission to save media to your photo library.",
         "LSApplicationQueriesSchemes": [
@@ -74,10 +71,7 @@
             "host": "*.schoolingsocial.com",
             "pathPrefix": "/home"
           },
-          "category": [
-            "BROWSABLE",
-            "DEFAULT"
-          ]
+          "category": ["BROWSABLE", "DEFAULT"]
         }
       ],
       "edgeToEdgeEnabled": false,
@@ -125,7 +119,15 @@
           "recordAudioAndroid": true
         }
       ],
-      "expo-audio"
+      "expo-audio",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "windowSoftInputMode": "adjustResize"
+          }
+        }
+      ]
     ],
     "extra": {
       "router": {},

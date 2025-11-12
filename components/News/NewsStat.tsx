@@ -140,7 +140,9 @@ const NewsStat: React.FC<NewsStatProps> = ({ newsForm, onCommentPress }) => {
 
       <TouchableOpacity
         onPress={onCommentPress}
-        className="flex gap-1 flex-row items-center"
+        className="flex gap-1 flex-row items-center p-2 -m-2"
+        activeOpacity={0.7}
+        hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }} // ← THIS
       >
         <MessageCircle size={18} color={color} />
         <Text className="text">{formatCount(newsForm.replies)}</Text>
@@ -151,7 +153,11 @@ const NewsStat: React.FC<NewsStatProps> = ({ newsForm, onCommentPress }) => {
         <Text className="text">{formatCount(newsForm.views)}</Text>
       </View>
 
-      <TouchableOpacity className="post_stat relative" onPress={handleShare}>
+      <TouchableOpacity
+        hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+        className="p-3 -m-3"
+        onPress={handleShare}
+      >
         <Share size={18} color={color} />
       </TouchableOpacity>
     </View>

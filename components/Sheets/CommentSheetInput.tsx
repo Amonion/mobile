@@ -1,5 +1,12 @@
 import React, { useState } from 'react'
-import { Keyboard, TextInput, View, useColorScheme } from 'react-native'
+import {
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  TextInput,
+  View,
+  useColorScheme,
+} from 'react-native'
 import { randomUUID } from 'expo-crypto'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Send } from 'lucide-react-native'
@@ -96,37 +103,29 @@ const CommentSheetInput: React.FC = () => {
   }
 
   return (
-    <>
-      <View
-        className="absolute bg-primary dark:bg-dark-primary z-30 pt-1 pb-2 px-3 gap-3 items-center left-0 w-full flex flex-row"
+    <View className="flex flex-row items-center gap-3">
+      <TextInput
+        placeholder="Write a comment..."
+        onChangeText={setText}
+        value={text}
+        className="flex-1 rounded-[25px] bg-secondary dark:bg-dark-secondary px-4 py-3 text-primary dark:text-dark-primary"
+        placeholderTextColor={color}
         style={{
-          bottom: insets.bottom,
+          minHeight: 40,
+          maxHeight: 120,
+          textAlignVertical: 'top',
         }}
-      >
-        <TextInput
-          placeholder="Write a comment..."
-          onChangeText={setText}
-          value={text}
-          className="rounded-[25px] text-primary dark:text-dark-primary bg-secondary dark:bg-dark-secondary px-3"
-          placeholderTextColor={color}
-          style={{
-            flex: 1,
-            minHeight: 40,
-            maxHeight: 120,
-            textAlignVertical: 'top',
-          }}
-          multiline
-          numberOfLines={4}
-          returnKeyType="send"
-          onSubmitEditing={submitComment}
-        />
-        {loading ? (
-          <Spinner size={25} />
-        ) : (
-          <Send onPress={submitComment} color={'#DA3986'} size={25} />
-        )}
-      </View>
-    </>
+        multiline
+        numberOfLines={4}
+        returnKeyType="send"
+        onSubmitEditing={submitComment}
+      />
+      {loading ? (
+        <Spinner size={25} />
+      ) : (
+        <Send onPress={submitComment} color={'#DA3986'} size={25} />
+      )}
+    </View>
   )
 }
 

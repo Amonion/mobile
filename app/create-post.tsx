@@ -19,21 +19,14 @@ import * as ImagePicker from 'expo-image-picker'
 import RenderHtml from 'react-native-render-html'
 import SocketService from '@/store/socket'
 import { useRouter } from 'expo-router'
-import {
-  ChevronDown,
-  ImageUp,
-  ListChecks,
-  Plus,
-  Trash,
-  Upload,
-  X,
-} from 'lucide-react-native'
+import { ImageUp, ListChecks, Trash, Upload, X } from 'lucide-react-native'
 import * as VideoThumbnails from 'expo-video-thumbnails'
 import { IMedia, Media, Poll, Post, PostStore } from '@/store/post/Post'
 import { MessageStore } from '@/store/notification/Message'
 import { AuthStore } from '@/store/AuthStore'
 import Spinner from '@/components/Response/Spinner'
 import CreatePostMedia from '@/components/Posts/CreatePostMedia'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 interface Response {
   data: Post
@@ -70,6 +63,7 @@ const PostBox: React.FC = () => {
   const [isColorPicker, setIsColorPicker] = useState(false)
   const [canAddPoll, setCanAddPoll] = useState(false)
   const [canSendPoll, setCanSendPoll] = useState(false)
+  const insets = useSafeAreaInsets()
 
   const colors = [
     '#da3986',
@@ -79,20 +73,20 @@ const PostBox: React.FC = () => {
     '#F44336',
     '#d1d5db',
   ]
-  const [keyboardVisible, setKeyboardVisible] = useState(false)
+  // const [keyboardVisible, setKeyboardVisible] = useState(false)
 
-  useEffect(() => {
-    const showSub = Keyboard.addListener('keyboardDidShow', () =>
-      setKeyboardVisible(true)
-    )
-    const hideSub = Keyboard.addListener('keyboardDidHide', () =>
-      setKeyboardVisible(false)
-    )
-    return () => {
-      showSub.remove()
-      hideSub.remove()
-    }
-  }, [])
+  // useEffect(() => {
+  //   const showSub = Keyboard.addListener('keyboardDidShow', () =>
+  //     setKeyboardVisible(true)
+  //   )
+  //   const hideSub = Keyboard.addListener('keyboardDidHide', () =>
+  //     setKeyboardVisible(false)
+  //   )
+  //   return () => {
+  //     showSub.remove()
+  //     hideSub.remove()
+  //   }
+  // }, [])
 
   useEffect(() => {
     if (pollPicture || pollText) {
@@ -406,7 +400,12 @@ const PostBox: React.FC = () => {
   return (
     <View className="bg-secondary flex flex-1 dark:bg-dark-secondary">
       <View className="bg-primary py-2 dark:bg-dark-primary mb-auto">
-        <View className="flex-row px-3 items-start">
+        <View
+          style={{
+            marginTop: Platform.OS === 'ios' ? insets.top : insets.top,
+          }}
+          className="flex-row px-3 items-start"
+        >
           <Image
             source={{ uri: String(user?.picture) }}
             className="rounded-full"
@@ -428,6 +427,7 @@ const PostBox: React.FC = () => {
             </TouchableOpacity>
           </View>
           <TouchableOpacity
+            hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
             onPress={() => router.back()}
             className="ml-auto bg-secondary dark:bg-dark-secondary rounded-full w-12 h-12 justify-center items-center"
           >
@@ -526,25 +526,19 @@ const PostBox: React.FC = () => {
             )}
           </>
         )}
-
-        {}
       </View>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <KeyboardAvoidingView
-          behavior="padding"
-          keyboardVerticalOffset={Platform.select({ ios: 10, android: 0 })}
-          className="flex-1 w-full justify-end"
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+          style={{ flex: 1, justifyContent: 'flex-end' }}
         >
-          <View className="bg-primary dark:bg-dark-primary w-full pt-5 rounded-t-xl  px-[10px]">
-            {keyboardVisible && Platform.OS === 'ios' && (
-              <TouchableOpacity
-                onPress={Keyboard.dismiss}
-                style={{ top: -25 }}
-                className="absolute bg-custom justify-center items-center right-3 -top-[20px] w-10 h-10 rounded-full"
-              >
-                <ChevronDown color="#fff" size={24} />
-              </TouchableOpacity>
-            )}
+          <View
+            style={{
+              paddingBottom: Platform.OS === 'ios' ? 0 : 0,
+            }}
+            className="bg-primary dark:bg-dark-primary w-full pt-5 rounded-t-xl  px-[10px]"
+          >
             <TextInput
               style={{ height: 100 }}
               className={`rounded-[10px] py-3 text-lg px-3 w-full text-primary dark:text-dark-primary font-rRegular bg-secondary dark:bg-dark-secondary`}
@@ -606,14 +600,16 @@ const PostBox: React.FC = () => {
                 {polls.length === 0 && (
                   <View className="flex-row">
                     <TouchableOpacity
-                      className="mr-4"
+                      hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+                      className="p-3"
                       onPress={() => setIsColorPicker(!isColorPicker)}
                     >
                       <Text className="text-2xl">🎨</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                      className="mr-4"
+                      className="p-3"
+                      hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
                       onPress={handleFileUpload}
                     >
                       <ImageUp
@@ -622,7 +618,11 @@ const PostBox: React.FC = () => {
                       />
                     </TouchableOpacity>
 
-                    <TouchableOpacity onPress={() => setOnPoll(!onPoll)}>
+                    <TouchableOpacity
+                      onPress={() => setOnPoll(!onPoll)}
+                      hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+                      className="p-3"
+                    >
                       <ListChecks
                         size={25}
                         color={isDark ? '#BABABA' : '#6E6E6E'}
@@ -636,7 +636,7 @@ const PostBox: React.FC = () => {
                     {canAddPoll ? (
                       <TouchableOpacity
                         onPress={handleAddPoll}
-                        className="bg-custom rounded-[5px] px-5 py-2 ml-4"
+                        className="bg-custom rounded-[5px] mb-1 mr-3 px-5 py-2 ml-4"
                       >
                         <Text className="text-white">Add Poll</Text>
                       </TouchableOpacity>
@@ -644,7 +644,7 @@ const PostBox: React.FC = () => {
                       canSendPoll && (
                         <TouchableOpacity
                           onPress={submitPost}
-                          className="bg-custom rounded-[5px] px-5 py-2 ml-4"
+                          className="bg-custom rounded-[5px] mb-1 mr-3 px-5 py-2 ml-4"
                         >
                           <Text className="text-white">Post Poll</Text>
                         </TouchableOpacity>
@@ -654,7 +654,7 @@ const PostBox: React.FC = () => {
                 ) : (
                   <TouchableOpacity
                     onPress={submitPost}
-                    className="bg-custom rounded-[5px] px-5 py-2 ml-4"
+                    className="bg-custom rounded-[5px] px-5 mb-1 mr-3 py-2 ml-4"
                   >
                     <Text className="text-white">Post</Text>
                   </TouchableOpacity>

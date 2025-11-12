@@ -20,6 +20,10 @@ export const accuountTitle = 'Recover Account'
 export const accountBody =
   'Enter your email and follow the instruction sent to recover your password.'
 
+export const successfulTitle = 'Account Successful'
+export const successfulBody =
+  'You have successfully sign in to this app. Welcome, You are eligible to participate in the activity.'
+
 export const setupTitle1 = 'Select Location Preference'
 export const setupTitle2 = 'Select Location Preference'
 export const setupTitle3 = 'Join The Community'
