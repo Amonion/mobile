@@ -19,7 +19,7 @@ export interface Poll {
   picture: string
   text: string
   userId: string
-  idx: number
+  index: number
   percent: number
 }
 

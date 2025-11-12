@@ -17,6 +17,7 @@ import { Post, PostStore } from '@/store/post/Post'
 import { AuthStore } from '@/store/AuthStore'
 import PostCard from '@/components/Posts/PostCard'
 import FeaturedNews from '@/components/News/FeaturedNews'
+import Moments from '@/components/Moments/Moments'
 
 const AnimatedFlatList = Animated.createAnimatedComponent(
   FlatList<Post> // 👈 typed FlatList
@@ -126,6 +127,7 @@ const Home = () => {
         ListHeaderComponent={
           <View>
             <FeaturedNews />
+            <Moments />
           </View>
         }
       />
