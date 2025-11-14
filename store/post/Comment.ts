@@ -10,11 +10,6 @@ interface FetchCommentResponse {
   data: Comment
 }
 
-interface PostResponse {
-  message: string
-  data: Comment
-}
-
 export interface Comment {
   _id: string
   username: string

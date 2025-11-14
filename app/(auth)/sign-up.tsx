@@ -262,7 +262,7 @@ const SignUp = () => {
               <Text className="text-primary dark:text-dark-primary mr-2 text-lg">
                 Already have an account?
               </Text>
-              <Pressable onPress={() => router.push('/signup-successful')}>
+              <Pressable onPress={() => router.push('/signup-in')}>
                 <Text className="text-custom text-lg">Sign In</Text>
               </Pressable>
             </View>

@@ -1,7 +1,6 @@
 import React, {
   forwardRef,
   useImperativeHandle,
-  useState,
   useEffect,
   useRef,
 } from 'react'
@@ -11,7 +10,6 @@ import {
   Text,
   TouchableOpacity,
   View,
-  useColorScheme,
   BackHandler,
   Keyboard,
 } from 'react-native'
@@ -25,8 +23,7 @@ import Animated, {
   runOnJS,
   useDerivedValue,
 } from 'react-native-reanimated'
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
-import { MessageCircle } from 'lucide-react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import CommentBox from './CommentBox'
 import { Comment } from '@/store/post/Comment'
 
@@ -51,17 +48,12 @@ interface Props {
 
 export const CommentSheet = forwardRef<CommentSheetRef, Props>(
   ({ onSubmitComment, initialComments = [] }, ref) => {
-    const [showSheet, setShowSheet] = useState(false)
     const translateY = useSharedValue(SNAP_BOTTOM)
     const visibleHeight = useDerivedValue(
       () => SCREEN_HEIGHT - translateY.value
     )
     const isVisible = useSharedValue(0)
-    const colorScheme = useColorScheme()
-    const isDark = colorScheme === 'dark'
-    const color = isDark ? '#BABABA' : '#6E6E6E'
     const previousSnap = useRef(SNAP_MIDDLE)
-    const insets = useSafeAreaInsets()
     useImperativeHandle(ref, () => ({
       open: () => openSheet(),
       close: () => closeSheet(),
@@ -112,7 +104,6 @@ export const CommentSheet = forwardRef<CommentSheetRef, Props>(
         damping: 20,
         stiffness: 120,
       })
-      setShowSheet(false)
       setTimeout(() => runOnJS(() => (isVisible.value = 0))(), 300)
     }
 
@@ -134,7 +125,6 @@ export const CommentSheet = forwardRef<CommentSheetRef, Props>(
           snapPoint = SNAP_MIDDLE // 50%
         } else if (endY > SNAP_MIDDLE + 100 || velocity > 800) {
           snapPoint = SNAP_BOTTOM // Close
-          runOnJS(setShowSheet)(false)
         }
 
         translateY.value = withSpring(snapPoint, {
@@ -182,14 +172,6 @@ export const CommentSheet = forwardRef<CommentSheetRef, Props>(
             <GestureDetector gesture={panGesture}>
               <View className="h-[50px] px-3 justify-center items-center">
                 <View className="w-[48px] bg-primaryLight dark:bg-dark-primaryLight rounded-full h-[6px]" />
-
-                <TouchableOpacity
-                  onPress={() => setShowSheet(!showSheet)}
-                  hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-                  className="absolute right-3 p-3 top-2 -m-3"
-                >
-                  <MessageCircle size={22} color={color} />
-                </TouchableOpacity>
               </View>
             </GestureDetector>
 

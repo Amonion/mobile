@@ -598,7 +598,7 @@ const PostBox: React.FC = () => {
             ) : (
               <View className="flex-row items-center justify-between py-3">
                 {polls.length === 0 && (
-                  <View className="flex-row">
+                  <View className="flex-row items-center">
                     <TouchableOpacity
                       hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
                       className="p-3"

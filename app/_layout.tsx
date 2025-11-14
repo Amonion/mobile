@@ -16,6 +16,8 @@ import Message from '@/components/Response/Message'
 import { MessageStore } from '@/store/notification/Message'
 import { NewsProvider } from '@/context/NewsContext'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
+import { GeneralProvider } from '@/context/GeneralContext'
+import { MomentProvider } from '@/context/MomentContext'
 
 SplashScreen.preventAutoHideAsync()
 
@@ -61,22 +63,26 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <NewsProvider>
-        {message !== null && <Message />}
-        <GestureHandlerRootView style={{ flex: 1 }}>
-          <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="index" />
-              <Stack.Screen
-                name="modal"
-                options={{ presentation: 'modal', title: 'Modal' }}
-              />
-            </Stack>
-          </View>
-        </GestureHandlerRootView>
+      <GeneralProvider>
+        <NewsProvider>
+          <MomentProvider>
+            {message !== null && <Message />}
+            <GestureHandlerRootView style={{ flex: 1 }}>
+              <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
+                <Stack screenOptions={{ headerShown: false }}>
+                  <Stack.Screen name="index" />
+                  <Stack.Screen
+                    name="modal"
+                    options={{ presentation: 'modal', title: 'Modal' }}
+                  />
+                </Stack>
+              </View>
+            </GestureHandlerRootView>
 
-        <StatusBar style="auto" />
-      </NewsProvider>
+            <StatusBar style="auto" />
+          </MomentProvider>
+        </NewsProvider>
+      </GeneralProvider>
     </ThemeProvider>
   )
 }

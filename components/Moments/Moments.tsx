@@ -4,8 +4,8 @@ import {
   Text,
   FlatList,
   Image,
-  TouchableOpacity,
   useColorScheme,
+  Pressable,
 } from 'react-native'
 import { Plus } from 'lucide-react-native'
 import { useRouter } from 'expo-router'
@@ -53,8 +53,8 @@ const Moments = () => {
   )
 
   const renderAddMoment = () => (
-    <TouchableOpacity
-      onPress={() => router.push('/home/create-moment')}
+    <Pressable
+      onPress={() => router.push('/create-moment')}
       className="mr-3 items-center w-[100px]"
     >
       <View className="relative w-full h-[150px] rounded-[10px] overflow-hidden bg-primary dark:bg-dark-primary">
@@ -68,7 +68,7 @@ const Moments = () => {
         </View>
         <Text className="text-white mt-auto mb-4 text-center">Share</Text>
       </View>
-    </TouchableOpacity>
+    </Pressable>
   )
 
   return (

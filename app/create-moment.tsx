@@ -21,11 +21,12 @@ import * as FileSystem from 'expo-file-system/legacy'
 import { Picker } from 'emoji-mart-native'
 import ColorPicker from 'react-native-wheel-color-picker'
 import { Buffer } from 'buffer'
-import { Trash } from 'lucide-react-native'
+import { ArrowLeft, Bell, Trash } from 'lucide-react-native'
 import { Audio, AVPlaybackStatusSuccess } from 'expo-av'
 import { Moment, MomentMediaEmpty, MomentStore } from '@/store/post/Moment'
 import { AuthStore } from '@/store/AuthStore'
 import { MessageStore } from '@/store/notification/Message'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 interface MomentResponse {
   data: Moment
   message: string
@@ -56,6 +57,7 @@ export default function CreateMoment() {
   const [textColor, setTextColor] = useState('')
   const [percents, setPercents] = useState(0)
   const [showTextColorPicker, setShowTextColorPicker] = useState(false)
+  const insets = useSafeAreaInsets()
 
   useEffect(() => {
     const moment = MomentStore.getState().moments.find(
@@ -168,7 +170,7 @@ export default function CreateMoment() {
           src: m.src,
           preview: m.preview,
           type: m.type,
-          content: m.content,
+          content: m.content.trim(),
           backgroundColor: m.backgroundColor,
           textColor: m.textColor,
           createdAt: new Date(),
@@ -193,131 +195,6 @@ export default function CreateMoment() {
       console.error(err)
     }
   }
-
-  // const uploadFile = async (
-  //   asset: ImagePicker.ImagePickerAsset,
-  //   type: string
-  // ) => {
-  //   try {
-  //     setLoading(true)
-
-  //     let localThumbUrl = ''
-  //     let videoDuration = 0
-
-  //     if (type.includes('video')) {
-  //       try {
-  //         const { uri: thumbUri } = await VideoThumbnails.getThumbnailAsync(
-  //           asset.uri,
-  //           {
-  //             time: 1000,
-  //           }
-  //         )
-  //         localThumbUrl = thumbUri
-  //         const videoObject = new Video({})
-  //         await videoObject.loadAsync({ uri: asset.uri })
-  //         const status =
-  //           (await videoObject.getStatusAsync()) as AVPlaybackStatusSuccess
-
-  //         if (status.isLoaded && status.durationMillis) {
-  //           videoDuration = status.durationMillis / 1000
-  //         }
-
-  //         await videoObject.unloadAsync()
-  //       } catch (error) {
-  //         console.warn('Failed to generate video thumbnail:', error)
-  //       }
-  //     }
-
-  //     MomentStore.setState((prev) => ({
-  //       momentMedia: {
-  //         ...prev.momentMedia,
-  //         type,
-  //         src: '',
-  //         preview: type.includes('video') ? localThumbUrl : asset.uri,
-  //         isViewed: false,
-  //         ...(type.includes('video') && { duration: videoDuration }),
-  //       },
-  //     }))
-
-  //     const fileName =
-  //       asset.fileName ?? asset.uri.split('/').pop() ?? `upload-${Date.now()}`
-  //     const mimeType =
-  //       asset.mimeType ?? (type.includes('video') ? 'video/mp4' : 'image/jpeg')
-
-  //     const { data: filePresign } = await axios.post(
-  //       `${baseURL}/s3-presigned-url`,
-  //       {
-  //         fileName,
-  //         fileType: mimeType,
-  //       }
-  //     )
-
-  //     const { uploadUrl: fileUploadUrl } = filePresign
-
-  //     const fileBase64 = await FileSystem.readAsStringAsync(asset.uri, {
-  //       encoding: FileSystem.EncodingType.Base64,
-  //     })
-  //     const fileBuffer = Buffer.from(fileBase64, 'base64')
-
-  //     await axios.put(fileUploadUrl, fileBuffer, {
-  //       headers: { 'Content-Type': mimeType },
-  //       onUploadProgress: (progressEvent) => {
-  //         if (progressEvent.total) {
-  //           const percent = Math.round(
-  //             (progressEvent.loaded / progressEvent.total) * 100 * 0.5
-  //           )
-  //           setPercents(percent)
-  //         }
-  //       },
-  //     })
-
-  //     const publicFileUrl = fileUploadUrl.split('?')[0]
-  //     let publicThumbUrl = localThumbUrl
-
-  //     if (type.includes('video') && localThumbUrl) {
-  //       const thumbFileName = fileName.replace(/\.[^/.]+$/, '') + '-thumb.jpg'
-
-  //       const { data: thumbPresign } = await axios.post(
-  //         `${baseURL}/s3-presigned-url`,
-  //         {
-  //           fileName: thumbFileName,
-  //           fileType: 'image/jpeg',
-  //         }
-  //       )
-  //       const { uploadUrl: thumbUploadUrl } = thumbPresign
-
-  //       const thumbBase64 = await FileSystem.readAsStringAsync(localThumbUrl, {
-  //         encoding: FileSystem.EncodingType.Base64,
-  //       })
-  //       const thumbBuffer = Buffer.from(thumbBase64, 'base64')
-
-  //       await axios.put(thumbUploadUrl, thumbBuffer, {
-  //         headers: { 'Content-Type': 'image/jpeg' },
-  //       })
-
-  //       publicThumbUrl = thumbUploadUrl.split('?')[0]
-  //     }
-
-  //     console.log('The duration is: ', videoDuration)
-
-  //     MomentStore.setState((prev) => ({
-  //       momentMedia: {
-  //         ...prev.momentMedia,
-  //         src: publicFileUrl,
-  //         preview: type.includes('image') ? publicFileUrl : publicThumbUrl,
-  //         ...(type.includes('video') && { duration: videoDuration }),
-  //       },
-  //     }))
-
-  //     setPercents(0)
-  //     return publicFileUrl
-  //   } catch (error) {
-  //     console.error('Upload failed:', error)
-  //     Alert.alert('Upload failed', 'Something went wrong while uploading.')
-  //   } finally {
-  //     setLoading(false)
-  //   }
-  // }
 
   const uploadFile = async (
     asset: ImagePicker.ImagePickerAsset,
@@ -381,18 +258,13 @@ export default function CreateMoment() {
 
       const { uploadUrl: fileUploadUrl } = filePresign
 
-      // const fileBase64 = await FileSystem.readAsStringAsync(asset.uri, {
-      //   encoding: FileSystem.EncodingType.Base64,
-      // })
+      const fileUri = type.includes('video') ? localThumbUrl : asset.uri
 
-      const fileBase64 = await FileSystem.readAsStringAsync(localThumbUrl, {
+      const fileBase64 = await FileSystem.readAsStringAsync(fileUri, {
         encoding: 'base64',
       })
 
-      console.log('The base url is: ', baseURL)
-
       const fileBuffer = Buffer.from(fileBase64, 'base64')
-
       await axios.put(fileUploadUrl, fileBuffer, {
         headers: { 'Content-Type': mimeType },
         onUploadProgress: (progressEvent) => {
@@ -555,7 +427,7 @@ export default function CreateMoment() {
           className="flex justify-center items-center"
           style={{
             backgroundColor: momentMedia.backgroundColor,
-            height: 250,
+            height: 300,
             width: '100%',
             position: 'relative',
           }}
@@ -567,6 +439,28 @@ export default function CreateMoment() {
             />
           )}
 
+          <View
+            style={{ marginTop: insets.top + 10 }}
+            className="flex px-3 flex-row z-20 top-0 w-full justify-between absolute"
+          >
+            <TouchableOpacity
+              activeOpacity={0.7}
+              hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+              onPress={() => router.back()}
+              className="rounded-[50px] p-3 flex justify-center items-center bg-black/50"
+            >
+              <ArrowLeft color={'#fff'} size={20} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+              onPress={() => router.back()}
+              className="rounded-[50px] p-3 flex justify-center items-center bg-black/50"
+            >
+              <Bell color={'#fff'} size={20} />
+            </TouchableOpacity>
+          </View>
+
           <TextInput
             className="text-center text-[18px] p-3 z-20 w-full"
             placeholder="Write a moment..."
@@ -577,7 +471,7 @@ export default function CreateMoment() {
             autoFocus
             onChangeText={(text) =>
               MomentStore.setState((prev) => ({
-                momentMedia: { ...prev.momentMedia, content: text },
+                momentMedia: { ...prev.momentMedia, content: text.trim() },
               }))
             }
           />

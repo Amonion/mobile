@@ -1,7 +1,8 @@
 // components/MomentProgressBar.tsx
+import { MomentStore } from '@/store/post/Moment'
 import React, { useEffect, useRef } from 'react'
 import { View, Animated } from 'react-native'
-import { MomentStore } from '@/store/zustand/post/Moment'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 export default function MomentProgressBar() {
   const {
@@ -13,7 +14,7 @@ export default function MomentProgressBar() {
     openMomentModal,
     changeActiveMomentMedia,
   } = MomentStore()
-
+  const insets = useSafeAreaInsets()
   const progressAnim = useRef(new Animated.Value(0)).current
 
   useEffect(() => {
@@ -57,7 +58,7 @@ export default function MomentProgressBar() {
         justifyContent: 'space-between',
         gap: 4,
         position: 'absolute',
-        top: 10,
+        top: insets.top,
         left: 0,
         right: 0,
         paddingHorizontal: 8,

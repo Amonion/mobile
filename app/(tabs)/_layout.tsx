@@ -44,8 +44,9 @@ const TabsLayout = () => {
               borderColor: isDark ? '#404040' : '#D8D8D8',
               elevation: 0,
               shadowOpacity: 0,
-              height: 50,
+              height: Platform.OS === 'ios' ? 'auto' : 50,
               paddingTop: 5,
+              paddingBottom: Platform.OS === 'ios' ? insets.bottom + 25 : 0,
               marginBottom: Platform.OS === 'ios' ? 0 : insets.bottom,
             },
           }}

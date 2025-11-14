@@ -1,14 +1,12 @@
 import React, { useState } from 'react'
 import {
   Keyboard,
-  KeyboardAvoidingView,
-  Platform,
   TextInput,
+  TouchableOpacity,
   View,
   useColorScheme,
 } from 'react-native'
 import { randomUUID } from 'expo-crypto'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Send } from 'lucide-react-native'
 import { AuthStore } from '@/store/AuthStore'
 import { MessageStore } from '@/store/notification/Message'
@@ -26,7 +24,6 @@ const CommentSheetInput: React.FC = () => {
     CommentStore()
   const isDark = colorScheme === 'dark'
   const color = isDark ? '#BABABA' : '#6E6E6E'
-  const insets = useSafeAreaInsets()
 
   const submitComment = async () => {
     if (!user) return
@@ -123,7 +120,14 @@ const CommentSheetInput: React.FC = () => {
       {loading ? (
         <Spinner size={25} />
       ) : (
-        <Send onPress={submitComment} color={'#DA3986'} size={25} />
+        <TouchableOpacity
+          onPress={submitComment}
+          activeOpacity={0.7}
+          hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+          className="p-2"
+        >
+          <Send color={'#DA3986'} size={25} />
+        </TouchableOpacity>
       )}
     </View>
   )

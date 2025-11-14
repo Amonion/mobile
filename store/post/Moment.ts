@@ -1,5 +1,7 @@
 import { create } from 'zustand'
 import { customRequest } from '@/lib/api'
+import { getAll, saveAll, upsert } from '@/lib/localStorage/db'
+import isEqual from 'lodash/isEqual'
 
 interface FetchMomentResponse {
   count: number
@@ -76,6 +78,7 @@ interface MomentState {
   userHasMoment: boolean
   openMomentModal: (index: number) => void
   clearMoment: () => void
+  expireOldMedia: () => void
   changeActiveMomentMedia: (index: number, int: number) => void
   setShowOptions: (state: boolean) => void
   setShowMoment: (state: boolean) => void
@@ -169,13 +172,40 @@ export const MomentStore = create<MomentState>((set) => ({
     })
   },
 
+  expireOldMedia: () => {
+    set((prev) => {
+      const now = Date.now()
+
+      const updatedMoments = prev.moments
+        .map((moment) => {
+          const filteredMedia = moment.media.filter((m) => {
+            if (!m.createdAt) return true
+            const expiry = new Date(m.createdAt).getTime() + 24 * 60 * 60 * 1000
+            return expiry > now
+          })
+
+          // If all media expired, remove the moment completely
+          if (filteredMedia.length === 0) return null
+
+          // Otherwise return updated moment
+          return { ...moment, media: filteredMedia }
+        })
+        .filter(Boolean) as Moment[]
+
+      saveAll('moments', updatedMoments)
+      return {
+        moments: updatedMoments,
+      }
+    })
+  },
+
   getSavedMoments: async () => {
     try {
       set({ loading: true })
-      // const moments = await getMomentsFromDB()
-      // if (moments) {
-      //   set({ moments: moments })
-      // }
+      const moments = await getAll<Moment>('moments')
+      if (moments) {
+        set({ moments: moments })
+      }
     } catch (error: unknown) {
       console.log(error)
     } finally {
@@ -214,26 +244,42 @@ export const MomentStore = create<MomentState>((set) => ({
   getMoments: async (url) => {
     try {
       const response = await customRequest({ url })
-
       const data = response?.data
+      set({ currentPage: 1 })
       if (data) {
-        const moments = MomentStore.getState().moments
-        if (data.results.length > 0) {
-          const newMoments: Moment[] = data.results.filter(
-            (item: Moment) => !moments.some((m) => m._id === item._id)
+        const fetchedMoments = data.results
+        const savedMoments = MomentStore.getState().moments
+
+        if (savedMoments.length > 0) {
+          const merged = savedMoments.filter(
+            (localItem) =>
+              !fetchedMoments.some(
+                (apiItem: Moment) => apiItem._id === localItem._id
+              )
           )
-          if (newMoments.length > 0) {
-            set((prev) => {
-              return {
-                moments: [...prev.moments, ...newMoments],
-              }
+
+          const toUpsert = fetchedMoments.filter((apiItem: Moment) => {
+            const existing = savedMoments.find(
+              (localItem) => localItem._id === apiItem._id
+            )
+            return !existing || !isEqual(existing, apiItem)
+          })
+
+          if (toUpsert.length > 0) {
+            set({
+              moments: merged,
             })
-            // await saveMomentsToDB(newMoments)
+
+            for (const item of toUpsert) {
+              await upsert('moments', item)
+            }
+
+            console.log(`✅ Upserted ${toUpsert.length} featured news item(s).`)
           } else {
-            console.log('No new moments to add.')
+            console.log('No new or updated featured news to upsert.')
           }
         } else {
-          // deleteAllMomentsFromDB()
+          set({ moments: data.results })
         }
       }
     } catch (error: unknown) {
@@ -255,6 +301,7 @@ export const MomentStore = create<MomentState>((set) => ({
       MomentStore.getState().setProcessedResults(data)
     }
   },
+
   postItem: async (url, updatedItem, setMessage) => {
     set({ loading: true })
 

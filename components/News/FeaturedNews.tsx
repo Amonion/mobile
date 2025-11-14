@@ -30,8 +30,6 @@ const FeaturedNews: React.FC = () => {
 
   const move = (id: string) => {
     CommentStore.setState({ mainPost: { ...PostEmpty, _id: id } })
-    console.log(id)
-
     NewsStore.setState((prev) => {
       const newsItem = prev.news.find((item) => item._id === id)
       if (!newsItem) return prev

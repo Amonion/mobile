@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
-export type TableName = 'news' | 'posts' | 'featuredNews' | 'mainNews'
+export type TableName = 'news' | 'posts' | 'moments' | 'mainNews'
 
 const PREFIX = '@localdb:'
 

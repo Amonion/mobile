@@ -1,5 +1,5 @@
 import 'react-native-gesture-handler'
-import 'react-native-reanimated' // MUST be at top before any other imports
+import 'react-native-reanimated'
 import { formatCount } from '@/lib/helpers'
 import { AuthStore } from '@/store/AuthStore'
 import NewsStore, { News } from '@/store/news/News'
@@ -15,6 +15,7 @@ import {
 } from 'react-native'
 import * as Haptics from 'expo-haptics'
 import * as Clipboard from 'expo-clipboard'
+import { upsert } from '@/lib/localStorage/db'
 
 type NewsStatProps = {
   newsForm: News
@@ -23,36 +24,43 @@ type NewsStatProps = {
 
 const NewsStat: React.FC<NewsStatProps> = ({ newsForm, onCommentPress }) => {
   const { updatePost } = PostStore()
-  const { news } = NewsStore()
   const { user } = AuthStore()
-  const newsLink = `https://schoolingsocial.com/news/${newsForm._id}?action=shared`
+  const newsLink = `https://schoolingsocial.com/home/news/${newsForm._id}?action=shared`
   const colorScheme = useColorScheme()
   const isDark = colorScheme === 'dark'
   const color = isDark ? '#BABABA' : '#6E6E6E'
 
   const handleLike = async () => {
     NewsStore.setState((state) => {
-      const updatedNews = state.news.map((p) =>
-        p._id === newsForm._id
-          ? {
-              ...p,
-              liked: !p.liked,
-              likes: p.liked ? p.likes - 1 : p.likes + 1,
-            }
-          : p
-      )
+      const updatedNews = state.news.map((p) => {
+        if (p._id !== newsForm._id) return p
+
+        const newLiked = !p.liked
+        const newLikes = newLiked ? p.likes + 1 : p.likes - 1
+
+        return {
+          ...p,
+          liked: newLiked,
+          likes: newLikes,
+        }
+      })
 
       const updatedNewsForm =
         state.newsForm && state.newsForm._id === newsForm._id
-          ? {
-              ...state.newsForm,
-              liked: !state.newsForm.liked,
-              likes: state.newsForm.liked
-                ? state.newsForm.likes - 1
-                : state.newsForm.likes + 1,
-            }
-          : state.newsForm
+          ? (() => {
+              const newLiked = !state.newsForm.liked
+              const newLikes = newLiked
+                ? state.newsForm.likes + 1
+                : state.newsForm.likes - 1
 
+              return {
+                ...state.newsForm,
+                liked: newLiked,
+                likes: newLikes,
+              }
+            })()
+          : state.newsForm
+      upsert('news', updatedNewsForm)
       return { news: updatedNews, newsForm: updatedNewsForm }
     })
 
@@ -84,7 +92,7 @@ const NewsStat: React.FC<NewsStatProps> = ({ newsForm, onCommentPress }) => {
                 : state.newsForm.bookmarks + 1,
             }
           : state.newsForm
-
+      upsert('news', updatedNewsForm)
       return { news: updatedNews, newsForm: updatedNewsForm }
     })
 
@@ -111,11 +119,12 @@ const NewsStat: React.FC<NewsStatProps> = ({ newsForm, onCommentPress }) => {
   }
 
   return (
-    <View className="py-3 flex-row cursor-default flex items-center justify-between px-4">
+    <View className="py-1 flex-row cursor-default flex items-center justify-between px-1">
       <TouchableOpacity
         onPress={handleLike}
         activeOpacity={0.7}
-        className="flex gap-1 flex-row items-center"
+        hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+        className="flex gap-1 p-2 flex-row items-center"
       >
         <Heart
           size={18}
@@ -128,7 +137,8 @@ const NewsStat: React.FC<NewsStatProps> = ({ newsForm, onCommentPress }) => {
       <TouchableOpacity
         onPress={handleBookmark}
         activeOpacity={0.7}
-        className="flex gap-1 flex-row items-center"
+        hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+        className="flex gap-1 p-2 flex-row items-center"
       >
         <Bookmark
           size={18}
@@ -140,9 +150,9 @@ const NewsStat: React.FC<NewsStatProps> = ({ newsForm, onCommentPress }) => {
 
       <TouchableOpacity
         onPress={onCommentPress}
-        className="flex gap-1 flex-row items-center p-2 -m-2"
+        className="flex gap-1 flex-row items-center p-2"
         activeOpacity={0.7}
-        hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }} // ← THIS
+        hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
       >
         <MessageCircle size={18} color={color} />
         <Text className="text">{formatCount(newsForm.replies)}</Text>
@@ -155,7 +165,7 @@ const NewsStat: React.FC<NewsStatProps> = ({ newsForm, onCommentPress }) => {
 
       <TouchableOpacity
         hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-        className="p-3 -m-3"
+        className="p-3"
         onPress={handleShare}
       >
         <Share size={18} color={color} />

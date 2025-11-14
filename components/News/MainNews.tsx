@@ -5,7 +5,6 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native'
-import RenderHTML from 'react-native-render-html'
 import Carousel from 'react-native-reanimated-carousel'
 import NewsStore, { News } from '@/store/news/News'
 import { useEffect, useState } from 'react'

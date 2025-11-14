@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react'
 import { View, Text, TouchableOpacity, Image } from 'react-native'
-import { differenceInHours } from 'date-fns'
-import { Moment, MomentMedia, MomentStore } from '@/store/post/Moment'
+import { Moment, MomentStore } from '@/store/post/Moment'
 
 interface MomentItemProps {
   moment: Moment
@@ -14,41 +13,13 @@ const MomentItem: React.FC<MomentItemProps> = ({
   index,
   moveToFullMoment,
 }) => {
-  const { updateMoment } = MomentStore.getState()
-
   useEffect(() => {
-    const checkAndCleanExpiredMedia = () => {
-      const validMedia = moment.media.filter((m: MomentMedia) => {
-        if (!m.createdAt) return true
-        const ageHours = differenceInHours(new Date(), new Date(m.createdAt))
-        return ageHours < 24
-      })
-
-      if (validMedia.length !== moment.media.length) {
-        const updatedMoment = { ...moment, media: validMedia }
-
-        MomentStore.setState((prev) => ({
-          moments: prev.moments.map((m) =>
-            m._id === moment._id ? updatedMoment : m
-          ),
-        }))
-
-        console.log(
-          'The moment is: ',
-          moment,
-          'The updated moment is: ',
-          updatedMoment
-        )
-
-        // updateMoment(`/moments/${moment._id}`, updatedMoment)
-      }
-    }
-
-    checkAndCleanExpiredMedia()
-    const interval = setInterval(checkAndCleanExpiredMedia, 5 * 60 * 1000)
+    const interval = setInterval(() => {
+      MomentStore.getState().expireOldMedia()
+    }, 1000)
 
     return () => clearInterval(interval)
-  }, [moment])
+  }, [])
 
   const media = moment.media[0]
 
@@ -96,9 +67,10 @@ const MomentItem: React.FC<MomentItemProps> = ({
             resizeMode="cover"
           />
         </View>
+
         <Text
           style={{ position: 'absolute', bottom: 8, left: 8 }}
-          className="text-white line-clamp-1 overflow-ellipsis text-xs font-semibold text-center px-1"
+          className="text-white line-clamp-1 overflow-ellipsis font-semibold text-center px-1"
           numberOfLines={1}
         >
           {moment.displayName || moment.username}
