@@ -76,7 +76,7 @@ const EachComment: React.FC<EachCommentProps> = ({
   }
 
   const toggleLike = () => {
-    updateComment(`/posts/like`, { id: comment._id, userId: user?._id })
+    updateComment(`/comments/like`, { id: comment._id, userId: user?._id })
     CommentStore.setState((prev) => ({
       comments: prev.comments.map((c) =>
         c._id === comment._id
@@ -93,7 +93,7 @@ const EachComment: React.FC<EachCommentProps> = ({
   }
 
   const toggleHate = () => {
-    updateComment(`/posts/hate`, { id: comment._id, userId: user?._id })
+    updateComment(`/comments/hate`, { id: comment._id, userId: user?._id })
     CommentStore.setState((prev) => ({
       comments: prev.comments.map((c) =>
         c._id === comment._id
@@ -156,8 +156,8 @@ const EachComment: React.FC<EachCommentProps> = ({
           <TouchableOpacity onPress={toggleLike} style={styles.btn}>
             <ThumbsUp
               size={14}
-              color={comment.liked ? '#007AFF' : '#666'}
-              fill={comment.liked ? '#007AFF' : 'transparent'}
+              color={comment.liked ? '#DA3986' : isDark ? '#848484' : '#6E6E6E'}
+              fill={comment.liked ? '#DA3986' : 'transparent'}
             />
             <Text style={styles.count}>{comment.likes}</Text>
           </TouchableOpacity>
@@ -165,8 +165,8 @@ const EachComment: React.FC<EachCommentProps> = ({
           <TouchableOpacity onPress={toggleHate} style={styles.btn}>
             <ThumbsDown
               size={14}
-              color={comment.hated ? '#FF3B30' : '#666'}
-              fill={comment.hated ? '#FF3B30' : 'transparent'}
+              color={comment.hated ? '#DA3986' : isDark ? '#848484' : '#6E6E6E'}
+              fill={comment.hated ? '#DA3986' : 'transparent'}
             />
             <Text style={styles.count}>{comment.hates}</Text>
           </TouchableOpacity>
