@@ -68,9 +68,10 @@ const TabsLayout = () => {
           />
 
           <Tabs.Screen
-            name="question"
+            name="questions"
             options={{
               title: 'Question',
+              lazy: false,
               headerShown: false,
               tabBarIcon: ({ focused }) => (
                 <Image

@@ -5,6 +5,7 @@ import { UserStore } from '@/store/user/User'
 import MainAppBar from './MainAppBar'
 import MinorAppBar from './MinorAppBar'
 import SideDrawer from './SideDrawer'
+import { View } from 'react-native'
 
 const AppBarWithDrawer = () => {
   const [drawerVisible, setDrawerVisible] = useState(false)
@@ -27,6 +28,8 @@ const AppBarWithDrawer = () => {
     <>
       {mainPaths.includes(pathName) ? (
         <MainAppBar onMenuPress={() => setDrawerVisible(true)} />
+      ) : pathName === '/questions' ? (
+        <View></View>
       ) : (
         <MinorAppBar />
       )}
