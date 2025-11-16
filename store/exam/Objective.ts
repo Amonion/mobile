@@ -1,7 +1,5 @@
 import { create } from 'zustand'
-import apiRequest from '@/lib/axios'
-import _debounce from 'lodash/debounce'
-import axios, { AxiosError } from 'axios'
+import { customRequest } from '@/lib/api'
 
 interface FetchResponse {
   message: string
@@ -52,31 +50,13 @@ interface ObjectiveState {
   objectiveForm: Objective
   setForm: (key: keyof Objective, value: Objective[keyof Objective]) => void
   resetForm: () => void
-  getObjectives: (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void
-  ) => Promise<void>
+  getObjectives: (url: string) => Promise<void>
   fetchQuestions: (url: string) => Promise<void>
   setProcessedResults: (data: FetchResponse) => void
   setLoading?: (loading: boolean) => void
   setCurrentPage?: (page: number) => void
-  massDelete: (
-    url: string,
-    refreshUrl: string,
-    selectedItems: Objective[],
-    setMessage: (message: string, isError: boolean) => void
-  ) => Promise<void>
-  deleteItem: (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void,
-    setLoading?: (loading: boolean) => void
-  ) => Promise<void>
+
   updateItem: (
-    url: string,
-    updatedItem: FormData,
-    setMessage: (message: string, isError: boolean) => void
-  ) => Promise<void>
-  postItem: (
     url: string,
     updatedItem: FormData,
     setMessage: (message: string, isError: boolean) => void
@@ -85,7 +65,6 @@ interface ObjectiveState {
   toggleActive: (index: number) => void
   toggleAllSelected: () => void
   reshuffleResults: () => void
-  searchItem: (url: string) => void
 }
 
 const ObjectiveStore = create<ObjectiveState>((set, get) => ({
@@ -136,32 +115,20 @@ const ObjectiveStore = create<ObjectiveState>((set, get) => ({
     }
   },
 
-  getObjectives: async (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void
-  ) => {
+  getObjectives: async (url) => {
     try {
-      const response = await apiRequest<FetchResponse>(url, {
-        setLoading: ObjectiveStore.getState().setLoading,
-      })
+      const response = await customRequest({ url })
       const data = response?.data
       if (data) {
         ObjectiveStore.getState().setProcessedResults(data)
       }
     } catch (error: unknown) {
-      if (axios.isAxiosError(error) && error.response?.data?.message) {
-        setMessage(error.response.data.message, false)
-      } else {
-        console.error('Failed to fetch staff:', error)
-        setMessage('An unexpected error occurred.', false)
-      }
+      console.error('Failed to fetch staff:', error)
     }
   },
 
   fetchQuestions: async (url: string) => {
-    const response = await apiRequest<FetchResponse>(url, {
-      setLoading: ObjectiveStore.getState().setLoading,
-    })
+    const response = await customRequest({ url })
     const data = response?.data
     if (data) {
       ObjectiveStore.getState().setProcessedResults(data)
@@ -178,103 +145,19 @@ const ObjectiveStore = create<ObjectiveState>((set, get) => ({
     }))
   },
 
-  searchItem: _debounce(async (url: string) => {
-    try {
-      const response = await apiRequest<FetchResponse>(url)
-      if (response) {
-        const { results } = response?.data
-        const updatedResults = results.map((item: Objective) => ({
-          ...item,
-          isChecked: false,
-          isActive: false,
-        }))
-        set({ searchedResults: updatedResults })
-      }
-    } catch (error: unknown) {
-      if (error instanceof AxiosError && error.response?.data?.message) {
-        set({
-          loading: false,
-        })
-      } else {
-        set({
-          loading: false,
-        })
-      }
-    }
-  }, 1000),
-
-  massDelete: async (
-    url: string,
-    refreshUrl: string,
-    updatedItem: Objective[],
-    setMessage: (message: string, isError: boolean) => void
-  ) => {
-    set({
-      loading: true,
-    })
-    const response = await apiRequest<FetchResponse>(url, {
-      method: 'PATCH',
-      body: updatedItem,
-      setMessage,
-    })
-    if (response) {
-      const getObjectives = get().getObjectives
-      getObjectives(refreshUrl, setMessage)
-    }
-  },
-
-  deleteItem: async (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void,
-    setLoading?: (loading: boolean) => void
-  ) => {
-    const response = await apiRequest<FetchResponse>(url, {
-      method: 'DELETE',
-      setMessage,
-      setLoading,
-    })
-    const data = response?.data
-    if (data) {
-      ObjectiveStore.getState().setProcessedResults(data)
-    }
-  },
-
-  updateItem: async (
-    url: string,
-    updatedItem: FormData | Record<string, unknown>,
-    setMessage: (message: string, isError: boolean) => void
-  ) => {
+  updateItem: async (url, updatedItem) => {
     set({ loading: true })
-    const response = await apiRequest<FetchResponse>(url, {
+    const response = await customRequest({
+      url,
       method: 'PATCH',
-      body: updatedItem,
-      setMessage,
-      setLoading: ObjectiveStore.getState().setLoading,
+      showMessage: true,
+      data: updatedItem,
     })
     if (response?.status !== 404 && response?.data) {
       set({ loading: false })
       ObjectiveStore.getState().setProcessedResults(response.data)
     } else {
       set({ loading: false })
-    }
-  },
-
-  postItem: async (
-    url: string,
-    updatedItem: FormData | Record<string, unknown>,
-    setMessage: (message: string, isError: boolean) => void
-  ) => {
-    set({ loading: true })
-    const response = await apiRequest<FetchResponse>(url, {
-      method: 'POST',
-      body: updatedItem,
-      setMessage,
-      setLoading: ObjectiveStore.getState().setLoading,
-    })
-
-    const data = response?.data
-    if (data) {
-      ObjectiveStore.getState().setProcessedResults(data)
     }
   },
 

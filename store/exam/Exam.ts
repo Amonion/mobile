@@ -79,9 +79,6 @@ interface ExamState {
   attempt: number
   page_size: number
   currentPage: number
-  scrollY: number
-  scrollYAtClick: number | null
-  clickedIndex: number | null
   exams: Exam[]
   searchedExams: Exam[]
   loading: boolean
@@ -103,7 +100,6 @@ interface ExamState {
   updateItem: (url: string, updatedItem: FormData) => Promise<void>
   toggleChecked: (index: number) => void
   toggleActive: (index: number) => void
-  setScrollY: (index: number) => void
   toggleAllSelected: () => void
   reshuffleResults: () => void
   clearSearchedExams: () => void
@@ -130,9 +126,6 @@ const ExamStore = create<ExamState>((set) => ({
   searchedExamResults: [],
   isAllChecked: false,
   examForm: ExamEmpty,
-  scrollY: 0,
-  scrollYAtClick: 0,
-  setScrollY: (y) => set({ scrollY: y }),
 
   setForm: (key, value) =>
     set((state) => ({
@@ -179,7 +172,7 @@ const ExamStore = create<ExamState>((set) => ({
 
   getMoreExams: async (url) => {
     try {
-      set({ loading: true, scrollY: 0, scrollYAtClick: null })
+      set({ loading: true })
       const response = await customRequest({ url })
       const data = response?.data
       if (data) {
@@ -200,7 +193,7 @@ const ExamStore = create<ExamState>((set) => ({
 
   getExams: async (url) => {
     try {
-      set({ loading: true, scrollY: 0, scrollYAtClick: null })
+      set({ loading: true })
       const response = await customRequest({ url })
       const data = response?.data
       if (data) {
