@@ -20,11 +20,12 @@ interface ExamProviderProps {
 }
 
 export const ExamProvider: React.FC<ExamProviderProps> = ({ children }) => {
-  const { exams, getExams } = ExamStore()
+  const { exams, getSavedExams } = ExamStore()
 
   useEffect(() => {
-    //   getSavedExams()
-    getExams(`/competitions/exams/?page_size=20&page=1&ordering=-createdAt`)
+    if (exams.length === 0) {
+      getSavedExams()
+    }
   }, [])
 
   return (

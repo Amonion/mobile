@@ -2,6 +2,8 @@ import { create } from 'zustand'
 import _debounce from 'lodash/debounce'
 import { AxiosError } from 'axios'
 import { customRequest } from '@/lib/api'
+import { getAll, saveAll, upsert, upsertAll } from '@/lib/localStorage/db'
+import isEqual from 'lodash/isEqual'
 
 export interface Exam {
   _id: string
@@ -95,6 +97,8 @@ interface ExamState {
   setIsStarting: (state: boolean) => void
   setCurrentPage: (page: number) => void
   getExams: (url: string) => Promise<void>
+  getSavedExams: () => Promise<void>
+  getMoreSavedExams: () => Promise<void>
   getMoreExams: (url: string) => Promise<void>
   getExam: (url: string) => Promise<void>
   setProcessedResults: (data: FetchResponse) => void
@@ -176,19 +180,21 @@ const ExamStore = create<ExamState>((set) => ({
     }
   },
 
-  getMoreExams: async (url) => {
+  getMoreSavedExams: async () => {
     try {
       set({ loading: true })
-      const response = await customRequest({ url })
-      const data = response?.data
-      if (data) {
+      const page = ExamStore.getState().currentPage
+      const pageSize = ExamStore.getState().page_size
+      const exams = await getAll<Exam>('exams', { page, pageSize })
+      if (exams.length > 0) {
         set((prev) => {
           return {
-            hasMore: data.count > data.results.length * prev.exams.length,
-            exams: [...prev.exams, ...data.results],
-            currentPage: prev.currentPage++,
+            exams: [...prev.exams, ...exams],
           }
         })
+        ExamStore.getState().getMoreExams(
+          `/competitions/exams/?page_size=${pageSize}&page=${page}&ordering=-createdAt`
+        )
       }
     } catch (error: unknown) {
       console.error('Failed to fetch staff:', error)
@@ -197,16 +203,96 @@ const ExamStore = create<ExamState>((set) => ({
     }
   },
 
-  getExams: async (url) => {
+  getMoreExams: async (url) => {
     try {
-      set({ loading: true })
       const response = await customRequest({ url })
       const data = response?.data
       if (data) {
-        ExamStore.getState().setProcessedResults(data)
+        if (data.exams && data.exams.length > 0) {
+          await upsertAll<Exam>('exams', data.exams)
+          set((prev) => {
+            return {
+              hasMore: data.count > data.results.length * prev.exams.length,
+              currentPage: prev.currentPage++,
+            }
+          })
+        } else {
+          set((prev) => {
+            return {
+              hasMore: false,
+            }
+          })
+        }
       }
     } catch (error: unknown) {
       console.error('Failed to fetch staff:', error)
+    } finally {
+      set({ loading: false })
+    }
+  },
+
+  getSavedExams: async () => {
+    try {
+      set({ loading: true })
+      const exams = await getAll<Exam>('exams', { page: 1, pageSize: 20 })
+      if (exams.length > 0) {
+        set({ exams: exams })
+      } else {
+        ExamStore.getState().getExams(
+          `/competitions/exams/?page_size=40&page=1&ordering=-createdAt`
+        )
+      }
+    } catch (error: unknown) {
+      console.log(error)
+    } finally {
+      set({ loading: false })
+    }
+  },
+
+  getExams: async (url) => {
+    try {
+      const response = await customRequest({ url })
+      const data = response?.data
+      set({ currentPage: 2 })
+      if (data) {
+        const fetchedExams = data.results
+        const savedNews = ExamStore.getState().exams
+
+        if (savedNews.length > 0) {
+          const merged = savedNews.filter(
+            (localItem) =>
+              !fetchedExams.some(
+                (apiItem: Exam) => apiItem._id === localItem._id
+              )
+          )
+
+          const toUpsert = fetchedExams.filter((apiItem: Exam) => {
+            const existing = savedNews.find(
+              (localItem) => localItem._id === apiItem._id
+            )
+            return !existing || !isEqual(existing, apiItem)
+          })
+
+          if (toUpsert.length > 0) {
+            set({
+              exams: merged,
+            })
+
+            for (const item of toUpsert) {
+              await upsert('exams', item)
+            }
+
+            console.log(`✅ Upserted ${toUpsert.length} featured news item(s).`)
+          } else {
+            console.log('No new or updated featured news to upsert.')
+          }
+        } else {
+          saveAll('exams', fetchedExams)
+          set({ exams: data.results })
+        }
+      }
+    } catch (error: unknown) {
+      console.log(error)
     }
   },
 
