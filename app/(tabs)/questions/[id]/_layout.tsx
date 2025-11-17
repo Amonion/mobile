@@ -3,6 +3,7 @@ import Spinner from '@/components/Response/Spinner'
 import { formatCount } from '@/lib/helpers'
 import { AuthStore } from '@/store/AuthStore'
 import ExamStore, { Exam } from '@/store/exam/Exam'
+import ObjectiveStore from '@/store/exam/Objective'
 import { MessageStore } from '@/store/notification/Message'
 import { router, Slot, useLocalSearchParams, usePathname } from 'expo-router'
 import { useEffect, useState } from 'react'
@@ -16,7 +17,8 @@ import {
 } from 'react-native'
 
 export default function ExamLayout() {
-  const { getExam, examForm, loading } = ExamStore()
+  const { getExam, setIsStarting, isStarting, examForm, loading } = ExamStore()
+  const { getObjectives } = ObjectiveStore()
   const { id } = useLocalSearchParams()
   const pathname = usePathname()
   const [detailsLength, setDetailsLength] = useState(0)
@@ -24,17 +26,21 @@ export default function ExamLayout() {
   const { setMessage } = MessageStore()
   const [isFullScreen, setIsFullScreen] = useState(false)
   const [imageSource, setImageSource] = useState('')
-  const [isStarting, setIsStarting] = useState(false)
 
   useEffect(() => {
     if (!examForm._id) {
       getExam(`/competitions/exams/${id}`)
+    } else {
+      getObjectives(
+        `/competitions/leagues/objectives/?paperId=${examForm._id}&ordering=createdAt&page=1&page_size=${examForm.questionsPerPage}`
+      )
     }
   }, [id])
 
   useEffect(() => {
     const count = countFilledFields(examForm)
     setDetailsLength(count)
+    return () => setIsStarting(false)
   }, [examForm])
 
   const startPaper = () => {
@@ -54,7 +60,7 @@ export default function ExamLayout() {
       return
     } else {
       setIsStarting(true)
-      router.push(`/questions/${id}/test`)
+      router.push(`/test/${id}`)
     }
   }
 
@@ -82,9 +88,9 @@ export default function ExamLayout() {
 
   const navigateTo = (tab: 'users' | 'comments' | 'details') => {
     const pathMap = {
-      users: `/questions/${id}/exam`,
-      comments: `/questions/${id}/exam/comments`,
-      details: `/questions/${id}/exam/details`,
+      users: `/questions/${id}`,
+      comments: `/questions/${id}/comments`,
+      details: `/questions/${id}/details`,
     }
     if (pathname !== pathMap[tab]) {
       router.push(pathMap[tab])
@@ -161,7 +167,7 @@ export default function ExamLayout() {
             )}
           </View>
           {!loading && (
-            <View className="flex-row justify-around border-b border-border dark:border-dark-border mt-3">
+            <View className="flex-row justify-around mt-3">
               <TabButton
                 label="Users"
                 count={formatCount(examForm?.participants)}

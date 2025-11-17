@@ -19,7 +19,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ item }) => {
   const isDark = colorScheme === 'dark'
   const move = () => {
     ExamStore.setState({ examForm: item })
-    router.push(`/questions/${item._id}/exam`)
+    router.push(`/questions/${item._id}`)
   }
 
   return (

@@ -65,6 +65,7 @@ interface UserExamState {
   userExamForm: UserExam
   setForm: (key: keyof UserExam, value: UserExam[keyof UserExam]) => void
   resetForm: () => void
+  setUserExamForm: (form: UserExam) => void
   getExamParticipants: (url: string) => Promise<void>
   fetchQuestions: (url: string) => Promise<void>
   setProcessedResults: (data: FetchResponse) => void
@@ -102,6 +103,10 @@ const UserExamStore = create<UserExamState>((set) => ({
   resetForm: () =>
     set({
       userExamForm: UserExamEmpty,
+    }),
+  setUserExamForm: (form) =>
+    set({
+      userExamForm: form,
     }),
 
   setProcessedResults: ({ count, page_size, results }: FetchResponse) => {

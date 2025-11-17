@@ -35,17 +35,24 @@ export default function ExamTable() {
     <>
       <View className="bg-primary dark:bg-dark-primary p-2">
         <View className="flex-row items-center bg-secondary dark:bg-dark-secondary">
-          <Text className="min-w-12 text-secondary dark:text-dark-secondary font-pmedium  p-2">
+          <Text className="min-w-10 text-secondary dark:text-dark-secondary font-pmedium  p-1 text-[12px]">
             S/N
           </Text>
-          <Text className="text-secondary  p-2 dark:text-dark-secondary font-pmedium flex-1">
+          <Text className="text-secondary  p-1 text-[12px] dark:text-dark-secondary font-pmedium flex-1">
             User
           </Text>
-          <Text className="text-secondary min-w-16 dark:text-dark-secondary font-pmedium  p-2">
-            Atts.
+
+          <Text className="text-secondary min-w-16 dark:text-dark-secondary font-pmedium  p-1 text-[12px]">
+            AT.
           </Text>
-          <Text className="text-secondary w-[68px] dark:text-dark-secondary font-pmedium  p-2">
-            Metric
+          <Text className="text-secondary min-w-16 dark:text-dark-secondary font-pmedium  p-1 text-[12px]">
+            SP.
+          </Text>
+          <Text className="text-secondary w-[68px] dark:text-dark-secondary font-pmedium  p-1 text-[12px]">
+            AC.
+          </Text>
+          <Text className="text-secondary w-[68px] dark:text-dark-secondary font-pmedium  p-1 text-[12px]">
+            SC.
           </Text>
         </View>
 
@@ -62,28 +69,29 @@ export default function ExamTable() {
                   index % 2 === 1 ? 'bg-secondary dark:bg-dark-secondary' : ''
                 } flex-row items-center mb-2`}
               >
-                <Text className="min-w-12 text-secondary dark:text-dark-secondary font-pmedium  p-2">
+                <Text className="min-w-10 text-secondary dark:text-dark-secondary font-pmedium  p-1">
                   {(Number(currentPage) - 1) * page_size + index + 1}
                 </Text>
-                <TouchableOpacity className="flex-row p-2 flex-1 items-center">
-                  <Image
+                <TouchableOpacity className="flex-row min-w-16 p-1 flex-1 items-center">
+                  {/* <Image
                     source={{ uri: exam.picture }}
                     className="rounded-full w-12 h-12 mr-2"
-                  />
-                  <Text className="text-secondary flex-1 line-clamp-2 overflow-ellipsis dark:text-dark-secondary font-pmedium">
+                  /> */}
+                  <Text className="text-secondary flex-1  dark:text-dark-secondary text-[12px]">
                     {exam.username}
                   </Text>
                 </TouchableOpacity>
-                <Text className="text-secondary min-w-16 dark:text-dark-secondary font-pmedium  p-2">
+                <Text className="text-secondary min-w-16 dark:text-dark-secondary text-[12px]  p-1">
                   {exam.attempts}
                 </Text>
-                <Text className="text-secondary w-[68px] dark:text-dark-secondary font-pmedium  p-2">
-                  {(exam.accuracy * 100).toFixed(2)}
-                </Text>
-                <Text className="text-secondary w-[68px] dark:text-dark-secondary font-pmedium  p-2">
+
+                <Text className="text-secondary w-[68px] dark:text-dark-secondary text-[12px]  p-1">
                   {exam.rate.toFixed(2)}
                 </Text>
-                <Text className="text-secondary w-[68px] dark:text-dark-secondary font-pmedium  p-2">
+                <Text className="text-secondary w-[68px] dark:text-dark-secondary text-[12px]  p-1">
+                  {(exam.accuracy * 100).toFixed(2)}
+                </Text>
+                <Text className="text-secondary w-[68px] dark:text-dark-secondary text-[12px]  p-1">
                   {exam.metric.toFixed(3)}
                 </Text>
               </View>

@@ -82,6 +82,7 @@ interface ExamState {
   exams: Exam[]
   searchedExams: Exam[]
   loading: boolean
+  isStarting: boolean
   selectedItems: Exam[]
   searchResult: Exam[]
   searchedExamResults: Exam[]
@@ -91,6 +92,7 @@ interface ExamState {
   examForm: Exam
   setForm: (key: keyof Exam, value: Exam[keyof Exam]) => void
   resetForm: () => void
+  setIsStarting: (state: boolean) => void
   setCurrentPage: (page: number) => void
   getExams: (url: string) => Promise<void>
   getMoreExams: (url: string) => Promise<void>
@@ -118,6 +120,7 @@ const ExamStore = create<ExamState>((set) => ({
   searchedExams: [],
   hasMore: true,
   loading: false,
+  isStarting: false,
   hasMoreSearch: true,
   error: null,
   clickedIndex: null,
@@ -139,6 +142,9 @@ const ExamStore = create<ExamState>((set) => ({
       examForm: ExamEmpty,
     }),
 
+  setIsStarting: (loadState: boolean) => {
+    set({ isStarting: loadState })
+  },
   setLoading: (loadState: boolean) => {
     set({ loading: loadState })
   },

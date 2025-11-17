@@ -1,12 +1,10 @@
 import { NavStore } from '@/store/notification/Navigation'
 import { Feather } from '@expo/vector-icons'
-import { useRouter } from 'expo-router'
 import React, { useEffect, useState } from 'react'
 import { TextInput, TouchableOpacity, View, useColorScheme } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 const QuestionHeader = () => {
-  const router = useRouter()
   const { setSearchedText } = NavStore()
   const [text, setText] = useState('')
   const insets = useSafeAreaInsets()
