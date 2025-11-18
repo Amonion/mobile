@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
-export type TableName = 'news' | 'posts' | 'moments' | 'exams'
+export type TableName = 'news' | 'posts' | 'moments' | 'exams' | 'friends'
 
 const PREFIX = '@localdb:'
 
@@ -9,7 +9,32 @@ const tableKey = (table: TableName) => `${PREFIX}${table}`
 export interface GetAllOptions {
   page?: number
   pageSize?: number
+  filter?: Partial<Record<string, any>>
 }
+
+// export async function getAll<T>(
+//   table: TableName,
+//   options?: GetAllOptions
+// ): Promise<T[]> {
+//   try {
+//     const json = await AsyncStorage.getItem(tableKey(table))
+//     const items: T[] = json ? JSON.parse(json) : []
+
+//     if (!options || !options.pageSize || !options.page) {
+//       return items
+//     }
+
+//     const { page, pageSize } = options
+
+//     const start = (page - 1) * pageSize
+//     const end = start + pageSize
+
+//     return items.slice(start, end)
+//   } catch (err) {
+//     console.error(`Error reading table "${table}"`, err)
+//     return []
+//   }
+// }
 
 export async function getAll<T>(
   table: TableName,
@@ -17,10 +42,20 @@ export async function getAll<T>(
 ): Promise<T[]> {
   try {
     const json = await AsyncStorage.getItem(tableKey(table))
-    const items: T[] = json ? JSON.parse(json) : []
+    let items: T[] = json ? JSON.parse(json) : []
 
-    // No pagination → return everything
-    if (!options || !options.pageSize || !options.page) {
+    // Apply filter first
+    if (options?.filter) {
+      const filter = options.filter
+      items = items.filter((item) =>
+        Object.entries(filter).every(([key, value]) => {
+          return (item as any)[key] === value
+        })
+      )
+    }
+
+    // Pagination
+    if (!options?.pageSize || !options?.page) {
       return items
     }
 

@@ -1,17 +1,16 @@
 import { create } from 'zustand'
 import _debounce from 'lodash/debounce'
-import apiRequest from '@/lib/axios'
 import { Post, PostEmpty } from './Post'
+import { getAll, saveAll, upsert } from '@/lib/localStorage/db'
+import { User } from '../user/User'
+import { customRequest } from '@/lib/api'
+import { isEqual } from 'lodash'
 
 interface FetchPostResponse {
   count: number
   message: string
   page_size: number
   results: Post[]
-}
-interface PostResponse {
-  message: string
-  data: Post
 }
 
 export interface Media {
@@ -35,20 +34,15 @@ interface PostState {
   isMobile: boolean
   fitMode: boolean
   loading: boolean
+  hasMore: boolean
   selectedPosts: Post[]
   searchResult: Post[]
   isAllChecked: boolean
   userPostForm: Post
   setForm: (key: keyof Post, value: Post[keyof Post]) => void
   resetForm: () => void
-  getPosts: (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void
-  ) => Promise<void>
-  getMorePosts: (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void
-  ) => Promise<void>
+  getPosts: (url: string) => Promise<void>
+  getMorePosts: (url: string) => Promise<void>
 
   getAPost: (
     url: string,
@@ -57,13 +51,10 @@ interface PostState {
   setProcessedResults: (data: FetchPostResponse) => void
   processMoreResults: (data: FetchPostResponse) => void
   removePosts: (id: string) => void
+  getSavedPosts: (user: User) => void
+  getMoreSavedPost: (user: User) => void
   setLoading?: (loading: boolean) => void
-  massDelete: (
-    url: string,
-    refreshUrl: string,
-    selectedPosts: Post[],
-    setMessage: (message: string, isError: boolean) => void
-  ) => Promise<void>
+  massDelete: (url: string, selectedPosts: Post[]) => Promise<void>
   deleteItem: (
     url: string,
     id: string,
@@ -102,6 +93,7 @@ const UserPostStore = create<PostState>((set, get) => ({
   postResults: [],
   userMediaResults: [],
   selectedUserMedia: null,
+  hasMore: false,
   loading: false,
   error: null,
   selectedPosts: [],
@@ -254,9 +246,8 @@ const UserPostStore = create<PostState>((set, get) => ({
     setMessage: (message: string, isError: boolean) => void
   ) => {
     try {
-      const response = await apiRequest<Post>(url, {
-        setLoading: UserPostStore.getState().setLoading,
-      })
+      const response = await customRequest({ url })
+
       const data = response?.data
       if (data) {
         set({
@@ -269,37 +260,100 @@ const UserPostStore = create<PostState>((set, get) => ({
     }
   },
 
-  getPosts: async (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void
-  ) => {
+  getSavedPosts: async (user) => {
     try {
-      const response = await apiRequest<FetchPostResponse>(url, {
-        setLoading: UserPostStore.getState().setLoading,
+      set({ loading: true })
+      const postResults = await getAll<Post>('posts', {
+        page: 1,
+        pageSize: 20,
+        filter: { username: user.username },
       })
-      const data = response?.data
-      if (data) {
-        UserPostStore.getState().setProcessedResults(data)
+
+      if (postResults.length > 0) {
+        set({ postResults: postResults })
       }
+      UserPostStore.getState().getPosts(
+        `/posts/?myId=${user?._id}&page_size=40&page=1&postType=main&status=true`
+      )
     } catch (error: unknown) {
-      console.log(error, setMessage)
+      console.log(error)
+    } finally {
+      set({ loading: false })
     }
   },
 
-  getMorePosts: async (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void
-  ) => {
+  getPosts: async (url: string) => {
     try {
-      const response = await apiRequest<FetchPostResponse>(url, {
-        setLoading: UserPostStore.getState().setLoading,
-      })
+      const response = await customRequest({ url })
+      const data = response?.data
+      if (data) {
+        const fetchedPosts = data.results
+        const savedPosts = UserPostStore.getState().postResults
+
+        if (savedPosts.length > 0) {
+          const toUpsert = fetchedPosts.filter((apiItem: Post) => {
+            const existing = savedPosts.find(
+              (localItem) => localItem._id === apiItem._id
+            )
+            return !existing || !isEqual(existing, apiItem)
+          })
+
+          if (toUpsert.length > 0) {
+            for (const item of toUpsert) {
+              await upsert('posts', item)
+            }
+            console.log(`✅ Upserted ${toUpsert.length} featured news item(s).`)
+          } else {
+            console.log('No new or updated featured news to upsert.')
+          }
+        } else {
+          saveAll('posts', fetchedPosts)
+          set({ postResults: data.results })
+        }
+      }
+    } catch (error: unknown) {
+      console.log(error)
+    }
+  },
+
+  getMoreSavedPost: async (user) => {
+    try {
+      set({ loading: true })
+      const page = UserPostStore.getState().currentPage
+      const pageSize = UserPostStore.getState().page_size
+      const posts = await getAll<Post>('posts', { page, pageSize })
+      if (posts.length > 0) {
+        set((prev) => {
+          const existingIds = new Set(prev.postResults.map((e) => e._id))
+          const filtered = posts.filter((e) => !existingIds.has(e._id))
+          return {
+            postResults: [...prev.postResults, ...filtered],
+          }
+        })
+      }
+
+      UserPostStore.getState().getMorePosts(
+        `/posts/?myId=${user?._id}&page_size=40&page=${
+          page + 1
+        }&postType=main&status=true`
+      )
+    } catch (error: unknown) {
+      console.error('Failed to fetch staff:', error)
+    } finally {
+      set({ loading: false })
+    }
+  },
+
+  getMorePosts: async (url: string) => {
+    try {
+      const response = await customRequest({ url })
+
       const data = response?.data
       if (data) {
         UserPostStore.getState().processMoreResults(data)
       }
     } catch (error: unknown) {
-      console.log(error, setMessage)
+      console.log(error)
     }
   },
 
@@ -315,7 +369,7 @@ const UserPostStore = create<PostState>((set, get) => ({
 
   searchItem: _debounce(async (url: string) => {
     try {
-      const response = await apiRequest<FetchPostResponse>(url)
+      const response = await customRequest({ url })
       if (response) {
         const { results } = response?.data
         const updatedResults = results.map((item: Post) => ({
@@ -330,37 +384,30 @@ const UserPostStore = create<PostState>((set, get) => ({
     }
   }, 1000),
 
-  massDelete: async (
-    url: string,
-    refreshUrl: string,
-    selectedPosts: Post[],
-    setMessage: (message: string, isError: boolean) => void
-  ) => {
+  massDelete: async (url: string, selectedPosts: Post[]) => {
     set({
       loading: true,
     })
-    const response = await apiRequest<Post>(url, {
+
+    const response = await customRequest({
+      url,
       method: 'POST',
-      body: selectedPosts,
-      setMessage,
+      data: selectedPosts,
+      showMessage: true,
     })
     if (response) {
-      const getPosts = get().getPosts
-      getPosts(refreshUrl, setMessage)
     }
   },
 
-  deleteItem: async (
-    url: string,
-    id: string,
-    setMessage: (message: string, isError: boolean) => void
-  ) => {
+  deleteItem: async (url: string, id: string) => {
     set({
       loading: true,
     })
-    const response = await apiRequest<Post>(url, {
+
+    const response = await customRequest({
+      url,
       method: 'DELETE',
-      setMessage,
+      showMessage: true,
     })
     if (response) {
       set((state) => {
@@ -377,35 +424,27 @@ const UserPostStore = create<PostState>((set, get) => ({
 
   postItem: async (
     url: string,
-    updatedItem: FormData | Record<string, unknown>,
-    setMessage: (message: string, isError: boolean) => void,
-    setProgress?: (int: number) => void
+    updatedItem: FormData | Record<string, unknown>
   ) => {
     set({ loading: true })
-    const response = await apiRequest<Post>(url, {
-      method: 'POST',
-      body: updatedItem,
-      setMessage,
-      setProgress,
-      setLoading: UserPostStore.getState().setLoading,
+    const response = await customRequest({
+      url,
+      method: 'PATCH',
+      showMessage: true,
+      data: updatedItem,
     })
     const data = response?.data
     if (data) {
-      UserPostStore.getState().postResults.push(data)
     }
   },
 
-  updatePost: async (
-    url: string,
-    updatedItem: FormData | Record<string, unknown>,
-    setMessage: (message: string, isError: boolean) => void
-  ) => {
+  updatePost: async (url, updatedItem) => {
     set({ loading: true })
-    const response = await apiRequest<PostResponse>(url, {
+    const response = await customRequest({
+      url,
       method: 'PATCH',
-      body: updatedItem,
-      setMessage,
-      setLoading: UserPostStore.getState().setLoading,
+      showMessage: true,
+      data: updatedItem,
     })
     const data = response?.data
     if (data) {

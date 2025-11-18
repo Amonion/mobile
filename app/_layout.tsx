@@ -19,6 +19,8 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { GeneralProvider } from '@/context/GeneralContext'
 import { MomentProvider } from '@/context/MomentContext'
 import { ExamProvider } from '@/context/ExamContext'
+import { ChatProvider } from '@/context/ChatContext'
+import { PostProvider } from '@/context/PostContext'
 
 SplashScreen.preventAutoHideAsync()
 
@@ -59,32 +61,36 @@ export default function RootLayout() {
   }, [fontsLoaded, fontError])
 
   if (!fontsLoaded && !fontError) {
-    return null // Keep splash screen until fonts load
+    return null
   }
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <GeneralProvider>
-        <NewsProvider>
-          <MomentProvider>
-            <ExamProvider>
-              {message !== null && <Message />}
-              <GestureHandlerRootView style={{ flex: 1 }}>
-                <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
-                  <Stack screenOptions={{ headerShown: false }}>
-                    <Stack.Screen name="index" />
-                    <Stack.Screen
-                      name="modal"
-                      options={{ presentation: 'modal', title: 'Modal' }}
-                    />
-                  </Stack>
-                </View>
-              </GestureHandlerRootView>
+        <ChatProvider>
+          <PostProvider>
+            <NewsProvider>
+              <MomentProvider>
+                <ExamProvider>
+                  {message !== null && <Message />}
+                  <GestureHandlerRootView style={{ flex: 1 }}>
+                    <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
+                      <Stack screenOptions={{ headerShown: false }}>
+                        <Stack.Screen name="index" />
+                        <Stack.Screen
+                          name="modal"
+                          options={{ presentation: 'modal', title: 'Modal' }}
+                        />
+                      </Stack>
+                    </View>
+                  </GestureHandlerRootView>
 
-              <StatusBar style="auto" />
-            </ExamProvider>
-          </MomentProvider>
-        </NewsProvider>
+                  <StatusBar style="auto" />
+                </ExamProvider>
+              </MomentProvider>
+            </NewsProvider>
+          </PostProvider>
+        </ChatProvider>
       </GeneralProvider>
     </ThemeProvider>
   )

@@ -31,7 +31,7 @@ const AppBarWithDrawer = () => {
       ) : pathName === '/questions' ? (
         <View></View>
       ) : (
-        <MinorAppBar />
+        !pathName.includes('/friends') && <MinorAppBar />
       )}
 
       <SideDrawer

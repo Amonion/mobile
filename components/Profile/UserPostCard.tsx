@@ -12,32 +12,31 @@ import {
   useColorScheme,
   useWindowDimensions,
   TouchableOpacity,
+  Linking,
 } from 'react-native'
 import RenderHtml from 'react-native-render-html'
-import PostStat from './PostStat'
-import { useRouter } from 'expo-router'
-import PollCard from './PollCard'
-import HomePostMedia from './HomePostMedia'
+import { usePathname } from 'expo-router'
 import { AuthStore } from '@/store/AuthStore'
 import { Post, PostStore } from '@/store/post/Post'
 import SocialStore from '@/store/post/Social'
 import BottomSheetPostOptions from '../Sheets/BottomSheetPostOptions'
-import { UserStore } from '@/store/user/User'
+import HomePostMedia from '../Posts/HomePostMedia'
+import PollCard from '../Posts/PollCard'
+import PostStat from '../Posts/PostStat'
 
-interface PostCardProps {
+interface UserPostCardProps {
   post: Post
-  visiblePostId?: string | null
+  index: number
 }
 
-const PostCard: React.FC<PostCardProps> = ({ post, visiblePostId }) => {
+const UserPostCard: React.FC<UserPostCardProps> = ({ post, index }) => {
   const { width } = useWindowDimensions()
   const colorScheme = useColorScheme()
   const isDark = colorScheme === 'dark' ? true : false
   const { deletePost, updatePost, updatePinPost, repostItem } = PostStore()
   const { muteUser, blockUser } = SocialStore()
-  const { getUser } = UserStore()
   const { user } = AuthStore()
-  const router = useRouter()
+  const pathName = usePathname()
   const [visible, setVisible] = useState(false)
 
   const deleteItem = (id: string) => {
@@ -76,19 +75,15 @@ const PostCard: React.FC<PostCardProps> = ({ post, visiblePostId }) => {
   }
 
   const move = () => {
-    getUser(`/users/${post.username}/?userId=${post?.userId}`)
-
-    UserStore.setState((prev) => {
-      return {
-        userForm: {
-          ...prev.userForm,
-          username: post.username,
-          picture: post.picture,
-          displayName: post.displayName,
-        },
-      }
-    })
-    router.push(`/home/profile/${post.username}`)
+    if (
+      pathName === '/home' ||
+      (!pathName.includes('/home/profile') && !pathName.includes('/home/user'))
+    ) {
+      // router.push({
+      //   pathname: '/home/user/[username]',
+      //   params: { username: post.username },
+      // })
+    }
   }
 
   const blockAccount = () => {
@@ -139,11 +134,9 @@ const PostCard: React.FC<PostCardProps> = ({ post, visiblePostId }) => {
 
         <View>
           <View className="flex-row items-center">
-            <TouchableOpacity className="mr-2" onPress={move}>
-              <Text className="font-semibold text-xl text-primary dark:text-dark-primary line-clamp-1 overflow-ellipsis">
-                {post.displayName}
-              </Text>
-            </TouchableOpacity>
+            <Text className="font-semibold mr-2 text-xl text-primary dark:text-dark-primary line-clamp-1 overflow-ellipsis">
+              {post.displayName}
+            </Text>
             {post.isVerified && (
               <MaterialCommunityIcons
                 name="shield-check-outline"
@@ -370,7 +363,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, visiblePostId }) => {
   )
 }
 
-function areEqual(prevProps: PostCardProps, nextProps: PostCardProps) {
+function areEqual(prevProps: UserPostCardProps, nextProps: UserPostCardProps) {
   return (
     prevProps.post._id === nextProps.post._id &&
     prevProps.post.createdAt === nextProps.post.createdAt &&
@@ -381,4 +374,4 @@ function areEqual(prevProps: PostCardProps, nextProps: PostCardProps) {
   )
 }
 
-export default React.memo(PostCard, areEqual)
+export default React.memo(UserPostCard, areEqual)

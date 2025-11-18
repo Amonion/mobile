@@ -19,9 +19,7 @@ import PostCard from '@/components/Posts/PostCard'
 import FeaturedNews from '@/components/News/FeaturedNews'
 import Moments from '@/components/Moments/Moments'
 
-const AnimatedFlatList = Animated.createAnimatedComponent(
-  FlatList<Post> // 👈 typed FlatList
-)
+const AnimatedFlatList = Animated.createAnimatedComponent(FlatList<Post>)
 const viewedPostsSet = new Set<string>()
 const Home = () => {
   const {

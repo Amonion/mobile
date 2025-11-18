@@ -5,14 +5,8 @@ import React from 'react'
 import { View, FlatList, Text, RefreshControl } from 'react-native'
 
 const Questions = () => {
-  const {
-    loading,
-    hasMore,
-    exams,
-    currentPage,
-    getSavedExams,
-    getMoreSavedExams,
-  } = ExamStore()
+  const { loading, hasMore, exams, getSavedExams, getMoreSavedExams } =
+    ExamStore()
 
   const fetchMoreExams = () => {
     if ((loading && !hasMore) || exams.length === 0) return

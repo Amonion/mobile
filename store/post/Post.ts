@@ -1,6 +1,9 @@
 import { create } from 'zustand'
 import _debounce from 'lodash/debounce'
 import { customRequest } from '@/lib/api'
+import { getAll, saveAll, upsert } from '@/lib/localStorage/db'
+import { User } from '../user/User'
+import { isEqual } from 'lodash'
 
 interface FetchPostResponse {
   count: number
@@ -136,7 +139,7 @@ interface PostState {
   resetForm: () => void
   clearSearchedPosts: () => void
   getPosts: (url: string) => Promise<void>
-  getSavedPosts: () => Promise<void>
+  getSavedPosts: (user: User) => Promise<void>
   addMorePosts: (
     url: string,
     setMessage: (message: string, isError: boolean) => void
@@ -426,10 +429,7 @@ export const PostStore = create<PostState>((set, get) => ({
     set({ loading: loadState })
   },
 
-  getAPost: async (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void
-  ) => {
+  getAPost: async (url: string) => {
     try {
       const response = await customRequest({ url })
       const data = response?.data
@@ -444,64 +444,52 @@ export const PostStore = create<PostState>((set, get) => ({
     }
   },
 
-  getSavedPosts: async () => {
+  getSavedPosts: async (user) => {
     try {
-      // const result = await getPostsFromDB()
-      // const result = getPosts()
-      // if (result.length > 0) {
-      //   console.log('local posts is: ', result.length)
-      //   set({ postResults: result })
-      // }
+      set({ loading: true })
+      const postResults = await getAll<Post>('posts', { page: 1, pageSize: 20 })
+      if (postResults.length > 0) {
+        set({ postResults: postResults })
+      }
+      PostStore.getState().getPosts(
+        `/posts/?myId=${user?._id}&page_size=40&page=1&postType=main&status=true`
+      )
     } catch (error: unknown) {
       console.log(error)
+    } finally {
+      set({ loading: false })
     }
   },
+
   getPosts: async (url: string) => {
     try {
       const response = await customRequest({ url })
       const data = response?.data
       if (data) {
-        // PostStore.getState().setProcessedResults(data)
+        const fetchedPosts = data.results
+        console.log('The fetched posts are: ', fetchedPosts.length)
+        const savedPosts = PostStore.getState().postResults
 
-        const storedPosts = PostStore.getState().postResults
+        if (savedPosts.length > 0) {
+          const toUpsert = fetchedPosts.filter((apiItem: Post) => {
+            const existing = savedPosts.find(
+              (localItem) => localItem._id === apiItem._id
+            )
+            return !existing || !isEqual(existing, apiItem)
+          })
 
-        console.log(storedPosts.length, ' are stored')
-
-        const apiPosts: Post[] = response?.data?.results || []
-
-        if (apiPosts.length > 0) {
-          // await savePosts(apiPosts)
-          // const updated = getPosts(50, 1)
-          // PostStore.getState().setPostResults(updated);
-          // PostStore.setState({ postResults: updated })
-          // console.log('Synced with API:', updated.length)
+          if (toUpsert.length > 0) {
+            for (const item of toUpsert) {
+              await upsert('posts', item)
+            }
+            console.log(`✅ Upserted ${toUpsert.length} featured news item(s).`)
+          } else {
+            console.log('No new or updated featured news to upsert.')
+          }
+        } else {
+          saveAll('posts', fetchedPosts)
+          set({ postResults: data.results })
         }
-
-        // if (data.results.length > 0) {
-        //   const newPosts: Post[] = data.results.filter(
-        //     (item: Post) => !storedPosts.some((m) => m._id === item._id)
-        //   )
-        //   if (newPosts.length > 0) {
-        //     set((prev) => {
-        //       return {
-        //         postResults: [...prev.postResults, ...newPosts],
-        //       }
-        //     })
-
-        //     console.log(
-        //       'Local post lengths is: ',
-        //       storedPosts.length,
-        //       'New post lengths are: ',
-        //       newPosts.length
-        //     )
-
-        //     await savePosts(newPosts)
-        //   } else {
-        //     console.log('No new moments to add.')
-        //   }
-        // } else {
-        //   deleteAllMomentsFromDB()
-        // }
       }
     } catch (error: unknown) {
       console.log(error)
