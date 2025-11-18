@@ -5,19 +5,23 @@ import React from 'react'
 import { View, FlatList, Text, RefreshControl } from 'react-native'
 
 const Questions = () => {
-  const { loading, hasMore, exams, page_size, getExams, getMoreSavedExams } =
-    ExamStore()
+  const {
+    loading,
+    hasMore,
+    exams,
+    currentPage,
+    getSavedExams,
+    getMoreSavedExams,
+  } = ExamStore()
 
   const fetchMoreExams = () => {
-    if (loading || !hasMore) return
+    if ((loading && !hasMore) || exams.length === 0) return
     getMoreSavedExams()
   }
 
   const refreshExams = () => {
     if (loading) return
-    getExams(
-      `/competitions/exams/?page_size=${page_size}&page=1&ordering=-createdAt`
-    )
+    getSavedExams()
   }
 
   return (
@@ -39,9 +43,9 @@ const Questions = () => {
               tintColor={'#DA3986'}
             />
           }
-          contentContainerStyle={{ flexGrow: 1, paddingBottom: 20 }}
+          contentContainerStyle={{ flexGrow: 1 }}
           ListEmptyComponent={() => (
-            <Text className="text-center text-xl flex-1 text-primary dark:text-dark-primary">
+            <Text className="text-center text-xl mt-10 flex-1 text-primary dark:text-dark-primary">
               No Questions available.
             </Text>
           )}

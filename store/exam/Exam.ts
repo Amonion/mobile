@@ -141,6 +141,7 @@ const ExamStore = create<ExamState>((set) => ({
         [key]: value,
       },
     })),
+
   resetForm: () =>
     set({
       examForm: ExamEmpty,
@@ -149,9 +150,11 @@ const ExamStore = create<ExamState>((set) => ({
   setIsStarting: (loadState: boolean) => {
     set({ isStarting: loadState })
   },
+
   setLoading: (loadState: boolean) => {
     set({ loading: loadState })
   },
+
   setCurrentPage: (page: number) => {
     set({ currentPage: page })
   },
@@ -188,14 +191,17 @@ const ExamStore = create<ExamState>((set) => ({
       const exams = await getAll<Exam>('exams', { page, pageSize })
       if (exams.length > 0) {
         set((prev) => {
+          const existingIds = new Set(prev.exams.map((e) => e._id))
+          const filtered = exams.filter((e) => !existingIds.has(e._id))
           return {
-            exams: [...prev.exams, ...exams],
+            exams: [...prev.exams, ...filtered],
           }
         })
-        ExamStore.getState().getMoreExams(
-          `/competitions/exams/?page_size=${pageSize}&page=${page}&ordering=-createdAt`
-        )
       }
+
+      ExamStore.getState().getMoreExams(
+        `/competitions/exams/?page_size=20&page=${page + 1}&ordering=-createdAt`
+      )
     } catch (error: unknown) {
       console.error('Failed to fetch staff:', error)
     } finally {
@@ -208,12 +214,12 @@ const ExamStore = create<ExamState>((set) => ({
       const response = await customRequest({ url })
       const data = response?.data
       if (data) {
-        if (data.exams && data.exams.length > 0) {
-          await upsertAll<Exam>('exams', data.exams)
+        if (data.results.length > 0) {
+          await upsertAll<Exam>('exams', data.results)
           set((prev) => {
             return {
               hasMore: data.count > data.results.length * prev.exams.length,
-              currentPage: prev.currentPage++,
+              currentPage: prev.currentPage + 1,
             }
           })
         } else {
@@ -237,11 +243,11 @@ const ExamStore = create<ExamState>((set) => ({
       const exams = await getAll<Exam>('exams', { page: 1, pageSize: 20 })
       if (exams.length > 0) {
         set({ exams: exams })
-      } else {
-        ExamStore.getState().getExams(
-          `/competitions/exams/?page_size=40&page=1&ordering=-createdAt`
-        )
       }
+
+      ExamStore.getState().getExams(
+        `/competitions/exams/?page_size=40&page=1&ordering=-createdAt`
+      )
     } catch (error: unknown) {
       console.log(error)
     } finally {
@@ -259,13 +265,6 @@ const ExamStore = create<ExamState>((set) => ({
         const savedNews = ExamStore.getState().exams
 
         if (savedNews.length > 0) {
-          const merged = savedNews.filter(
-            (localItem) =>
-              !fetchedExams.some(
-                (apiItem: Exam) => apiItem._id === localItem._id
-              )
-          )
-
           const toUpsert = fetchedExams.filter((apiItem: Exam) => {
             const existing = savedNews.find(
               (localItem) => localItem._id === apiItem._id
@@ -274,10 +273,6 @@ const ExamStore = create<ExamState>((set) => ({
           })
 
           if (toUpsert.length > 0) {
-            set({
-              exams: merged,
-            })
-
             for (const item of toUpsert) {
               await upsert('exams', item)
             }
@@ -293,6 +288,8 @@ const ExamStore = create<ExamState>((set) => ({
       }
     } catch (error: unknown) {
       console.log(error)
+    } finally {
+      set({ loading: false })
     }
   },
 

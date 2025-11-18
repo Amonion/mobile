@@ -16,6 +16,7 @@ import { MomentStore } from '@/store/post/Moment'
 import MomentProgressBar from '@/components/Moments/MomentProgressBar'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useFocusEffect } from '@react-navigation/native'
+import { useVideoPlayer, VideoView } from 'expo-video'
 
 export default function CreateMoment() {
   const router = useRouter()
@@ -68,6 +69,28 @@ export default function CreateMoment() {
     }, [])
   )
 
+  const player = useVideoPlayer(activeMomentMedia.src, (status: any) => {
+    if (status?.state === 'ended') {
+      handleNext()
+    }
+  })
+
+  useEffect(() => {
+    if (player) {
+      player.play()
+    }
+  }, [player])
+
+  const handleHoldStart = () => {
+    setIsPlaying(false)
+    player.pause()
+  }
+
+  const handleHoldEnd = () => {
+    setIsPlaying(true)
+    player.play()
+  }
+
   const handleNext = () => {
     if (activeMomentMediaIndex + 1 < activeMoment.media.length) {
       changeActiveMomentMedia(activeMomentMediaIndex + 1, activeMomentIndex)
@@ -86,16 +109,6 @@ export default function CreateMoment() {
     } else {
       router.back()
     }
-  }
-
-  const handleHoldStart = () => {
-    setIsPlaying(false)
-    if (videoRef.current) videoRef.current.pauseAsync?.()
-  }
-
-  const handleHoldEnd = () => {
-    setIsPlaying(true)
-    if (videoRef.current) videoRef.current.playAsync?.()
   }
 
   return (
@@ -153,9 +166,8 @@ export default function CreateMoment() {
       )}
 
       {activeMomentMedia.type.includes('video') && (
-        <Video
-          ref={videoRef}
-          source={{ uri: activeMomentMedia.src }}
+        <VideoView
+          player={player}
           style={{
             width: '100%',
             height: '100%',
@@ -164,15 +176,7 @@ export default function CreateMoment() {
             top: '50%',
             transform: [{ translateY: -Dimensions.get('window').height / 2 }],
           }}
-          resizeMode={ResizeMode.CONTAIN}
-          shouldPlay={isPlaying}
-          isLooping={false}
-          onPlaybackStatusUpdate={(status) => {
-            // ✅ Type narrowing
-            if ('didJustFinish' in status && status.didJustFinish) {
-              handleNext()
-            }
-          }}
+          contentFit="contain"
         />
       )}
 
@@ -199,13 +203,15 @@ export default function CreateMoment() {
           <X size={20} />
         </TouchableOpacity>
       </View>
-      <Text
-        className={`${
-          activeMomentMedia.src ? 'bg-black/30 p-3' : ''
-        } text-center text-xl shadow text-white`}
-      >
-        {activeMomentMedia.content}
-      </Text>
+      {activeMomentMedia.content && (
+        <Text
+          className={`${
+            activeMomentMedia.src ? 'bg-black/30 p-3' : ''
+          } text-center text-xl shadow text-white`}
+        >
+          {activeMomentMedia.content}
+        </Text>
+      )}
     </Pressable>
   )
 }

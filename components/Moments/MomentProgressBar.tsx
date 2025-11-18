@@ -62,6 +62,7 @@ export default function MomentProgressBar() {
         left: 0,
         right: 0,
         paddingHorizontal: 8,
+        zIndex: 10,
       }}
     >
       {activeMoment.media.map((_, index) => {

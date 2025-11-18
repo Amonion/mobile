@@ -68,7 +68,7 @@ export default function CreateMoment() {
       setEditingMoment(true)
       setEditingMomentId(moment._id)
     }
-  }, [moments])
+  }, [moments.length])
 
   useEffect(() => {
     if (textColor) {
@@ -196,6 +196,139 @@ export default function CreateMoment() {
     }
   }
 
+  // const uploadFile = async (
+  //   asset: ImagePicker.ImagePickerAsset,
+  //   type: string
+  // ) => {
+  //   try {
+  //     setLoading(true)
+
+  //     let localThumbUrl = ''
+  //     let videoDuration = 0
+
+  //     if (type.includes('video')) {
+  //       try {
+  //         // ✅ Generate thumbnail
+  //         const { uri: thumbUri } = await VideoThumbnails.getThumbnailAsync(
+  //           asset.uri,
+  //           { time: 1000 }
+  //         )
+  //         localThumbUrl = thumbUri
+
+  //         // ✅ Get video duration using Audio API
+  //         const { sound, status } = await Audio.Sound.createAsync(
+  //           { uri: asset.uri },
+  //           { shouldPlay: false }
+  //         )
+
+  //         const playbackStatus = status as AVPlaybackStatusSuccess
+  //         if (playbackStatus.isLoaded && playbackStatus.durationMillis) {
+  //           videoDuration = playbackStatus.durationMillis / 1000 // seconds
+  //         }
+
+  //         await sound.unloadAsync()
+  //       } catch (error) {
+  //         console.warn('🎥 Failed to generate video metadata:', error)
+  //       }
+  //     }
+
+  //     MomentStore.setState((prev) => ({
+  //       momentMedia: {
+  //         ...prev.momentMedia,
+  //         type,
+  //         src: '',
+  //         preview: type.includes('video') ? localThumbUrl : asset.uri,
+  //         isViewed: false,
+  //         ...(type.includes('video') && { duration: videoDuration }),
+  //       },
+  //     }))
+
+  //     const fileName =
+  //       asset.fileName ?? asset.uri.split('/').pop() ?? `upload-${Date.now()}`
+  //     const mimeType =
+  //       asset.mimeType ?? (type.includes('video') ? 'video/mp4' : 'image/jpeg')
+
+  //     const { data: filePresign } = await axios.post(
+  //       `${baseURL}/s3-presigned-url`,
+  //       {
+  //         fileName,
+  //         fileType: mimeType,
+  //       }
+  //     )
+
+  //     const { uploadUrl: fileUploadUrl } = filePresign
+
+  //     const fileUri = type.includes('video') ? localThumbUrl : asset.uri
+
+  //     const fileBase64 = await FileSystem.readAsStringAsync(fileUri, {
+  //       encoding: 'base64',
+  //     })
+
+  //     const fileBuffer = Buffer.from(fileBase64, 'base64')
+  //     await axios.put(fileUploadUrl, fileBuffer, {
+  //       headers: { 'Content-Type': mimeType },
+  //       onUploadProgress: (progressEvent) => {
+  //         if (progressEvent.total) {
+  //           const percent = Math.round(
+  //             (progressEvent.loaded / progressEvent.total) * 100 * 0.5
+  //           )
+  //           setPercents(percent)
+  //         }
+  //       },
+  //     })
+
+  //     const publicFileUrl = fileUploadUrl.split('?')[0]
+  //     let publicThumbUrl = localThumbUrl
+
+  //     if (type.includes('video') && localThumbUrl) {
+  //       const thumbFileName = fileName.replace(/\.[^/.]+$/, '') + '-thumb.jpg'
+
+  //       const { data: thumbPresign } = await axios.post(
+  //         `${baseURL}/s3-presigned-url`,
+  //         {
+  //           fileName: thumbFileName,
+  //           fileType: 'image/jpeg',
+  //         }
+  //       )
+  //       const { uploadUrl: thumbUploadUrl } = thumbPresign
+
+  //       const thumbBase64 = await FileSystem.readAsStringAsync(localThumbUrl, {
+  //         encoding: 'base64',
+  //       })
+
+  //       const thumbBuffer = Buffer.from(thumbBase64, 'base64')
+
+  //       await axios.put(thumbUploadUrl, thumbBuffer, {
+  //         headers: { 'Content-Type': 'image/jpeg' },
+  //       })
+
+  //       publicThumbUrl = thumbUploadUrl.split('?')[0]
+  //     }
+
+  //     MomentStore.setState((prev) => ({
+  //       momentMedia: {
+  //         ...prev.momentMedia,
+  //         src: publicFileUrl,
+
+  //         // Keep old preview unless it's an image upload
+  //         preview: type.includes('image')
+  //           ? publicFileUrl
+  //           : prev.momentMedia.preview,
+
+  //         ...(type.includes('video') && { duration: videoDuration }),
+  //       },
+  //     }))
+
+  //     setPercents(0)
+  //     return publicFileUrl
+  //   } catch (error) {
+  //     console.error('❌ Upload failed:', error)
+  //     Alert.alert('Upload failed', 'Something went wrong while uploading.')
+  //   } finally {
+  //     setLoading(false)
+  //   }
+  // }
+
   const uploadFile = async (
     asset: ImagePicker.ImagePickerAsset,
     type: string
@@ -208,14 +341,14 @@ export default function CreateMoment() {
 
       if (type.includes('video')) {
         try {
-          // ✅ Generate thumbnail
+          // Generate thumbnail
           const { uri: thumbUri } = await VideoThumbnails.getThumbnailAsync(
             asset.uri,
             { time: 1000 }
           )
           localThumbUrl = thumbUri
 
-          // ✅ Get video duration using Audio API
+          // Get video duration
           const { sound, status } = await Audio.Sound.createAsync(
             { uri: asset.uri },
             { shouldPlay: false }
@@ -223,15 +356,14 @@ export default function CreateMoment() {
 
           const playbackStatus = status as AVPlaybackStatusSuccess
           if (playbackStatus.isLoaded && playbackStatus.durationMillis) {
-            videoDuration = playbackStatus.durationMillis / 1000 // seconds
+            videoDuration = playbackStatus.durationMillis / 1000
           }
 
           await sound.unloadAsync()
-        } catch (error) {
-          console.warn('🎥 Failed to generate video metadata:', error)
+        } catch (err) {
+          console.warn('🎥 Failed to get video metadata:', err)
         }
       }
-
       MomentStore.setState((prev) => ({
         momentMedia: {
           ...prev.momentMedia,
@@ -245,9 +377,9 @@ export default function CreateMoment() {
 
       const fileName =
         asset.fileName ?? asset.uri.split('/').pop() ?? `upload-${Date.now()}`
+
       const mimeType =
         asset.mimeType ?? (type.includes('video') ? 'video/mp4' : 'image/jpeg')
-
       const { data: filePresign } = await axios.post(
         `${baseURL}/s3-presigned-url`,
         {
@@ -258,26 +390,24 @@ export default function CreateMoment() {
 
       const { uploadUrl: fileUploadUrl } = filePresign
 
-      const fileUri = type.includes('video') ? localThumbUrl : asset.uri
+      const fileUri = asset.uri
 
-      const fileBase64 = await FileSystem.readAsStringAsync(fileUri, {
-        encoding: 'base64',
-      })
+      const uploadResult = await FileSystem.uploadAsync(
+        fileUploadUrl,
+        fileUri,
+        {
+          httpMethod: 'PUT',
+          headers: { 'Content-Type': mimeType },
+          uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
+        }
+      )
 
-      const fileBuffer = Buffer.from(fileBase64, 'base64')
-      await axios.put(fileUploadUrl, fileBuffer, {
-        headers: { 'Content-Type': mimeType },
-        onUploadProgress: (progressEvent) => {
-          if (progressEvent.total) {
-            const percent = Math.round(
-              (progressEvent.loaded / progressEvent.total) * 100 * 0.5
-            )
-            setPercents(percent)
-          }
-        },
-      })
+      if (uploadResult.status !== 200) {
+        throw new Error('Failed to upload main file to S3')
+      }
 
       const publicFileUrl = fileUploadUrl.split('?')[0]
+
       let publicThumbUrl = localThumbUrl
 
       if (type.includes('video') && localThumbUrl) {
@@ -290,26 +420,37 @@ export default function CreateMoment() {
             fileType: 'image/jpeg',
           }
         )
+
         const { uploadUrl: thumbUploadUrl } = thumbPresign
 
-        const thumbBase64 = await FileSystem.readAsStringAsync(localThumbUrl, {
-          encoding: 'base64',
-        })
+        const thumbUploadResult = await FileSystem.uploadAsync(
+          thumbUploadUrl,
+          localThumbUrl,
+          {
+            httpMethod: 'PUT',
+            headers: {
+              'Content-Type': 'image/jpeg',
+            },
+            uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
+          }
+        )
 
-        const thumbBuffer = Buffer.from(thumbBase64, 'base64')
-
-        await axios.put(thumbUploadUrl, thumbBuffer, {
-          headers: { 'Content-Type': 'image/jpeg' },
-        })
-
-        publicThumbUrl = thumbUploadUrl.split('?')[0]
+        if (thumbUploadResult.status === 200) {
+          publicThumbUrl = thumbUploadUrl.split('?')[0]
+        }
       }
+
+      console.log('The duration is: ', videoDuration)
 
       MomentStore.setState((prev) => ({
         momentMedia: {
           ...prev.momentMedia,
           src: publicFileUrl,
-          preview: type.includes('image') ? publicFileUrl : publicThumbUrl,
+
+          preview: type.includes('image')
+            ? publicFileUrl
+            : prev.momentMedia.preview,
+
           ...(type.includes('video') && { duration: videoDuration }),
         },
       }))
@@ -349,19 +490,17 @@ export default function CreateMoment() {
   }
 
   const getMediaDuration = (): number => {
-    let duration = 5
-
     if (momentMedia.type.includes('video')) {
-      duration = Math.min(Math.max(momentMedia.duration, 5), 15)
-    } else {
-      const textLength = momentMedia.content?.length || 0
-
-      if (textLength <= 0) duration = 5
-      else if (textLength <= 100) duration = 6
-      else if (textLength <= 200) duration = 8
-      else duration = 12
+      const videoLength = momentMedia.duration ?? 5
+      return Math.max(videoLength, 5)
     }
-    return duration
+
+    const textLength = momentMedia.content?.length || 0
+
+    if (textLength <= 0) return 5
+    if (textLength <= 100) return 6
+    if (textLength <= 200) return 8
+    return 12
   }
 
   const addMoment = () => {
@@ -461,20 +600,22 @@ export default function CreateMoment() {
             </TouchableOpacity>
           </View>
 
-          <TextInput
-            className="text-center text-[18px] p-3 z-20 w-full"
-            placeholder="Write a moment..."
-            placeholderTextColor="#ccc"
-            style={{ color: `${momentMedia.textColor}` }}
-            multiline
-            value={momentMedia.content}
-            autoFocus
-            onChangeText={(text) =>
-              MomentStore.setState((prev) => ({
-                momentMedia: { ...prev.momentMedia, content: text.trim() },
-              }))
-            }
-          />
+          <View className={`p-3`}>
+            <TextInput
+              className="text-center text-[18px] p-3 z-20 w-full"
+              placeholder="Write a moment..."
+              placeholderTextColor="#ccc"
+              style={{ color: `${momentMedia.textColor}` }}
+              multiline
+              value={momentMedia.content}
+              autoFocus
+              onChangeText={(text) =>
+                MomentStore.setState((prev) => ({
+                  momentMedia: { ...prev.momentMedia, content: text },
+                }))
+              }
+            />
+          </View>
 
           {percents > 0 && (
             <View className="absolute px-3 bottom-3 w-full left-0">
@@ -485,44 +626,6 @@ export default function CreateMoment() {
                 />
               </View>
             </View>
-          )}
-        </View>
-
-        <View style={styles.toolbar}>
-          <TouchableOpacity onPress={pickMedia}>
-            <Text style={styles.icon}>📁</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setShowEmojiPicker(!showEmojiPicker)}
-          >
-            <Text style={styles.icon}>😊</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => setIsColorPicker(!isColorPicker)}>
-            <Text style={styles.icon}>🎨</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setShowTextColorPicker(!showTextColorPicker)}
-          >
-            <Text style={styles.icon}>🖋️</Text>
-          </TouchableOpacity>
-
-          {canAdd && (
-            <TouchableOpacity
-              className="bg-primary dark:bg-dark-primary border border-border dark:border-dark-border"
-              style={styles.addBtn}
-              onPress={addMoment}
-            >
-              <Text className="text-primary dark:text-dark-primary">Add</Text>
-            </TouchableOpacity>
-          )}
-          {canPost && (
-            <TouchableOpacity
-              className="bg-custom"
-              style={styles.postBtn}
-              onPress={uploadMoment}
-            >
-              <Text style={{ color: 'white' }}>Post</Text>
-            </TouchableOpacity>
           )}
         </View>
 
@@ -540,11 +643,11 @@ export default function CreateMoment() {
         {showEmojiPicker && (
           <View style={{ height: 300 }}>
             <Picker
-              onSelect={addEmoji} // required
-              theme="dark" // optional: 'light' | 'dark'
-              columns={8} // use 'columns' instead of 'perLine'
-              showPreview={false} // optional
-              showSkinTones={false} // optional
+              onSelect={addEmoji}
+              theme="dark"
+              columns={8}
+              showPreview={false}
+              showSkinTones={false}
             />
           </View>
         )}
@@ -561,47 +664,176 @@ export default function CreateMoment() {
           </View>
         )}
 
-        {loading && (
+        {loading ? (
           <View style={styles.loading}>
             <ActivityIndicator size="large" color="#007AFF" />
             <Text style={{ color: '#888' }}>Processing...</Text>
           </View>
+        ) : (
+          <View style={styles.toolbar}>
+            <TouchableOpacity onPress={pickMedia}>
+              <Text style={styles.icon}>📁</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setShowEmojiPicker(!showEmojiPicker)}
+            >
+              <Text style={styles.icon}>😊</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setIsColorPicker(!isColorPicker)}>
+              <Text style={styles.icon}>🎨</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setShowTextColorPicker(!showTextColorPicker)}
+            >
+              <Text style={styles.icon}>🖋️</Text>
+            </TouchableOpacity>
+
+            {canAdd && (
+              <TouchableOpacity
+                className="bg-primary dark:bg-dark-primary border border-border dark:border-dark-border"
+                style={styles.addBtn}
+                onPress={addMoment}
+              >
+                <Text className="text-primary dark:text-dark-primary">Add</Text>
+              </TouchableOpacity>
+            )}
+            {canPost && (
+              <TouchableOpacity
+                className="bg-custom"
+                style={styles.postBtn}
+                onPress={uploadMoment}
+              >
+                <Text style={{ color: 'white' }}>Post</Text>
+              </TouchableOpacity>
+            )}
+          </View>
         )}
 
-        <View className="px-3 grid mt-3 grid-cols-3 gap-3 flex-row">
-          {momentMedias.map((item, idx) => (
-            <TouchableOpacity
-              key={idx}
-              activeOpacity={0.8}
-              onPress={() => editMoment(idx)}
-              className="w-[30%] rounded-[10px] overflow-hidden h-[150px] flex flex-row justify-center items-center relative"
-              style={[{ backgroundColor: item.backgroundColor || '#444' }]}
-            >
-              {item.preview && (
-                <Image
-                  source={{ uri: item.preview }}
-                  className="w-full h-full absolute left-0 top-0"
-                  resizeMode="cover"
-                />
-              )}
-
-              <Text
-                className={` text-white z-20 text-center line-clamp-3 overflow-ellipsis`}
+        {/* <View className="flex-1">
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingHorizontal: 12 }}
+          >
+            {momentMedias.map((item, idx) => (
+              <View
+                key={idx}
+                className="w-[120px] rounded-[10px] overflow-hidden h-[150px]"
+                style={[{ backgroundColor: item.backgroundColor || '#444' }]}
               >
-                {item.content}
-              </Text>
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => editMoment(idx)}
+                  className="w-[120px] rounded-[10px] overflow-hidden h-full flex flex-row justify-center items-center relative"
+                  style={[{ backgroundColor: item.backgroundColor || '#444' }]}
+                >
+                  {item.preview && (
+                    <Image
+                      source={{ uri: item.preview }}
+                      className="w-full h-full absolute z-10 left-0 top-0"
+                      resizeMode="cover"
+                    />
+                  )}
 
-              <Pressable
-                onPress={(e) => {
-                  e.stopPropagation()
-                  removeMoment(idx)
+                  <Text
+                    className={` text-white flex-1 z-20 text-center line-clamp-3 overflow-ellipsis`}
+                  >
+                    {item.content}
+                  </Text>
+
+                  <Pressable
+                    onPress={(e) => {
+                      e.stopPropagation()
+                      removeMoment(idx)
+                    }}
+                    className="absolute z-20 bottom-3 right-3 p-1"
+                  >
+                    <Trash color="#fff" size={20} />
+                  </Pressable>
+                </TouchableOpacity>
+              </View>
+            ))}
+          </ScrollView>
+        </View> */}
+
+        <View className="flex-1 py-4">
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingHorizontal: 12 }}
+          >
+            {momentMedias.map((item, idx) => (
+              <View
+                key={idx}
+                style={{
+                  width: 120,
+                  height: 150,
+                  borderRadius: 10,
+                  overflow: 'hidden',
+                  backgroundColor: item.backgroundColor || '#444',
+                  marginRight: 12,
                 }}
-                className="absolute z-20 bottom-3 right-3 p-1"
               >
-                <Trash color="#fff" size={20} />
-              </Pressable>
-            </TouchableOpacity>
-          ))}
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => editMoment(idx)}
+                  style={{
+                    width: 120,
+                    height: '100%',
+                    borderRadius: 10,
+                    overflow: 'hidden',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    backgroundColor: item.backgroundColor || '#444',
+                  }}
+                >
+                  {item.preview && (
+                    <Image
+                      source={{ uri: item.preview }}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        zIndex: 10,
+                      }}
+                      resizeMode="cover"
+                    />
+                  )}
+
+                  <Text
+                    numberOfLines={3}
+                    ellipsizeMode="tail"
+                    style={{
+                      color: '#fff',
+                      textAlign: 'center',
+                      zIndex: 20,
+                      paddingHorizontal: 4,
+                    }}
+                  >
+                    {item.content}
+                  </Text>
+
+                  <Pressable
+                    onPress={(e) => {
+                      e.stopPropagation()
+                      removeMoment(idx)
+                    }}
+                    style={{
+                      position: 'absolute',
+                      bottom: 8,
+                      right: 8,
+                      zIndex: 20,
+                      padding: 4,
+                    }}
+                  >
+                    <Trash color="#fff" size={20} />
+                  </Pressable>
+                </TouchableOpacity>
+              </View>
+            ))}
+          </ScrollView>
         </View>
       </ScrollView>
     </View>
