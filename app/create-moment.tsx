@@ -600,12 +600,15 @@ export default function CreateMoment() {
             </TouchableOpacity>
           </View>
 
-          <View className={`p-3`}>
+          <View className="flex-1 h-full w-full items-center justify-center">
             <TextInput
-              className="text-center text-[18px] p-3 z-20 w-full"
+              className="text-[18px] p-3 z-20"
               placeholder="Write a moment..."
               placeholderTextColor="#ccc"
-              style={{ color: `${momentMedia.textColor}` }}
+              style={{
+                color: momentMedia.textColor,
+                textAlignVertical: 'top',
+              }}
               multiline
               value={momentMedia.content}
               autoFocus

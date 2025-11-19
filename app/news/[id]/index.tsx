@@ -30,7 +30,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 const FeaturedNews: React.FC = () => {
   const newsForm = NewsStore((state) => state.newsForm)
-  const newsType = NewsStore((state) => state.newsType)
   const getANews = NewsStore((state) => state.getANews)
   const updateNews = NewsStore((state) => state.updateNews)
   const { mainPost } = CommentStore()
@@ -43,24 +42,6 @@ const FeaturedNews: React.FC = () => {
   const commentSheetRef = useRef<CommentSheetRef>(null)
   const pathname = usePathname()
   const insets = useSafeAreaInsets()
-  // const [keyboardVisible, setKeyboardVisible] = useState(false)
-  // const [keyboardHeight, setKeyboardHeight] = useState(0)
-
-  // useEffect(() => {
-  //   const showListener = Keyboard.addListener('keyboardDidShow', (e) => {
-  //     setKeyboardVisible(true)
-  //     setKeyboardHeight(e.endCoordinates.height)
-  //   })
-  //   const hideListener = Keyboard.addListener('keyboardDidHide', () => {
-  //     setKeyboardVisible(false)
-  //     setKeyboardHeight(0)
-  //   })
-
-  //   return () => {
-  //     showListener.remove()
-  //     hideListener.remove()
-  //   }
-  // }, [])
 
   useEffect(() => {
     const updateNewsViews = async () => {
@@ -69,7 +50,7 @@ const FeaturedNews: React.FC = () => {
         userId: user?._id,
       })
 
-      await upsert(newsType, newsForm)
+      await upsert('news', newsForm)
     }
     if (pathname === `/news/${id}` && !newsForm.viewed) {
       updateNewsViews()

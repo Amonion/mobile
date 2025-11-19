@@ -12,6 +12,19 @@ export const getDeviceWidth = () => {
   return Dimensions.get('window').width
 }
 
+export async function getPdfPageCount(file: File): Promise<number> {
+  const buffer = await file.arrayBuffer()
+  const text = new TextDecoder().decode(buffer)
+
+  // Regex to find the page count from /Count entries in the PDF
+  const matches = text.match(/\/Count\s+(\d+)/g)
+  if (!matches) return 0
+
+  // Get the largest count value — usually the total pages
+  const counts = matches.map((m) => parseInt(m.replace('/Count', '').trim()))
+  return Math.max(...counts)
+}
+
 export const getUserIP = async (): Promise<string> => {
   try {
     const response = await fetch(

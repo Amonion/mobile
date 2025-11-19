@@ -675,23 +675,29 @@ export const PostStore = create<PostState>((set, get) => ({
     }
   },
   updatePost: async (url, updatedItem) => {
-    set({ loading: true, error: null })
+    set({ loading: true })
 
-    const response = await customRequest({
-      url,
-      method: 'PATCH',
-      showMessage: true,
-      data: updatedItem,
-    })
-    const data = response?.data?.data
-    if (data) {
-      PostStore.setState((state) => ({
-        postResults: state.postResults.map((post) =>
-          post.userId === data.userId
-            ? { ...post, followed: data.followed, isActive: false }
-            : post
-        ),
-      }))
+    try {
+      const response = await customRequest({
+        url,
+        method: 'PATCH',
+        showMessage: true,
+        data: updatedItem,
+      })
+      const data = response?.data?.data
+      if (data) {
+        PostStore.setState((state) => ({
+          postResults: state.postResults.map((post) =>
+            post.userId === data.userId
+              ? { ...post, followed: data.followed, isActive: false }
+              : post
+          ),
+        }))
+      }
+    } catch (error) {
+      console.log(error)
+    } finally {
+      set({ loading: false })
     }
   },
 

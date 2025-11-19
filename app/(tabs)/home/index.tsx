@@ -8,8 +8,8 @@ import {
   TouchableOpacity,
   NativeSyntheticEvent,
   NativeScrollEvent,
+  RefreshControl,
 } from 'react-native'
-// import { HEADER_HEIGHT } from "@/constants/Sizes";
 import { Feather } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { useScrollY } from '@/context/ScrollYContext'
@@ -25,11 +25,12 @@ const Home = () => {
   const {
     loading,
     postResults,
+    currentPage,
+    hasMore,
+    getSavedPosts,
     updatePost,
     // fetchMore,
-    hasMore,
     setCurrentPage,
-    currentPage,
   } = PostStore()
   const { user } = AuthStore()
   const { onScroll } = useScrollY()
@@ -49,6 +50,11 @@ const Home = () => {
   const fetchMorePosts = () => {
     if (loading || !hasMore) return
     setCurrentPage(currentPage + 1)
+  }
+
+  const refreshPosts = () => {
+    if (!user) return
+    getSavedPosts(user)
   }
 
   const sendViewedPosts = useCallback(
@@ -122,6 +128,14 @@ const Home = () => {
         contentContainerStyle={{
           paddingBottom: 0,
         }}
+        refreshControl={
+          <RefreshControl
+            refreshing={loading}
+            onRefresh={refreshPosts}
+            tintColor={isDark ? '#6E6E6E' : '#1C1E21'}
+            colors={['#DA3986']}
+          />
+        }
         ListHeaderComponent={
           <View>
             <FeaturedNews />

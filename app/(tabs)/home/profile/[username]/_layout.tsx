@@ -142,15 +142,7 @@ export default function UserLayout() {
             {user?.username !== userForm.username ? (
               <View className="flex-row ml-auto items-center">
                 <TouchableOpacity
-                  onPress={() =>
-                    router.push({
-                      pathname: '/chat/[username]',
-                      params: {
-                        username: userForm.username,
-                        myUsername: user?.username,
-                      },
-                    })
-                  }
+                  onPress={() => router.push(`/chat/${userForm.username}`)}
                   className="mr-3"
                 >
                   <Feather
