@@ -153,29 +153,29 @@ const Chats = () => {
     })
   }
 
-  const serializeFiles = async (files: File[]) => {
-    const serialized = await Promise.all(
-      files.map(async (file, index) => {
-        const buffer = await file.arrayBuffer()
-        const blob = new Blob([buffer], { type: file.type })
-        const previewUrl = URL.createObjectURL(blob)
+  // const serializeFiles = async (files: File[]) => {
+  //   const serialized = await Promise.all(
+  //     files.map(async (file, index) => {
+  //       const buffer = await file.arrayBuffer()
+  //       const blob = new Blob([buffer], { type: file.type })
+  //       const previewUrl = URL.createObjectURL(blob)
 
-        return {
-          index,
-          file,
-          name: file.name,
-          type: file.type,
-          size: file.size,
-          status: 'pending', // will become "uploaded" later
-          blob,
-          previewUrl, // for local preview
-          url: '', // ✅ empty now, to be filled with bucket URL later
-        } as PreviewFile
-      })
-    )
+  //       return {
+  //         index,
+  //         file,
+  //         name: file.name,
+  //         type: file.type,
+  //         size: file.size,
+  //         status: 'pending', // will become "uploaded" later
+  //         blob,
+  //         previewUrl, // for local preview
+  //         url: '', // ✅ empty now, to be filled with bucket URL later
+  //       } as PreviewFile
+  //     })
+  //   )
 
-    return serialized
-  }
+  //   return serialized
+  // }
 
   const pickImagesVideos = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -210,64 +210,6 @@ const Chats = () => {
     }
   }
 
-  const handleSelectFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = e.target.files
-    if (!selectedFiles) return
-
-    setOptions(false)
-
-    const filesArray = Array.from(selectedFiles)
-
-    const newFiles: PreviewFile[] = await Promise.all(
-      filesArray.map(async (file, index) => {
-        const url = URL.createObjectURL(file)
-
-        const type = file.type.startsWith('video')
-          ? 'video'
-          : file.type.startsWith('image')
-          ? 'image'
-          : file.type.startsWith('audio')
-          ? 'audio'
-          : 'other'
-
-        const name = file.name.replace(/\.[^/.]+$/, '')
-        const size = +(file.size / (1024 * 1024)).toFixed(2)
-        const status = 'pending'
-        let pages = 0
-
-        if (file.type === 'application/pdf') {
-          try {
-            pages = await getPdfPageCount(file)
-          } catch (error) {
-            console.error('Error getting PDF pages:', error)
-          }
-        }
-
-        return {
-          index,
-          file,
-          url,
-          previewUrl: url,
-          name,
-          type,
-          status,
-          size,
-          pages,
-        } as PreviewFile
-      })
-    )
-
-    // preserve existing indices, append new ones correctly
-    setFiles((prev) => {
-      const baseIndex = prev.length
-      const indexedFiles = newFiles.map((f, i) => ({
-        ...f,
-        index: baseIndex + i,
-      }))
-      return [...prev, ...indexedFiles]
-    })
-  }
-
   const postMessage = async () => {
     if (text.trim().length === 0 && files.length === 0) {
       setMessage(`No message to send to `, false)
@@ -284,7 +226,8 @@ const Chats = () => {
         day: formatDateToDDMMYY(new Date()),
         connection: connection,
         repliedChat: repliedChat,
-        isFriends: friendForm.isFriends,
+        // isFriends: friendForm.isFriends,
+        isFriends: true,
         senderDisplayName: String(user?.displayName),
         senderUsername: String(user?.username),
         senderPicture: String(user?.picture),
@@ -295,9 +238,7 @@ const Chats = () => {
         time: new Date().getTime(),
         updatedAt: new Date(),
         timeNumber: timeNumber,
-        media: await serializeFiles(
-          files.map((f) => f.file).filter((f): f is File => f instanceof File)
-        ),
+        media: files,
       }
 
       const friendChat = {
@@ -324,9 +265,7 @@ const Chats = () => {
         content: form.content,
         repliedChat: form.repliedChat,
         senderUsername: String(user?.username),
-        media: await serializeFiles(
-          files.map((f) => f.file).filter((f): f is File => f instanceof File)
-        ),
+        media: files,
         day: form.day,
         receiverUsername: form.receiverUsername,
         status: 'pending',
@@ -347,8 +286,7 @@ const Chats = () => {
           }
         })
       }
-
-      updateFriendsChat(friendChat)
+      // updateFriendsChat(friendChat)
       addNewChat(saved)
       if (files.length > 0) {
         postChat('/chats', form, setMessage)
@@ -440,7 +378,7 @@ const Chats = () => {
             <KeyboardAvoidingView
               behavior={Platform.OS === 'ios' ? 'padding' : undefined}
               keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
-              style={{ flex: 1, flexGrow: 1, justifyContent: 'flex-end' }}
+              style={{ justifyContent: 'flex-end' }}
             >
               <View
                 style={{ paddingBottom: insets.bottom }}
@@ -546,6 +484,7 @@ const Chats = () => {
                     flexDirection: 'row',
                     alignItems: 'center',
                     marginBottom: 12,
+                    marginRight: 8,
                   }}
                 >
                   <TouchableOpacity>
@@ -565,7 +504,7 @@ const Chats = () => {
                       <Send
                         size={20}
                         color="#DA3986"
-                        style={{ transform: [{ rotate: '-45deg' }] }}
+                        style={{ transform: [{ rotate: '45deg' }] }}
                       />
                     </TouchableOpacity>
                   )}

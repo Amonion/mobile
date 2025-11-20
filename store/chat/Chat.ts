@@ -1,35 +1,24 @@
 import { create } from 'zustand'
 import _debounce from 'lodash/debounce'
 import { customRequest } from '@/lib/api'
+import { upsert } from '@/lib/localStorage/db'
 
 export interface PreviewFile {
   index: number
-  file?: File | Blob
-  blob?: Blob
-  url?: string
-  previewUrl?: string
+
+  // React Native never uses File or Blob
+  uri: string // The actual file path or URI
   name: string
-  type: string
-  size: number
-  status: string
-  pages?: number
-  duration?: number
-}
+  type: string // mime type (image/png, video/mp4, application/pdf, etc.)
+  size: number // in bytes
 
-interface FetchChatResponse {
-  count: number
-  unread: number
-  message: string
-  page_size: number
-  results: ChatContent[]
-  chat: ChatContent
-}
+  status: 'pending' | 'uploaded' | 'error'
 
-interface FetchUserResponse {
-  count: number
-  message: string
-  page_size: number
-  data: ChatUserForm
+  url?: string // remote URL after upload
+  previewUrl?: string // same as url most of the time
+
+  pages?: number // PDF pages
+  duration?: number // video/audio duration
 }
 
 interface ChatState {
@@ -407,7 +396,7 @@ export const ChatStore = create<ChatState>((set) => ({
       const chats = [...prev.chats]
       const updateChats = [...chats, newChat]
 
-      // saveOrUpdateMessageInDB(saved)
+      upsert('chats', saved)
       return {
         senderUsername: updateChats[updateChats.length - 1].senderUsername,
         chats: updateChats,

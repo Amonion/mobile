@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect } from 'react'
 import {
   View,
   Text,
@@ -11,7 +11,6 @@ import {
 import * as NavigationBar from 'expo-navigation-bar'
 import { useRouter } from 'expo-router'
 import { X } from 'lucide-react-native'
-import { Video, ResizeMode } from 'expo-av'
 import { MomentStore } from '@/store/post/Moment'
 import MomentProgressBar from '@/components/Moments/MomentProgressBar'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -20,14 +19,12 @@ import { useVideoPlayer, VideoView } from 'expo-video'
 
 export default function CreateMoment() {
   const router = useRouter()
-  const videoRef = useRef<Video>(null)
   const {
     activeMoment,
     moments,
     activeMomentIndex,
     activeMomentMediaIndex,
     activeMomentMedia,
-    isPlaying,
     openMomentModal,
     changeActiveMomentMedia,
     setIsPlaying,

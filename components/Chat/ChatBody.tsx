@@ -5,7 +5,14 @@ import { ChatContent, ChatStore } from '@/store/chat/Chat'
 import { AuthStore } from '@/store/AuthStore'
 import { usePathname, useRouter } from 'expo-router'
 import SocketService from '@/store/socket'
-import { View, Text, TouchableOpacity, Image, FlatList } from 'react-native'
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  FlatList,
+  ViewToken,
+} from 'react-native'
 
 type response = {
   friend: Friend
@@ -155,7 +162,7 @@ const ChatBody = () => {
     if (!socket) return
 
     if (user) {
-      socket.on(`addCreatedChat${username}`, (data: response) => {
+      socket.on(`addCreatedChat${user.username}`, (data: response) => {
         updateFriendsChat({ ...data.friend })
         if (data.connection === connection) {
           addNewChat(data.chat)
@@ -167,6 +174,32 @@ const ChatBody = () => {
       socket.off(`addCreatedChat${username}`)
     }
   }, [user, socket, connection])
+
+  const onViewableItemsChanged = useRef(
+    ({ viewableItems }: { viewableItems: ViewToken[] }) => {
+      viewableItems.forEach((viewable) => {
+        const chat = viewable.item
+
+        if (
+          chat.receiverUsername === user?.username &&
+          chat.status !== 'read'
+        ) {
+          ChatStore.setState((prev) => {
+            const updatedIds = new Set([
+              ...prev.unseenChatIds,
+              Number(chat.timeNumber),
+            ])
+
+            return { unseenChatIds: [...updatedIds] }
+          })
+        }
+      })
+    }
+  ).current
+
+  const viewabilityConfig = {
+    itemVisiblePercentThreshold: 50,
+  }
 
   return (
     <>
@@ -200,41 +233,12 @@ const ChatBody = () => {
           </View>
         )}
 
-        {/* {chats.map((chat, index) => {
-          const prevChat = chats[index - 1]
-          const nextChat = chats[index + 1]
-
-          const showDate = index === 0 || chat.day !== prevChat.day
-
-          const isSameSenderAsPrev =
-            prevChat && prevChat.senderUsername === chat.senderUsername
-          const isSameSenderAsNext =
-            nextChat && nextChat.senderUsername === chat.senderUsername
-
-          const isGroupStart = !isSameSenderAsPrev
-          const isGroupEnd = !isSameSenderAsNext
-
-          return (
-            <View key={chat.timeNumber} className={`w-full flex flex-col`}>
-              {showDate && (
-                <Text className="mx-auto text-[12px] sm:text-sm my-3 rounded-[25px] py-1 px-3 bg-[var(--primary)]">
-                  {chat.day}
-                </Text>
-              )}
-              <EachChat
-                e={chat}
-                isFirst={index === 0}
-                isGroupStart={isGroupStart}
-                isGroupEnd={isGroupEnd}
-                index={index}
-              />
-            </View>
-          )
-        })} */}
-
         <FlatList
           data={chats}
           keyExtractor={(item) => item.timeNumber.toString()}
+          onViewableItemsChanged={onViewableItemsChanged}
+          showsVerticalScrollIndicator={false} // <--- hide vertical scroll
+          viewabilityConfig={viewabilityConfig}
           renderItem={({ item: chat, index }) => {
             const prevChat = chats[index - 1]
             const nextChat = chats[index + 1]
@@ -242,9 +246,9 @@ const ChatBody = () => {
             const showDate = index === 0 || chat.day !== prevChat?.day
 
             const isSameSenderAsPrev =
-              prevChat && prevChat.senderUsername === chat.senderUsername
+              prevChat?.senderUsername === chat.senderUsername
             const isSameSenderAsNext =
-              nextChat && nextChat.senderUsername === chat.senderUsername
+              nextChat?.senderUsername === chat.senderUsername
 
             const isGroupStart = !isSameSenderAsPrev
             const isGroupEnd = !isSameSenderAsNext
@@ -253,6 +257,7 @@ const ChatBody = () => {
               <View style={{ width: '100%', flexDirection: 'column' }}>
                 {showDate && (
                   <Text
+                    className="bg-primary dark:bg-dark-primary text-primary dark:text-dark-primary"
                     style={{
                       alignSelf: 'center',
                       fontSize: 12,
@@ -260,7 +265,6 @@ const ChatBody = () => {
                       paddingVertical: 4,
                       paddingHorizontal: 12,
                       borderRadius: 25,
-                      backgroundColor: '#eee',
                     }}
                   >
                     {chat.day}
@@ -280,15 +284,27 @@ const ChatBody = () => {
         />
 
         {!isFriends && chats.length > 0 && (
-          <View className="w-full flex flex-col items-center px-[10px] mt-10">
-            <View className="text-center max-w-[400px] text-lg leading-[25px]">
-              <Text className="text-[var(--custom)]">
-                {chatUserForm.username}
+          <View style={{ flex: 1, paddingHorizontal: 12 }}>
+            <Text
+              style={{
+                flexWrap: 'wrap',
+                textAlign: 'center',
+                fontSize: 18,
+              }}
+            >
+              <Text className="text-custom leading-[25px]">
+                {chatUserForm.username}{' '}
               </Text>
-              <Text className="">
-                will not see you as friend until you send a reply.
-              </Text>
-            </View>
+              {user?.username === chats[0].senderUsername ? (
+                <Text className="text-primary dark:text-dark-primary">
+                  {`will not see you as friend until ${chatUserForm.displayName} send a reply.`}
+                </Text>
+              ) : (
+                <Text className="text-primary dark:text-dark-primary">
+                  {`will not see you as friend until you send a reply.`}
+                </Text>
+              )}
+            </Text>
           </View>
         )}
 

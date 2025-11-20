@@ -1,18 +1,29 @@
 'use client'
-import { handlePendingFileUpload } from '@/lib/helpers'
-import { AuthStore } from '@/src/zustand/user/AuthStore'
-import { ChatContent, ChatStore } from '@/src/zustand/chat/Chat'
+import { handlePendingFileUpload, mapMimeToPickerType } from '@/lib/helpers'
 import { useEffect, useState } from 'react'
-import { MessageStore } from '@/src/zustand/notification/Message'
-import { Swiper, SwiperSlide } from 'swiper/react'
-import { PlayCircle, X } from 'lucide-react'
-import 'swiper/css'
-import 'swiper/css/autoplay'
-import Image from 'next/image'
+import MediaModal from './ChatMediaModal'
+import { ChatContent, ChatStore } from '@/store/chat/Chat'
+import { AuthStore } from '@/store/AuthStore'
+import { MessageStore } from '@/store/notification/Message'
+import { Video, ImageIcon } from 'lucide-react-native'
+import {
+  View,
+  Image,
+  ActivityIndicator,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+} from 'react-native'
+import Svg, { Circle } from 'react-native-svg'
 
 type ChatContentProps = {
   e: ChatContent
 }
+
+const size = 48 // width/height
+const strokeWidth = 4
+const radius = (size - strokeWidth) / 2
+const circumference = 2 * Math.PI * radius
 
 const ChatMediaDisplay = ({ e }: ChatContentProps) => {
   const { user } = AuthStore()
@@ -28,231 +39,236 @@ const ChatMediaDisplay = ({ e }: ChatContentProps) => {
       if (!e.media || e.media.length === 0) return
 
       const pendingItems = e.media.filter(
-        (m) => m.status === 'pending' && m.blob
+        (m) => m.status === 'pending' && m.uri
       )
       if (pendingItems.length === 0) return
 
-      const updatedMedia = await Promise.all(
-        e.media.map(async (item) => {
-          if (item.status === 'pending' && item.blob) {
-            try {
-              const uploaded = await handlePendingFileUpload(
-                item.blob,
-                baseURL,
-                (percent: number) => setProgress(percent),
-                item.pages || 0,
-                item.duration || 0
-              )
+      try {
+        const updatedMedia = await Promise.all(
+          e.media.map(async (item) => {
+            if (item.status === 'pending' && item.uri) {
+              try {
+                const uploaded = await handlePendingFileUpload(
+                  {
+                    uri: item.uri,
+                    name: item.name,
+                    type: mapMimeToPickerType(item.type),
+                    size: item.size,
+                    pages: item.pages,
+                    duration: item.duration,
+                  },
+                  baseURL,
+                  (percent: number) => setProgress(percent),
+                  item.pages ?? 0,
+                  item.duration ?? 0
+                )
 
-              return {
-                ...item,
-                status: 'uploaded',
-                url: uploaded.source, // replace blob URL with real bucket URL
-                source: uploaded.source,
-                previewUrl: uploaded.source,
+                return {
+                  ...item,
+                  status: 'uploaded',
+                  url: uploaded.source,
+                  source: uploaded.source,
+                  previewUrl: uploaded.source,
+                }
+              } catch (err) {
+                console.error(`❌ Error uploading ${item.name}:`, err)
+                return item
               }
-            } catch (err) {
-              console.error(`❌ Error uploading ${item.name}:`, err)
-              return item
             }
-          }
-          return item
-        })
-      )
+            return item
+          })
+        )
 
-      const updatedChat = { ...e, media: updatedMedia }
-      updateChatWithFile('/chats', updatedChat)
+        const updatedChat = { ...e, media: updatedMedia }
+        updateChatWithFile('/chats', updatedChat)
+      } catch (err) {
+        console.error('❌ Uploading pending media failed:', err)
+      }
     }
 
     uploadPendingMedia()
   }, [e])
 
+  const mediaCount = e.media.length
+
+  const containerStyle = [styles.container, mediaCount >= 3 && { height: 200 }]
+
   return (
     <>
-      <div
-        className={`grid items-start ${
-          e.media.length === 1
-            ? 'grid-cols-1'
-            : e.media.length === 2
-            ? 'grid-cols-2'
-            : 'grid-cols-2 sm:h-[300px] h-[200px]'
-        } z-40 rounded-[10px] overflow-hidden gap-2 mb-3`}
-      >
+      <View style={containerStyle}>
         {e.media.map((item, index) => (
-          <div
+          <TouchableOpacity
             key={index}
-            onClick={() => {
+            onPress={() => {
               setActiveIndex(index)
               setOpenModal(true)
             }}
             className="relative cursor-pointer group rounded-lg overflow-hidden flex items-center justify-center"
           >
             {item.status === 'pending' && isSender && progress === 0 && (
-              <div className="w-full absoluteCenter z-50 h-32 flex flex-col items-center justify-center text-gray-500">
-                <div className="animate-spin w-10 h-10 border-4 border-gray-300 border-t-transparent rounded-full mb-2"></div>
-              </div>
+              <View
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  zIndex: 50,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  height: 128, // h-32
+                }}
+              >
+                <ActivityIndicator size="large" color="#9CA3AF" />
+              </View>
             )}
 
             {isSender && progress > 0 && item.status !== 'uploaded' && (
-              <div className="absoluteCenter rounded-full bg-black/50 z-20 w-12 h-12 mb-2">
-                <svg className="w-12 h-12 rotate-[-90deg]">
-                  <circle
-                    cx="24"
-                    cy="24"
-                    r="20"
-                    stroke="#e5e7eb"
-                    strokeWidth="4"
+              <View
+                style={{
+                  position: 'absolute',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  width: size,
+                  height: size,
+                  borderRadius: size / 2,
+                  backgroundColor: 'rgba(0,0,0,0.5)',
+                  zIndex: 20,
+                  marginBottom: 8,
+                }}
+              >
+                <Svg
+                  width={size}
+                  height={size}
+                  style={{ transform: [{ rotate: '-90deg' }] }}
+                >
+                  {/* Background circle */}
+                  <Circle
+                    cx={size / 2}
+                    cy={size / 2}
+                    r={radius}
+                    stroke="#e5e7eb" // light gray
+                    strokeWidth={strokeWidth}
                     fill="transparent"
                   />
                   {/* Progress circle */}
-                  <circle
-                    cx="24"
-                    cy="24"
-                    r="20"
-                    stroke="var(--custom)"
-                    strokeWidth="4"
+                  <Circle
+                    cx={size / 2}
+                    cy={size / 2}
+                    r={radius}
+                    stroke="#4B7FFF" // replace with your custom color
+                    strokeWidth={strokeWidth}
                     fill="transparent"
-                    strokeDasharray={2 * Math.PI * 20}
+                    strokeDasharray={circumference}
                     strokeDashoffset={
-                      2 * Math.PI * 20 * (1 - (progress ?? 0) / 100)
+                      circumference * (1 - (progress ?? 0) / 100)
                     }
                     strokeLinecap="round"
-                    className="transition-all duration-300"
                   />
-                </svg>
+                </Svg>
 
                 {/* Percent text */}
-                <div className="absolute inset-0 flex items-center justify-center text-[12px] font-medium  text-white">
-                  {progress ? `${progress}%` : '...'}
-                </div>
-              </div>
-            )}
-            {item.status === 'pending' && !isSender ? (
-              <div className="w-full h-32 flex flex-col items-center justify-center text-gray-500">
-                <div className="animate-spin w-10 h-10 border-4 border-gray-300 border-t-transparent rounded-full mb-2"></div>
-                <p className="text-xs">Uploading...</p>
-              </div>
-            ) : item.type.includes('image') ? (
-              <img
-                src={item.previewUrl || item.url}
-                alt={item.name}
-                className={`w-full ${
-                  e.media.length === 1
-                    ? 'h-auto object-contain'
-                    : e.media.length === 2
-                    ? 'h-[200px] object-cover'
-                    : e.media.length === 3 && index !== 1
-                    ? 'sm:h-[150px] h-[100px] object-cover'
-                    : e.media.length === 3 && index == 1
-                    ? 'sm:h-[300px] h-[200px] object-cover'
-                    : ''
-                } `}
-              />
-            ) : (
-              item.type.includes('video') && (
-                <video
-                  src={item.previewUrl || item.url}
-                  className={`w-full ${
-                    e.media.length === 1
-                      ? 'h-auto object-contain'
-                      : e.media.length === 2
-                      ? 'h-[200px] object-cover'
-                      : e.media.length === 3 && index !== 1
-                      ? 'sm:h-[150px] h-[100px] object-cover'
-                      : e.media.length === 3 && index == 1
-                      ? 'sm:h-[300px] h-[200px] object-cover'
-                      : ''
-                  } `}
-                  muted
-                  controls
-                  onLoadedMetadata={(e) =>
-                    (item.duration = e.currentTarget.duration)
-                  }
-                />
-              )
-            )}
-
-            <div className="absolute top-1 left-1 bg-black/60 text-white rounded-full h-6 w-6 flex items-center justify-center text-[10px]">
-              {item.type.includes('image') ? (
-                <i className="bi bi-image"></i>
-              ) : (
-                item.type.includes('video') && (
-                  <i className="bi bi-camera-video"></i>
-                )
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {openModal && (
-        <div
-          onClick={(e) => {
-            e.stopPropagation()
-          }}
-        >
-          <div
-            onClick={() => setOpenModal(false)}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm"
-          >
-            <button
-              onClick={() => setOpenModal(false)}
-              className="absolute top-5 right-5 text-white text-3xl z-[1000]"
-            >
-              <X />
-            </button>
-
-            <Swiper
-              initialSlide={activeIndex}
-              spaceBetween={10}
-              slidesPerView={1}
-              navigation
-              pagination={{ clickable: true }}
-              className="w-full h-full relative flex items-center justify-center"
-            >
-              {e.media.map((media, index) => (
-                <SwiperSlide
-                  onClick={(e) => {
-                    e.stopPropagation()
+                <View
+                  style={{
+                    position: 'absolute',
+                    justifyContent: 'center',
+                    alignItems: 'center',
                   }}
-                  key={index}
                 >
-                  {media.type.includes('video') && (
-                    <PlayCircle className="absoluteCenter w-[40px] h-[40px] text-[var(--custom-color)]" />
-                  )}
-
-                  <div
-                    onClick={() => setOpenModal(false)}
-                    className="flex justify-center relative items-center w-full h-screen"
+                  <Text
+                    style={{ color: 'white', fontSize: 12, fontWeight: '500' }}
                   >
-                    {media.type.includes('video') ? (
-                      <video
-                        onClick={(e) => e.stopPropagation()}
-                        src={media.url}
-                        controls
-                        autoPlay
-                        className="w-auto h-auto max-w-[100vw] max-h-[90vh] object-contain rounded-md"
-                      ></video>
-                    ) : (
-                      <Image
-                        onClick={(e) => e.stopPropagation()}
-                        src={String(media.url)}
-                        alt={`${media.url}`}
-                        width={0}
-                        height={0}
-                        sizes="100vw"
-                        className="rounded-md w-auto h-auto max-w-[100vw] max-h-[90vh]"
-                      />
-                    )}
-                  </div>
-                </SwiperSlide>
-              ))}
-            </Swiper>
-          </div>
-        </div>
-      )}
+                    {progress ? `${progress}%` : '...'}
+                  </Text>
+                </View>
+              </View>
+            )}
+
+            {item.status === 'pending' && !isSender ? (
+              <View
+                style={{
+                  width: '100%',
+                  height: 128,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                <ActivityIndicator
+                  size="large"
+                  color="#9CA3AF"
+                  style={{ marginBottom: 8 }}
+                />
+                <Text style={{ fontSize: 12, color: '#6B7280' }}>
+                  Uploading...
+                </Text>
+              </View>
+            ) : item.type.includes('image') ? (
+              <Image
+                source={{ uri: item.previewUrl || item.url }}
+                style={{
+                  width: '100%',
+                  height:
+                    e.media.length === 1
+                      ? undefined
+                      : e.media.length === 2
+                      ? 200
+                      : e.media.length === 3 && index !== 1
+                      ? 100
+                      : e.media.length === 3 && index === 1
+                      ? 200
+                      : 150, // fallback
+                  resizeMode: e.media.length === 1 ? 'contain' : 'cover',
+                }}
+              />
+            ) : null}
+
+            <View
+              style={{
+                position: 'absolute',
+                top: 4,
+                left: 4,
+                backgroundColor: 'rgba(0,0,0,0.6)',
+                borderRadius: 9999,
+                height: 24,
+                width: 24,
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              {item.type.includes('image') ? (
+                <ImageIcon size={12} color="white" />
+              ) : item.type.includes('video') ? (
+                <Video size={12} color="white" />
+              ) : null}
+            </View>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      <MediaModal
+        setOpenModal={setOpenModal}
+        openModal={openModal}
+        media={e.media}
+        activeIndex={activeIndex}
+      />
     </>
   )
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row' as const,
+    flexWrap: 'wrap' as const,
+    borderRadius: 10,
+    overflow: 'hidden',
+    marginBottom: 12,
+    zIndex: 40,
+
+    // If your RN version supports gap:
+    // gap: 8,
+
+    // If not, use margin in children instead
+  },
+})
 
 export default ChatMediaDisplay

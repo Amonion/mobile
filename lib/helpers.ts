@@ -2,10 +2,40 @@ import axios from 'axios'
 import { ImagePickerAsset } from 'expo-image-picker'
 import { Dimensions } from 'react-native'
 
+export interface RNUploadFile {
+  uri: string // required
+  name: string // ⬅ you need this
+  type: string // MIME type
+  size?: number // optional
+  pages?: number
+  duration?: number
+}
+
+export type MediaType = 'image' | 'video' | 'livePhoto' | 'pairedVideo'
+
 interface FileLike {
   uri: string
   name: string
   type: string
+}
+
+/**
+ * Converts a MIME type or generic type string to React Native ImagePicker type
+ * @param type string like "image/png", "video/mp4", or custom "image" / "video"
+ */
+export const mapMimeToPickerType = (type?: string): 'image' | 'video' => {
+  if (!type) return 'image'
+
+  const lower = type.toLowerCase()
+
+  if (lower.startsWith('image/')) return 'image'
+  if (lower.startsWith('video/')) return 'video'
+
+  // fallback for custom type strings
+  if (lower === 'image' || lower === 'video') return lower as 'image' | 'video'
+
+  // default
+  return 'image'
 }
 
 export const getDeviceWidth = () => {
@@ -51,6 +81,65 @@ export const addQuery = (
   }
   const regex = new RegExp(`${startWith}[^&]*&`, 'g')
   return input.replace(regex, replacement)
+}
+
+export const handlePendingFileUpload = async (
+  file: RNUploadFile,
+  baseURL: string,
+  onProgress?: (percent: number) => void,
+  filePages: number = 0,
+  duration: number = 0
+): Promise<{
+  type: MediaType // ← Use MediaType instead of string
+  name: string
+  duration: number
+  pages: number
+  size?: number
+  source: string
+}> => {
+  try {
+    const fileName = file.name || `file-${Date.now()}`
+    const fileType = file.type || 'application/octet-stream'
+    const fileSize = file.size || 0
+
+    const type = getFileType({
+      uri: file.uri,
+      fileName: file.name,
+      type: undefined,
+    } as Partial<ImagePickerAsset> as ImagePickerAsset)
+
+    // Request presigned URL
+    const { data } = await axios.post(`${baseURL}s3-presigned-url`, {
+      fileName,
+      fileType,
+    })
+
+    const { uploadUrl } = data
+
+    // Fetch URI → blob
+    const blob = await (await fetch(file.uri)).blob()
+
+    // Upload to S3
+    await fetch(uploadUrl, {
+      method: 'PUT',
+      headers: { 'Content-Type': fileType },
+      body: blob,
+    })
+
+    const cleanUrl = uploadUrl.split('?')[0]
+
+    return {
+      type, // now typed correctly
+      name: fileName,
+      duration,
+      pages: filePages,
+      size: fileSize,
+      source: cleanUrl,
+    }
+  } catch (err) {
+    console.error('❌ Upload failed:', err)
+    throw err
+  }
 }
 
 export const appendForm = (inputs: Input[]): FormData => {
@@ -235,7 +324,9 @@ export const formatRelativeDate = (dateInput: Date | string): string => {
   }
 }
 
-export const formatTimeTo12Hour = (dateInput: Date | null | number): string => {
+export const formatTimeTo12Hour = (
+  dateInput: Date | null | number | string
+): string => {
   if (dateInput) {
     const date = new Date(dateInput)
     let hours = date.getHours()
@@ -277,51 +368,32 @@ export const getExtensionKey = (type: string): string => {
   return 'file'
 }
 
-export const getFileType = (file: ImagePickerAsset): string => {
+export const getFileType = (file: ImagePickerAsset): MediaType => {
+  // Extract file extension
   const fileName = file.fileName || file.uri?.split('/').pop() || ''
   const ext = fileName.includes('.')
     ? fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase()
     : ''
 
-  const mimeTypes: { [key: string]: string } = {
-    // Images
-    jpg: 'image/jpeg',
-    jpeg: 'image/jpeg',
-    png: 'image/png',
-    gif: 'image/gif',
-    webp: 'image/webp',
-    avif: 'image/avif',
-    bmp: 'image/bmp',
-    svg: 'image/svg+xml',
+  // Map common extensions to "image" | "video"
+  const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'bmp', 'svg']
+  const videoExts = ['mp4', 'mov', 'avi', 'mkv', 'webm', 'mpeg']
 
-    // Videos
-    mp4: 'video/mp4',
-    webm: 'video/webm',
-    ogg: 'video/ogg',
-    avi: 'video/x-msvideo',
-    mpeg: 'video/mpeg',
-    mov: 'video/quicktime',
+  if (imageExts.includes(ext)) return 'image'
+  if (videoExts.includes(ext)) return 'video'
 
-    // Audio
-    mp3: 'audio/mpeg',
-    wav: 'audio/wav',
-    aac: 'audio/aac',
-    oga: 'audio/ogg',
-
-    // Documents
-    pdf: 'application/pdf',
-    doc: 'application/msword',
-    docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    ppt: 'application/vnd.ms-powerpoint',
-    pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-    xls: 'application/vnd.ms-excel',
-    xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    csv: 'text/csv',
-    zip: 'application/zip',
-    rar: 'application/vnd.rar',
-    txt: 'text/plain',
+  // fallback to asset.type if valid
+  if (
+    file.type === 'image' ||
+    file.type === 'video' ||
+    file.type === 'livePhoto' ||
+    file.type === 'pairedVideo'
+  ) {
+    return file.type
   }
-  return mimeTypes[ext] || file.type || 'application/octet-stream'
+
+  // Default fallback
+  return 'image'
 }
 
 export const handleRemoveFile = async (

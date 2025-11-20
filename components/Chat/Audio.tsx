@@ -1,162 +1,197 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useEffect, useState } from 'react'
+import {
+  View,
+  Text,
+  Pressable,
+  useColorScheme,
+  ActivityIndicator,
+} from 'react-native'
+import { Audio } from 'expo-av'
+import { Feather } from '@expo/vector-icons'
+import * as FileSystem from 'expo-file-system'
+import { AVPlaybackStatus } from 'expo-av/build/AV'
+import { getDeviceWidth } from '@/lib/helpers'
+import { MessageStore } from '@/store/notification/Message'
+import * as MediaLibrary from 'expo-media-library'
 
 type AudioMessageProps = {
-  src: string;
-  isSender: boolean;
-  name?: string;
-};
+  src: string
+  isSender: boolean
+  name?: string
+}
+
+const formatTime = (secs: number) => {
+  const minutes = Math.floor(secs / 60)
+  const seconds = Math.floor(secs % 60)
+    .toString()
+    .padStart(2, '0')
+  return `${minutes}:${seconds}`
+}
 
 const AudioMessage: React.FC<AudioMessageProps> = ({ src, name, isSender }) => {
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const trackRef = useRef<HTMLDivElement | null>(null);
-
-  const [play, setPlay] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
+  const [sound, setSound] = useState<Audio.Sound | null>(null)
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [durationMillis, setDurationMillis] = useState<number>(0)
+  const [positionMillis, setPositionMillis] = useState<number>(0)
+  const colorScheme = useColorScheme()
+  const isDark = colorScheme === 'dark' ? true : false
+  const progress = durationMillis ? (positionMillis / durationMillis) * 100 : 0
+  const width = getDeviceWidth()
+  const { setMessage } = MessageStore()
 
   useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    const handleLoadedMetadata = () => setDuration(audio.duration);
-    const handleTimeUpdate = () => {
-      if (!isDragging) setCurrentTime(audio.currentTime);
-    };
-
-    audio.addEventListener("loadedmetadata", handleLoadedMetadata);
-    audio.addEventListener("timeupdate", handleTimeUpdate);
+    loadSound()
 
     return () => {
-      audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
-      audio.removeEventListener("timeupdate", handleTimeUpdate);
-    };
-  }, [isDragging]);
-
-  const toggleState = () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    if (play) {
-      audio.pause();
-    } else {
-      audio.play();
+      sound?.unloadAsync()
     }
-    setPlay(!play);
-  };
+  }, [src])
 
-  const handleSeek = (e: React.MouseEvent<HTMLElement> | MouseEvent) => {
-    if (!trackRef.current || !audioRef.current) return;
+  const loadSound = async () => {
+    try {
+      const { sound, status } = await Audio.Sound.createAsync(
+        { uri: src },
+        { shouldPlay: false },
+        onPlaybackStatusUpdate
+      )
+      setSound(sound)
+      if (status.isLoaded) {
+        setDurationMillis(status.durationMillis ?? 0)
+      }
+    } catch (e) {
+      console.error('Failed to load sound:', e)
+    }
+  }
 
-    const rect = trackRef.current.getBoundingClientRect();
-    const offsetX = e.clientX - rect.left;
-    const percent = offsetX / rect.width;
-    const newTime = percent * duration;
+  const onPlaybackStatusUpdate = (status: AVPlaybackStatus) => {
+    if (!status.isLoaded) return
 
-    audioRef.current.currentTime = newTime;
-    setCurrentTime(newTime);
-  };
+    if (status.didJustFinish) {
+      setIsPlaying(false)
+      sound?.setPositionAsync(0)
+    } else {
+      setPositionMillis(status.positionMillis ?? 0)
+    }
+  }
 
-  const handlePointerDown = (e: React.MouseEvent<HTMLElement> | MouseEvent) => {
-    setIsDragging(true);
-    handleSeek(e);
-    window.addEventListener("mousemove", handlePointerMove);
-    window.addEventListener("mouseup", handlePointerUp);
-  };
+  const togglePlay = async () => {
+    if (!sound) return
+    if (isPlaying) {
+      await sound.pauseAsync()
+    } else {
+      await sound.playAsync()
+    }
+    setIsPlaying(!isPlaying)
+  }
 
-  const handlePointerMove = (e: MouseEvent) => {
-    if (!isDragging || !trackRef.current || !audioRef.current) return;
+  const handleDownload = async () => {
+    setIsLoading(true)
+    try {
+      const filename = name?.endsWith('.mp3')
+        ? name
+        : (name ?? 'audio') + '.mp3'
 
-    const rect = trackRef.current.getBoundingClientRect();
-    const offsetX = Math.min(Math.max(e.clientX - rect.left, 0), rect.width);
-    const percent = offsetX / rect.width;
-    const newTime = percent * duration;
+      const downloadUri = (FileSystem as any).documentDirectory + filename
 
-    audioRef.current.currentTime = newTime;
-    setCurrentTime(newTime);
-  };
+      const downloadResumable = FileSystem.createDownloadResumable(
+        src,
+        downloadUri
+      )
 
-  const handlePointerUp = () => {
-    setIsDragging(false);
-    window.removeEventListener("mousemove", handlePointerMove);
-    window.removeEventListener("mouseup", handlePointerUp);
-  };
+      const { uri } = await downloadResumable.downloadAsync()
 
-  const formatTime = (time: number) => {
-    const minutes = Math.floor(time / 60);
-    const seconds = Math.floor(time % 60)
-      .toString()
-      .padStart(2, "0");
-    return `${minutes}:${seconds}`;
-  };
+      const { status } = await MediaLibrary.requestPermissionsAsync()
+      if (status !== 'granted') {
+        alert('Permission to access media library is required!')
+        return
+      }
 
-  const progressPercent = duration
-    ? `${(currentTime / duration) * 100}%`
-    : "0%";
+      const asset = await MediaLibrary.createAssetAsync(uri)
+      await MediaLibrary.createAlbumAsync('Downloads', asset, false)
+
+      setMessage('Audio saved to Downloads folder.', true)
+    } catch (err) {
+      console.log(err)
+      setMessage('Failed to download audio.', false)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   return (
-    <>
-      <audio ref={audioRef} src={src} preload="metadata" />
-      <div className="flex flex-col w-full mb-2">
-        <div className="flex items-end">
-          <div
-            onClick={toggleState}
-            className={` ${
-              isSender
-                ? "border-[var(--text-primary)]"
-                : "border-white text-white"
-            } flex mr-2 justify-center items-center cursor-pointer w-8 h-8 border  rounded-full`}
-          >
-            {play ? (
-              <i className="bi bi-pause-fill text-xl"></i>
-            ) : (
-              <i className="bi bi-play-fill text-xl"></i>
-            )}
-          </div>
+    <View className="flex flex-col w-full mb-2">
+      <View className="flex-row items-end">
+        <Pressable
+          onPress={togglePlay}
+          className={`rounded-full text-dark-primary border justify-center items-center mr-2 ${
+            isSender ? 'border-border dark:border-dark-border' : 'border-white'
+          }`}
+          style={{
+            width: width * 0.1,
+            height: width * 0.1,
+          }}
+        >
+          <Feather
+            name={isPlaying ? 'pause' : 'play'}
+            size={20}
+            color={isSender ? (isDark ? '#BABABA' : '#6E6E6E') : '#fff'}
+            className={`${isPlaying ? 'ml-0' : 'ml-1'}`}
+          />
+        </Pressable>
 
-          <div className="relative pt-1 flex-1 mr-2">
-            <div
-              ref={trackRef}
-              onClick={handleSeek}
-              className="w-full play-track rounded-[5px] mb-1 h-[3px] bg-[var(--border)] relative cursor-pointer"
-            >
-              <div
-                className="flex play-bar rounded-[5px] h-full bg-[var(--text-primary)]"
-                style={{ width: progressPercent }}
-              >
-                <div
-                  onMouseDown={handlePointerDown}
-                  className="w-3 h-3 rounded-full bg-[var(--text-primary)] ml-auto mt-[-4px] cursor-pointer"
-                ></div>
-              </div>
-            </div>
-            <div className="text-[12px] flex justify-between">
-              <div className="mr-2">
-                {formatTime(currentTime)} / {formatTime(duration)}
-              </div>
-              <div className="ml-auto flex-1 line-clamp-1 overflow-ellipsis">
-                {name}
-              </div>
-            </div>
-          </div>
-
-          <a
-            href={src}
-            download
-            target="_blank"
-            rel="noopener noreferrer"
+        <View className="flex-1 mr-2">
+          <View
             className={`${
-              !isSender
-                ? "border-white text-white"
-                : "border-[var(--text-primary)]"
-            } cursor-pointer ml-auto min-w-8 w-8 h-8 border rounded-full flex items-center justify-center `}
+              isSender ? 'bg-gray-300' : 'bg-darkCustom'
+            } h-[3px] relative rounded-[10px] overflow-hidden`}
           >
-            <i className="bi bi-download"></i>
-          </a>
-        </div>
-      </div>
-    </>
-  );
-};
+            <View
+              style={{ width: `${progress}%` }}
+              className={`${
+                isSender ? 'bg-custom' : 'bg-white'
+              } h-[3px] relative rounded-[10px] overflow-hidden`}
+            />
+          </View>
 
-export default AudioMessage;
+          <View className="flex-row justify-between mt-1">
+            <Text className="text-xs mr-2 text-primary dark:text-dark-primary">
+              {formatTime(positionMillis / 1000)} /{' '}
+              {formatTime(durationMillis / 1000)}
+            </Text>
+            <Text className="text-xs text-primary dark:text-dark-primary line-clamp-1 overflow-ellipsis">
+              {name}
+            </Text>
+          </View>
+        </View>
+
+        <Pressable
+          style={{
+            width: width * 0.1,
+            height: width * 0.1,
+          }}
+          onPress={handleDownload}
+          className={`rounded-full border justify-center items-center bg-primary dark:bg-dark-primary ${
+            isSender ? 'border-border dark:border-dark-border' : 'border-white'
+          }`}
+        >
+          {isLoading ? (
+            <ActivityIndicator
+              className=""
+              size={20}
+              color={isSender ? (isDark ? '#BABABA' : '#6E6E6E') : '#fff'}
+            />
+          ) : (
+            <Feather
+              name="download"
+              size={20}
+              color={isSender ? (isDark ? '#BABABA' : '#6E6E6E') : '#fff'}
+            />
+          )}
+        </Pressable>
+      </View>
+    </View>
+  )
+}
+
+export default AudioMessage

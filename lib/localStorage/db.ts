@@ -1,6 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
-export type TableName = 'news' | 'posts' | 'moments' | 'exams' | 'friends'
+export type TableName =
+  | 'news'
+  | 'posts'
+  | 'moments'
+  | 'exams'
+  | 'friends'
+  | 'chats'
 
 const PREFIX = '@localdb:'
 
@@ -11,30 +17,6 @@ export interface GetAllOptions {
   pageSize?: number
   filter?: Partial<Record<string, any>>
 }
-
-// export async function getAll<T>(
-//   table: TableName,
-//   options?: GetAllOptions
-// ): Promise<T[]> {
-//   try {
-//     const json = await AsyncStorage.getItem(tableKey(table))
-//     const items: T[] = json ? JSON.parse(json) : []
-
-//     if (!options || !options.pageSize || !options.page) {
-//       return items
-//     }
-
-//     const { page, pageSize } = options
-
-//     const start = (page - 1) * pageSize
-//     const end = start + pageSize
-
-//     return items.slice(start, end)
-//   } catch (err) {
-//     console.error(`Error reading table "${table}"`, err)
-//     return []
-//   }
-// }
 
 export async function getAll<T>(
   table: TableName,
