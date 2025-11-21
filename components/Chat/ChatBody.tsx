@@ -3,7 +3,6 @@ import EachChat from './EachChat'
 import { useEffect, useRef, useState } from 'react'
 import { ChatContent, ChatStore } from '@/store/chat/Chat'
 import { AuthStore } from '@/store/AuthStore'
-import { usePathname, useRouter } from 'expo-router'
 import SocketService from '@/store/socket'
 import {
   View,
@@ -13,6 +12,7 @@ import {
   FlatList,
   ViewToken,
 } from 'react-native'
+import { ArrowDown } from 'lucide-react-native'
 
 type response = {
   friend: Friend
@@ -37,59 +37,20 @@ const ChatBody = () => {
   } = ChatStore()
   const { updatePendingFriendsChat, updateFriendsChat } = FriendStore()
   const { user } = AuthStore()
-  const chatContainerRef = useRef<HTMLDivElement | null>(null)
-  const pathname = usePathname()
   const [isNearBottom, setIsNearBottom] = useState(true)
   const socket = SocketService.getSocket()
   const [isFriends, setIsFriends] = useState(true)
-  const router = useRouter()
-
-  useEffect(() => {
-    const scrollToBottom = () => {
-      const container = chatContainerRef.current
-      if (container) {
-        container.scrollTop = container.scrollHeight
-        setIsNearBottom(true)
-      }
-    }
-
-    scrollToBottom()
-
-    const timer = setTimeout(() => {
-      scrollToBottom()
-    }, 100)
-
-    return () => clearTimeout(timer)
-  }, [chats.length, pathname])
-
-  //  const handleFetchOlderChats = async (user: User) => {
-  //     const container = chatContainerRef.current
-  //     if (!container) return
-
-  //     const prevScrollHeight = container.scrollHeight
-  //     const key = setConnectionKey(String(username), String(user.username))
-
-  //     await ChatStore.getState().addChats(
-  //       `/user-messages/user-chats/?connection=${key}&page_size=10&ordering=-createdAt&username=${user.username}&deletedUsername[ne]=${user.username}`,
-  //       setMessage
-  //     )
-
-  //     requestAnimationFrame(() => {
-  //       const newScrollHeight = container.scrollHeight
-  //       const scrollDiff = newScrollHeight - prevScrollHeight
-
-  //       container.scrollTop = scrollDiff
-  //     })
-  //   }
+  const flatListRef = useRef<FlatList>(null)
 
   const scrollDown = () => {
-    if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTo({
-        top: chatContainerRef.current.scrollHeight,
-        behavior: 'smooth',
-      })
-    }
+    flatListRef.current?.scrollToEnd({ animated: true })
   }
+
+  useEffect(() => {
+    setTimeout(() => {
+      flatListRef.current?.scrollToEnd({ animated: true })
+    }, 1000)
+  }, [chats.length])
 
   useEffect(() => {
     if (chats.length > 0 && user) {
@@ -114,29 +75,6 @@ const ChatBody = () => {
       })
     }
   }, [chats])
-
-  useEffect(() => {
-    const observeScroll = () => {
-      const container = chatContainerRef.current
-      if (container) {
-        const distanceFromBottom =
-          container.scrollHeight - container.scrollTop - container.clientHeight
-        if (distanceFromBottom >= 200) {
-          setIsNearBottom(false)
-        } else {
-          setIsNearBottom(true)
-        }
-      }
-    }
-
-    const container = chatContainerRef.current
-    if (container) {
-      container.addEventListener('scroll', observeScroll)
-      return () => {
-        container.removeEventListener('scroll', observeScroll)
-      }
-    }
-  }, [])
 
   useEffect(() => {
     if (!socket) return
@@ -203,7 +141,7 @@ const ChatBody = () => {
 
   return (
     <>
-      <View className="flex relative flex-1 px-1 sm:px-2 flex-col mb-auto overflow-auto chat_scrollbar">
+      <View className="flex relative flex-1 px-1 flex-col">
         {chats.length === 0 && !loading && (
           <View className="w-full flex-1 flex flex-col items-center px-[10px] mt-10">
             <View className="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden mb-5">
@@ -234,10 +172,32 @@ const ChatBody = () => {
         )}
 
         <FlatList
+          ref={flatListRef}
+          onContentSizeChange={() => {
+            if (isNearBottom) {
+              flatListRef.current?.scrollToEnd({ animated: true })
+            }
+          }}
+          onLayout={() => {
+            flatListRef.current?.scrollToEnd({ animated: false })
+          }}
+          onScroll={(event) => {
+            const { contentOffset, contentSize, layoutMeasurement } =
+              event.nativeEvent
+
+            const distanceFromBottom =
+              contentSize.height - (contentOffset.y + layoutMeasurement.height)
+
+            if (distanceFromBottom <= 50) {
+              if (!isNearBottom) setIsNearBottom(true)
+            } else {
+              if (isNearBottom) setIsNearBottom(false)
+            }
+          }}
           data={chats}
           keyExtractor={(item) => item.timeNumber.toString()}
           onViewableItemsChanged={onViewableItemsChanged}
-          showsVerticalScrollIndicator={false} // <--- hide vertical scroll
+          showsVerticalScrollIndicator={false}
           viewabilityConfig={viewabilityConfig}
           renderItem={({ item: chat, index }) => {
             const prevChat = chats[index - 1]
@@ -257,13 +217,13 @@ const ChatBody = () => {
               <View style={{ width: '100%', flexDirection: 'column' }}>
                 {showDate && (
                   <Text
-                    className="bg-primary dark:bg-dark-primary text-primary dark:text-dark-primary"
+                    className="bg-primary dark:bg-dark-primary text-secondary dark:text-dark-secondary"
                     style={{
                       alignSelf: 'center',
-                      fontSize: 12,
+                      fontSize: 14,
                       marginVertical: 12,
-                      paddingVertical: 4,
-                      paddingHorizontal: 12,
+                      paddingVertical: 8,
+                      paddingHorizontal: 16,
                       borderRadius: 25,
                     }}
                   >
@@ -322,9 +282,9 @@ const ChatBody = () => {
       {!isNearBottom && (
         <TouchableOpacity
           onPress={scrollDown}
-          className="cursor-pointer w-8 h-8 border border-[var(--border)] rounded-full flex items-center justify-center bg-[var(--primary)] absolute right-[20px] sm:bottom-[40px] bottom-[70px]"
+          className="cursor-pointer w-12 h-12 rounded-full flex items-center justify-center bg-custom absolute right-[20px] sm:bottom-[40px] bottom-[70px]"
         >
-          <i className="bi bi-arrow-down"></i>
+          <ArrowDown color={'#FFF'} size={25} strokeWidth={2} />
         </TouchableOpacity>
       )}
     </>

@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import _debounce from 'lodash/debounce'
 import { customRequest } from '@/lib/api'
 import { PreviewFile } from './Chat'
-import { getAll } from '@/lib/localStorage/db'
+import { getAll, upsert } from '@/lib/localStorage/db'
 import { User } from '../user/User'
 
 interface UnreadMessage {
@@ -25,6 +25,7 @@ export interface Friend {
   timeNumber: number
   isFriends: boolean
   unreadMessages?: UnreadMessage[]
+  _id?: string
   updatedAt?: Date
   totalUnread?: number
   isOnline?: boolean
@@ -136,9 +137,7 @@ const FriendStore = create<FriendState>((set) => ({
       } else {
         updatedFriends.unshift(friendChat)
       }
-
-      // saveOrUpdateFriendInDB(friendChat).catch(console.error)
-
+      upsert('friends', friendChat)
       return {
         friendsResults: updatedFriends,
       }
@@ -194,7 +193,6 @@ const FriendStore = create<FriendState>((set) => ({
       const data = response?.data
       if (data) {
         // FriendStore.getState().setProcessedResults(data.results)
-        console.log('The friends are: ', data.results)
       }
     } catch (error: unknown) {
       console.log(error)

@@ -140,7 +140,10 @@ export default function ChatHead() {
                   marginLeft: 'auto',
                 }}
               >
-                <TouchableOpacity style={{ marginLeft: 8 }}>
+                <TouchableOpacity
+                  onPress={() => router.push('/friends')}
+                  style={{ marginLeft: 8 }}
+                >
                   <Feather color={color} name="users" size={25} />
                 </TouchableOpacity>
               </View>

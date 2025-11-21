@@ -1,11 +1,25 @@
-import FriendStore, { Friend } from '@/src/zustand/chat/Friend'
-import { AuthStore } from '@/src/zustand/user/AuthStore'
-// import UsersList from '../Chat/UsersList'
-import Image from 'next/image'
 import { formatRelativeDate } from '@/lib/helpers'
-import { usePathname, useRouter } from 'next/navigation'
-import { ChatStore } from '@/src/zustand/chat/Chat'
+import { AuthStore } from '@/store/AuthStore'
+import { ChatStore } from '@/store/chat/Chat'
+import FriendStore, { Friend } from '@/store/chat/Friend'
+import { useRouter } from 'expo-router'
+import {
+  Check,
+  CheckCheck,
+  Clock,
+  ImageIcon,
+  VideoIcon,
+} from 'lucide-react-native'
 import { useEffect, useState } from 'react'
+import {
+  TouchableOpacity,
+  Image,
+  View,
+  Text,
+  useWindowDimensions,
+  useColorScheme,
+} from 'react-native'
+import RenderHTML from 'react-native-render-html'
 
 interface EachFriendProps {
   friend: Friend
@@ -21,8 +35,11 @@ export default function EachFriend({ friend }: EachFriendProps) {
   const { getSavedChats, connection } = ChatStore()
   const [unread, setUnread] = useState(0)
   const router = useRouter()
-  const pathname = usePathname()
   const isSender = friend.senderUsername === user?.username
+  const { width } = useWindowDimensions()
+  const colorScheme = useColorScheme()
+  const isDark = colorScheme === 'dark' ? true : false
+  const primaryColor = isDark ? '#BABABA' : '#6E6E6E'
 
   const selectFriend = () => {
     if (friendForm.connection !== friend.connection) {
@@ -46,9 +63,7 @@ export default function EachFriend({ friend }: EachFriendProps) {
       }))
     }
 
-    if (pathname !== '/chat') {
-      router.push(`/chat`)
-    }
+    router.push(`/chat`)
   }
 
   useEffect(() => {
@@ -63,85 +78,87 @@ export default function EachFriend({ friend }: EachFriendProps) {
   }, [currentFriend, user])
 
   return (
-    <li
-      onClick={() => selectFriend()}
-      className={`${
-        connection &&
-        currentFriend.connection === connection &&
-        pathname === '/chat'
-          ? 'bg-[var(--primary)]'
-          : ''
-      } hover:bg-[var(--primary)] px-1 py-2 rounded-[10px] mb-2 flex w-full items-start cursor-pointer`}
+    <TouchableOpacity
+      onPress={() => selectFriend()}
+      className={`hover:bg-[var(--primary)] px-3 py-2 rounded-[10px] mb-2 flex w-full items-start cursor-pointer`}
     >
-      <div className="rounded-full w-10 h-10 relative overflow-hidden">
+      <View className="rounded-full w-12 h-12 relative overflow-hidden">
         <Image
-          src={
+          source={
             isSender
-              ? currentFriend.receiverPicture
-              : currentFriend.senderPicture
+              ? { uri: currentFriend.receiverPicture }
+              : { uri: currentFriend.senderPicture }
           }
-          alt="Media"
-          fill
-          className="object-cover w-full h-full"
+          style={{ width: '100%', height: '100%', resizeMode: 'cover' }}
         />
-      </div>
+      </View>
 
-      <div className="flex-1 pl-2">
-        <div className="flex w-full items-center mb-1">
-          <div className="font-semibold line-clamp-1 text-[var(--text-secondary)] mr-auto">
+      <View className="flex-1 pl-2">
+        <View className="flex w-full items-center mb-1">
+          <Text className="font-semibold line-clamp-1 text-[var(--text-secondary)] mr-auto">
             {isSender
               ? currentFriend.receiverDisplayName
               : currentFriend.senderDisplayName}
-          </div>
-          <div className="text-[12px] ml-2 block">
+          </Text>
+          <Text className="text-[12px] ml-2 block">
             {formatRelativeDate(String(currentFriend.updatedAt))}
-          </div>
-        </div>
+          </Text>
+        </View>
 
-        <div className="flex relative items-center w-full">
+        <View className="flex relative items-center w-full">
           {isSender && (
-            <div className="mr-1 text-[12px]">
+            <View style={{ marginRight: 4 }}>
               {currentFriend.status === 'pending' ? (
-                <i className="bi bi-clock-history"></i>
+                <Clock size={14} color="#999" />
               ) : currentFriend.status === 'sent' ? (
-                <i className="bi bi-check2"></i>
+                <Check size={14} color="#999" />
               ) : currentFriend.status === 'delivered' ? (
-                <i className="bi bi-check2-all"></i>
+                <CheckCheck size={16} color="#999" />
               ) : currentFriend.status === 'read' ? (
-                <i className="bi bi-check2-all text-[var(--custom)]"></i>
+                <CheckCheck size={16} color={'var(--custom)'} />
               ) : (
-                <i className="bi bi-clock-history"></i>
+                <Clock size={14} color="#999" />
               )}
-            </div>
+            </View>
           )}
           {unread > 0 && (
-            <div
+            <View
               className={`${
                 unread >= 100
                   ? 'w-[20px] h-[20px] text-[10px]'
                   : 'w-[15px] h-[15px] text-[12px]'
               } flex items-center  text-white absolute right-0 bottom-1 z-30 justify-center rounded-full bg-[var(--custom)]`}
             >
-              {unread >= 100 ? '99+' : unread}
-            </div>
+              <Text className="text-white">
+                {unread >= 100 ? '99+' : unread}
+              </Text>
+            </View>
           )}
+
           {currentFriend.media && currentFriend.media.length > 0 && (
-            <div className="mr-1">
+            <View style={{ marginRight: 4 }}>
               {currentFriend.media[0].type.includes('image') ? (
-                <i className="bi bi-image"></i>
-              ) : (
-                currentFriend.media[0].type.includes('video') && (
-                  <i className="bi bi-camera-video"></i>
-                )
-              )}
-            </div>
+                <ImageIcon size={16} color="#999" />
+              ) : currentFriend.media[0].type.includes('video') ? (
+                <VideoIcon size={16} color="#999" />
+              ) : null}
+            </View>
           )}
-          <div
-            className="text-sm flex-1 line-clamp-1 overflow-ellipsis"
-            dangerouslySetInnerHTML={{ __html: currentFriend.content }}
-          />
-        </div>
-      </div>
-    </li>
+          <View style={{ marginBottom: 4 }}>
+            <RenderHTML
+              contentWidth={width}
+              source={{ html: currentFriend.content }}
+              baseStyle={{
+                color: !isSender ? '#FFF' : primaryColor,
+                fontSize: 17,
+                fontWeight: 400,
+                lineHeight: 23,
+                textAlign: 'left',
+              }}
+            />
+          </View>
+        </View>
+      </View>
+    </TouchableOpacity>
   )
 }

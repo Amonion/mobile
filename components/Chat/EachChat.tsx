@@ -48,30 +48,38 @@ const EachChat = ({ e, isFirst, isGroupEnd }: ChatContentProps) => {
 
   return (
     <TouchableOpacity
-      onPress={() => selectItem(String(e._id))}
-      className={` ${e.isChecked ? 'selected' : ''} ${
-        e.isAlert ? 'cursor-pointer' : 'cursor-default'
-      } ${isGroupEnd ? 'mb-3' : 'mb-1'} w-full flex-col`}
+      className={`
+    ${e.isChecked ? 'selected' : ''}
+    ${e.isAlert ? 'cursor-pointer' : 'cursor-default'}
+    ${isGroupEnd ? 'mb-3' : 'mb-1'}
+
+    ${isSender ? 'self-end' : 'self-start'}
+    flex flex-col
+  `}
       ref={(el) => {
         if (el) {
           messageRefs.current[String(e.timeNumber)] = el
-          if (isFirst) {
-            firstCardRef.current = el
-          }
+          if (isFirst) firstCardRef.current = el
         }
       }}
     >
       <View
-        className={`max-w-[80%] rounded-[10px] p-2 ${
-          isSender
-            ? 'bg-primary dark:bg-dark-primary  ml-auto'
-            : 'bg-custom mr-auto'
-        } ${e.media[0] && e.media[0].type === 'audio' ? 'audio' : ''} ${
-          e.media[0] &&
-          (e.media[0].type === 'picture' || e.media[0].type === 'video')
-            ? 'media'
-            : ''
-        }`}
+        className={`
+      max-w-[80%] min-w-[100px]
+      rounded-[10px] p-2
+      ${
+        isSender
+          ? 'bg-primary dark:bg-dark-primary self-end'
+          : 'bg-custom self-start'
+      }
+      ${e.media[0]?.type === 'audio' ? 'audio' : ''}
+      ${
+        e.media[0] &&
+        (e.media[0].type === 'picture' || e.media[0].type === 'video')
+          ? 'media'
+          : ''
+      }
+    `}
       >
         {/* {e.repliedChat && (
           <TouchableOpacity
@@ -109,7 +117,7 @@ const EachChat = ({ e, isFirst, isGroupEnd }: ChatContentProps) => {
               fontSize: 17,
               fontWeight: 400,
               lineHeight: 23,
-              textAlign: isSender ? 'right' : 'left',
+              textAlign: 'left',
             }}
           />
         </View>
@@ -118,7 +126,6 @@ const EachChat = ({ e, isFirst, isGroupEnd }: ChatContentProps) => {
           style={{
             flexDirection: 'row',
             justifyContent: 'space-between',
-            width: '100%',
             alignItems: 'flex-end',
           }}
         >

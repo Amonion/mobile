@@ -2,12 +2,12 @@ import { formatRelativeDate } from '@/lib/helpers'
 import { AuthStore } from '@/store/AuthStore'
 import { ChatStore } from '@/store/chat/Chat'
 import FriendStore, { Friend } from '@/store/chat/Friend'
-import { usePathname, useRouter } from 'expo-router'
+import { MessageStore } from '@/store/notification/Message'
+import { useRouter } from 'expo-router'
 import {
   Video,
   ImageIcon,
   File,
-  Loader2,
   Check,
   CheckCheck,
   Clock,
@@ -34,16 +34,19 @@ export default function EachFriend({ friend }: EachFriendProps) {
   const currentFriend = friendState ?? friend
   const { user } = AuthStore()
   const { friendForm } = FriendStore()
-  const { getSavedChats, connection } = ChatStore()
+  const { getSavedChats, setConnection, getChats } = ChatStore()
+  const { setMessage } = MessageStore()
   const [unread, setUnread] = useState(0)
   const router = useRouter()
-  const pathname = usePathname()
   const isSender = friend.senderUsername === user?.username
   const colorScheme = useColorScheme()
   const { width } = useWindowDimensions()
   const isDark = colorScheme === 'dark'
+  const primaryColor = isDark ? '#BABABA' : '#6E6E6E'
+
   const selectFriend = () => {
-    if (friendForm.connection !== friend.connection) {
+    if (friendForm.connection !== friend.connection && user) {
+      setConnection(friend.connection)
       ChatStore.setState({
         chats: [],
         username: isSender ? friend.receiverUsername : friend.senderUsername,
@@ -58,15 +61,18 @@ export default function EachFriend({ friend }: EachFriendProps) {
         },
       })
       getSavedChats(friend.connection)
-
+      getChats(
+        `/chats/?connection=${friend.connection}&page_size=40&page=1&ordering=-createdAt&deletedUsername[ne]=${user.username}&username=${user.username}`,
+        setMessage
+      )
       FriendStore.setState(() => ({
         friendForm: currentFriend,
       }))
     }
 
-    if (pathname !== '/chat') {
-      router.push(`/chat`)
-    }
+    router.push(
+      `/chat/${isSender ? friend.receiverUsername : friend.senderUsername}`
+    )
   }
 
   useEffect(() => {
@@ -82,16 +88,10 @@ export default function EachFriend({ friend }: EachFriendProps) {
 
   return (
     <View
-      className={`${
-        connection &&
-        currentFriend.connection === connection &&
-        pathname === '/chat'
-          ? 'bg-[var(--primary)]'
-          : ''
-      } hover:bg-[var(--primary)] px-1 py-2 rounded-[10px] mb-2 flex w-full items-start cursor-pointer`}
+      className={`px-3 py-2 rounded-[10px] mb-2 flex-row w-full items-start cursor-pointer`}
     >
-      <TouchableOpacity onPress={() => selectFriend()}>
-        <View className="rounded-full w-10 h-10 relative overflow-hidden">
+      <TouchableOpacity className="flex-row" onPress={() => selectFriend()}>
+        <View className="rounded-full w-[50px] h-[50px] relative overflow-hidden mr-2">
           <Image
             style={{ height: '100%', objectFit: 'cover' }}
             source={
@@ -104,22 +104,22 @@ export default function EachFriend({ friend }: EachFriendProps) {
         </View>
 
         <View className="flex-1 pl-2">
-          <View className="flex w-full items-center mb-1">
-            <Text className="font-semibold line-clamp-1 text-[var(--text-secondary)] mr-auto">
+          <View className="flex-row w-full items-center mb-1">
+            <Text className="text-xl line-clamp-1 text-secondary dark:text-dark-secondary mr-auto">
               {isSender
                 ? currentFriend.receiverDisplayName
                 : currentFriend.senderDisplayName}
             </Text>
-            <Text className="text-[12px] ml-2 block">
+            <Text className="text-[12px] ml-2 text-primary dark:text-dark-primary">
               {formatRelativeDate(String(currentFriend.updatedAt))}
             </Text>
           </View>
 
-          <View className="flex relative items-center w-full">
+          <View className="flex-row relative items-center w-full">
             {isSender && (
               <View className="mr-1">
                 {currentFriend.status === 'pending' ? (
-                  <Loader2 size={14} color="#888" strokeWidth={2.5} />
+                  <Clock size={14} color="#888" strokeWidth={2.5} />
                 ) : currentFriend.status === 'sent' ? (
                   <Check size={16} color="#888" strokeWidth={2.5} />
                 ) : currentFriend.status === 'delivered' ? (
@@ -159,7 +159,7 @@ export default function EachFriend({ friend }: EachFriendProps) {
                 contentWidth={width}
                 source={{ html: currentFriend.content }}
                 baseStyle={{
-                  color: isDark ? '#EFEFEF' : '#3A3A3A',
+                  color: primaryColor,
                   fontSize: 14,
                   fontWeight: '400',
                   lineHeight: 23,

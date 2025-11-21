@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { formatDateToDDMMYY, getPdfPageCount } from '@/lib/helpers'
 import FriendStore from '@/store/chat/Friend'
 import SocketService from '@/store/socket'
 import { ChatStore, PreviewFile } from '@/store/chat/Chat'
 import { AuthStore } from '@/store/AuthStore'
 import { MessageStore } from '@/store/notification/Message'
-import { useLocalSearchParams, usePathname } from 'expo-router'
+import { useLocalSearchParams } from 'expo-router'
 import ChatHead from '@/components/Chat/ChatHead'
 import {
   View,
@@ -19,6 +19,7 @@ import {
   KeyboardAvoidingView,
   Keyboard,
   Platform,
+  FlatList,
 } from 'react-native'
 import { Video, ResizeMode } from 'expo-av'
 import Feather from '@expo/vector-icons/Feather'
@@ -40,23 +41,20 @@ const Chats = () => {
     unseenChatIds,
     unseenCheckIds,
     postChat,
-    getSavedChats,
     updateChatsToRead,
-    getChats,
-    setConnection,
     addNewChat,
   } = ChatStore()
   const { user } = AuthStore()
   const [text, setText] = useState('')
   const { setMessage } = MessageStore()
   const [isOptions, setOptions] = useState(false)
-  const pathname = usePathname()
   const [files, setFiles] = useState<PreviewFile[]>([])
   const colorScheme = useColorScheme()
   const { username } = useLocalSearchParams()
   const isDark = colorScheme === 'dark'
   const color = isDark ? '#BABABA' : '#6E6E6E'
   const insets = useSafeAreaInsets()
+  const flatListRef = useRef<FlatList>(null)
 
   useEffect(() => {
     return () => {
@@ -69,16 +67,20 @@ const Chats = () => {
   }, [])
 
   useEffect(() => {
-    if (username && user) {
-      const key = setConnectionKey(String(username), String(user?.username))
-      setConnection(key)
-      getSavedChats(key)
-      getChats(
-        `/chats/?connection=${key}&page_size=40&page=1&ordering=-createdAt&deletedUsername[ne]=${user.username}&username=${user.username}`,
-        setMessage
-      )
-    }
-  }, [username, user, pathname])
+    flatListRef.current?.scrollToEnd({ animated: true })
+  }, [chats.length])
+
+  // useEffect(() => {
+  //   if (username && user) {
+  //     const key = setConnectionKey(String(username), String(user?.username))
+  //     setConnection(key)
+  //     getSavedChats(key)
+  //     getChats(
+  //       `/chats/?connection=${key}&page_size=40&page=1&ordering=-createdAt&deletedUsername[ne]=${user.username}&username=${user.username}`,
+  //       setMessage
+  //     )
+  //   }
+  // }, [username, user, pathname])
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -134,10 +136,10 @@ const Chats = () => {
     }
   }
 
-  const setConnectionKey = (id1: string, id2: string) => {
-    const participants = [id1, id2].sort()
-    return participants.join('')
-  }
+  // const setConnectionKey = (id1: string, id2: string) => {
+  //   const participants = [id1, id2].sort()
+  //   return participants.join('')
+  // }
 
   const removeFile = (index: number) => {
     setFiles((prev) => {
@@ -226,8 +228,7 @@ const Chats = () => {
         day: formatDateToDDMMYY(new Date()),
         connection: connection,
         repliedChat: repliedChat,
-        // isFriends: friendForm.isFriends,
-        isFriends: true,
+        isFriends: friendForm.isFriends,
         senderDisplayName: String(user?.displayName),
         senderUsername: String(user?.username),
         senderPicture: String(user?.picture),
@@ -286,7 +287,7 @@ const Chats = () => {
           }
         })
       }
-      // updateFriendsChat(friendChat)
+      updateFriendsChat(friendChat)
       addNewChat(saved)
       if (files.length > 0) {
         postChat('/chats', form, setMessage)
@@ -367,151 +368,143 @@ const Chats = () => {
               </View>
             </View>
           )}
+          {/* <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}> */}
+
           <View className="flex-1 sm:px-0 px-1 relative">
             <ChatBody />
           </View>
+          {/* </TouchableWithoutFeedback> */}
+
           {/* {activeChat.timeNumber > 0 && <ChatActions e={activeChat} />} */}
-          <TouchableWithoutFeedback
-            onPress={Keyboard.dismiss}
-            accessible={false}
+
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+            style={{ justifyContent: 'flex-end' }}
           >
-            <KeyboardAvoidingView
-              behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-              keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
-              style={{ justifyContent: 'flex-end' }}
+            <View
+              style={{ paddingBottom: insets.bottom }}
+              className="flex-row w-full items-end bg-primary p-2 dark:bg-dark-primary"
             >
-              <View
-                style={{ paddingBottom: insets.bottom }}
-                className="flex-row w-full items-end bg-primary p-2 dark:bg-dark-primary"
-              >
-                {isOptions && (
-                  <View
-                    style={{
-                      position: 'absolute',
-                      left: 10,
-                      bottom: 60,
-                      backgroundColor: isDark ? '#1C1E21' : '#FFFFFF',
-                      borderRadius: 10,
-                      borderWidth: 1,
-                      borderColor: '#333',
-                      overflow: 'hidden',
-                    }}
-                  >
-                    <TouchableOpacity
-                      onPress={pickImagesVideos}
-                      style={{
-                        padding: 12,
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <Feather
-                        name="image"
-                        size={18}
-                        color={isDark ? '#EFEFEF' : '#3A3A3A'}
-                        style={{ marginRight: 10 }}
-                      />
-                      <Text style={{ color: isDark ? '#EFEFEF' : '#3A3A3A' }}>
-                        Upload Images & Videos
-                      </Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      onPress={pickDocuments}
-                      style={{
-                        padding: 12,
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <Feather
-                        name="music"
-                        size={18}
-                        color={isDark ? '#EFEFEF' : '#3A3A3A'}
-                        style={{ marginRight: 10 }}
-                      />
-                      <Text style={{ color: isDark ? '#EFEFEF' : '#3A3A3A' }}>
-                        Upload Sound
-                      </Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      onPress={pickDocuments}
-                      style={{
-                        padding: 12,
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <Feather
-                        name="file"
-                        size={18}
-                        color={isDark ? '#EFEFEF' : '#3A3A3A'}
-                        style={{ marginRight: 10 }}
-                      />
-                      <Text style={{ color: isDark ? '#EFEFEF' : '#3A3A3A' }}>
-                        Upload Documents
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
-
-                <TouchableOpacity
-                  onPress={() => setOptions(!isOptions)}
-                  style={{ marginBottom: 10 }}
-                >
-                  <Plus size={26} color="#DA3986" />
-                </TouchableOpacity>
-                <TextInput
-                  placeholder="Write a comment..."
-                  onChangeText={setText}
-                  value={text}
-                  className="flex-1 rounded-[25px] bg-secondary dark:bg-dark-secondary px-4 py-3 text-primary dark:text-dark-primary"
-                  placeholderTextColor={color}
-                  style={{
-                    minHeight: 40,
-                    maxHeight: 120,
-                    textAlignVertical: 'top',
-                  }}
-                  multiline
-                  numberOfLines={4}
-                  returnKeyType="send"
-                  onSubmitEditing={postMessage}
-                />
-
+              {isOptions && (
                 <View
                   style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    marginBottom: 12,
-                    marginRight: 8,
+                    position: 'absolute',
+                    left: 10,
+                    bottom: 60,
+                    backgroundColor: isDark ? '#1C1E21' : '#FFFFFF',
+                    borderRadius: 10,
+                    borderWidth: 1,
+                    borderColor: '#333',
+                    overflow: 'hidden',
                   }}
                 >
-                  <TouchableOpacity>
-                    <Smile
-                      size={20}
-                      color="#DA3986"
-                      style={{ marginLeft: 8 }}
+                  <TouchableOpacity
+                    onPress={pickImagesVideos}
+                    style={{
+                      padding: 12,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Feather
+                      name="image"
+                      size={18}
+                      color={isDark ? '#EFEFEF' : '#3A3A3A'}
+                      style={{ marginRight: 10 }}
                     />
+                    <Text style={{ color: isDark ? '#EFEFEF' : '#3A3A3A' }}>
+                      Upload Images & Videos
+                    </Text>
                   </TouchableOpacity>
 
-                  {(files.length > 0 ||
-                    text.replace(/<[^>]*>/g, '').trim().length > 0) && (
-                    <TouchableOpacity
-                      onPress={postMessage}
-                      style={{ marginLeft: 8 }}
-                    >
-                      <Send
-                        size={20}
-                        color="#DA3986"
-                        style={{ transform: [{ rotate: '45deg' }] }}
-                      />
-                    </TouchableOpacity>
-                  )}
+                  <TouchableOpacity
+                    onPress={pickDocuments}
+                    style={{
+                      padding: 12,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Feather
+                      name="music"
+                      size={18}
+                      color={isDark ? '#EFEFEF' : '#3A3A3A'}
+                      style={{ marginRight: 10 }}
+                    />
+                    <Text style={{ color: isDark ? '#EFEFEF' : '#3A3A3A' }}>
+                      Upload Sound
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={pickDocuments}
+                    style={{
+                      padding: 12,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Feather
+                      name="file"
+                      size={18}
+                      color={isDark ? '#EFEFEF' : '#3A3A3A'}
+                      style={{ marginRight: 10 }}
+                    />
+                    <Text style={{ color: isDark ? '#EFEFEF' : '#3A3A3A' }}>
+                      Upload Documents
+                    </Text>
+                  </TouchableOpacity>
                 </View>
+              )}
+
+              <TouchableOpacity
+                onPress={() => setOptions(!isOptions)}
+                style={{ marginBottom: 10 }}
+              >
+                <Plus size={26} color="#DA3986" />
+              </TouchableOpacity>
+              <TextInput
+                placeholder="Write a comment..."
+                onChangeText={setText}
+                value={text}
+                className="flex-1 rounded-[25px] bg-secondary dark:bg-dark-secondary px-4 py-3 text-primary dark:text-dark-primary"
+                placeholderTextColor={color}
+                style={{
+                  minHeight: 40,
+                  maxHeight: 120,
+                  textAlignVertical: 'top',
+                }}
+                multiline
+                numberOfLines={4}
+                returnKeyType="send"
+                onSubmitEditing={postMessage}
+              />
+
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  marginBottom: 12,
+                  marginRight: 8,
+                }}
+              >
+                <TouchableOpacity>
+                  <Smile size={20} color="#DA3986" style={{ marginLeft: 8 }} />
+                </TouchableOpacity>
+
+                {(files.length > 0 ||
+                  text.replace(/<[^>]*>/g, '').trim().length > 0) && (
+                  <TouchableOpacity
+                    onPress={postMessage}
+                    style={{ marginLeft: 8 }}
+                  >
+                    <Send size={20} color="#DA3986" />
+                  </TouchableOpacity>
+                )}
               </View>
-            </KeyboardAvoidingView>
-          </TouchableWithoutFeedback>
+            </View>
+          </KeyboardAvoidingView>
         </View>
       ) : (
         <View className="h-full text-custom w-full flex justify-center items-center">

@@ -1,6 +1,7 @@
 import FullMedia from '@/components/FullMedia'
 import { formatCount, formatDateToDayMonthYY } from '@/lib/helpers'
 import { AuthStore } from '@/store/AuthStore'
+import { ChatStore } from '@/store/chat/Chat'
 import { MessageStore } from '@/store/notification/Message'
 import { UserStore } from '@/store/user/User'
 import {
@@ -24,6 +25,7 @@ export default function UserLayout() {
   const { user } = AuthStore()
   const { setMessage } = MessageStore()
   const { getUser, userForm, updateMyUser, loading } = UserStore()
+  const { getSavedChats, getChats, setConnection } = ChatStore()
   const { username } = useLocalSearchParams()
   const pathname = usePathname()
   const colorScheme = useColorScheme()
@@ -37,6 +39,23 @@ export default function UserLayout() {
       getUser(`/users/${username}/?userId=${user?._id}`)
     }
   }, [userForm, username, pathname, user])
+
+  useEffect(() => {
+    if (username && user) {
+      const key = setConnectionKey(String(username), String(user?.username))
+      setConnection(key)
+      getSavedChats(key)
+      getChats(
+        `/chats/?connection=${key}&page_size=40&page=1&ordering=-createdAt&deletedUsername[ne]=${user.username}&username=${user.username}`,
+        setMessage
+      )
+    }
+  }, [username, user, pathname])
+
+  const setConnectionKey = (id1: string, id2: string) => {
+    const participants = [id1, id2].sort()
+    return participants.join('')
+  }
 
   const followAccount = () => {
     updateMyUser(
