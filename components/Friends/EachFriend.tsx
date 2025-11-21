@@ -2,7 +2,6 @@ import { formatRelativeDate } from '@/lib/helpers'
 import { AuthStore } from '@/store/AuthStore'
 import { ChatStore } from '@/store/chat/Chat'
 import FriendStore, { Friend } from '@/store/chat/Friend'
-import { MessageStore } from '@/store/notification/Message'
 import { useRouter } from 'expo-router'
 import {
   Video,
@@ -34,8 +33,7 @@ export default function EachFriend({ friend }: EachFriendProps) {
   const currentFriend = friendState ?? friend
   const { user } = AuthStore()
   const { friendForm } = FriendStore()
-  const { getSavedChats, setConnection, getChats } = ChatStore()
-  const { setMessage } = MessageStore()
+  const { getSavedChats, setConnection } = ChatStore()
   const [unread, setUnread] = useState(0)
   const router = useRouter()
   const isSender = friend.senderUsername === user?.username
@@ -61,10 +59,7 @@ export default function EachFriend({ friend }: EachFriendProps) {
         },
       })
       getSavedChats(friend.connection)
-      getChats(
-        `/chats/?connection=${friend.connection}&page_size=40&page=1&ordering=-createdAt&deletedUsername[ne]=${user.username}&username=${user.username}`,
-        setMessage
-      )
+
       FriendStore.setState(() => ({
         friendForm: currentFriend,
       }))
@@ -88,7 +83,7 @@ export default function EachFriend({ friend }: EachFriendProps) {
 
   return (
     <View
-      className={`px-3 py-2 rounded-[10px] mb-2 flex-row w-full items-start cursor-pointer`}
+      className={`px-3 py-3 rounded-[10px] mb-2 flex-row w-full items-start cursor-pointer`}
     >
       <TouchableOpacity className="flex-row" onPress={() => selectFriend()}>
         <View className="rounded-full w-[50px] h-[50px] relative overflow-hidden mr-2">

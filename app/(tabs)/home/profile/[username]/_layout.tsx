@@ -25,7 +25,7 @@ export default function UserLayout() {
   const { user } = AuthStore()
   const { setMessage } = MessageStore()
   const { getUser, userForm, updateMyUser, loading } = UserStore()
-  const { getSavedChats, getChats, setConnection } = ChatStore()
+  const { getSavedChats, setConnection } = ChatStore()
   const { username } = useLocalSearchParams()
   const pathname = usePathname()
   const colorScheme = useColorScheme()
@@ -45,10 +45,6 @@ export default function UserLayout() {
       const key = setConnectionKey(String(username), String(user?.username))
       setConnection(key)
       getSavedChats(key)
-      getChats(
-        `/chats/?connection=${key}&page_size=40&page=1&ordering=-createdAt&deletedUsername[ne]=${user.username}&username=${user.username}`,
-        setMessage
-      )
     }
   }, [username, user, pathname])
 

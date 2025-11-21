@@ -1,3 +1,5 @@
+import { ChatContent } from '@/store/chat/Chat'
+import { Friend } from '@/store/chat/Friend'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
 export type TableName =
@@ -16,6 +18,8 @@ export interface GetAllOptions {
   page?: number
   pageSize?: number
   filter?: Partial<Record<string, any>>
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
 }
 
 export async function getAll<T>(
@@ -26,7 +30,7 @@ export async function getAll<T>(
     const json = await AsyncStorage.getItem(tableKey(table))
     let items: T[] = json ? JSON.parse(json) : []
 
-    // Apply filter first
+    // Apply filter
     if (options?.filter) {
       const filter = options.filter
       items = items.filter((item) =>
@@ -36,13 +40,26 @@ export async function getAll<T>(
       )
     }
 
-    // Pagination
+    // Apply sorting if provided
+    if (options?.sortBy) {
+      const { sortBy, sortOrder = 'asc' } = options
+
+      items.sort((a: any, b: any) => {
+        const valA = a[sortBy]
+        const valB = b[sortBy]
+
+        if (sortOrder === 'asc') return valA - valB
+        return valB - valA
+      })
+    }
+
+    // If no pagination, return now
     if (!options?.pageSize || !options?.page) {
       return items
     }
 
+    // Pagination
     const { page, pageSize } = options
-
     const start = (page - 1) * pageSize
     const end = start + pageSize
 
@@ -81,6 +98,60 @@ export async function upsertAll<T extends { _id: string }>(
     await AsyncStorage.setItem(tableKey(table), JSON.stringify(merged))
   } catch (err) {
     console.error(`Error upserting table "${table}"`, err)
+  }
+}
+
+export async function upsertChats(
+  table: TableName,
+  data: ChatContent[]
+): Promise<void> {
+  try {
+    const existingRaw = await AsyncStorage.getItem(tableKey(table))
+    const existing: ChatContent[] = existingRaw ? JSON.parse(existingRaw) : []
+
+    // Use a composite key: `${connection}-${timeNumber}`
+    const map = new Map(
+      existing.map((item) => [`${item.connection}-${item.timeNumber}`, item])
+    )
+
+    // Insert or update incoming chats
+    for (const chat of data) {
+      const key = `${chat.connection}-${chat.timeNumber}`
+      map.set(key, chat)
+    }
+
+    // Convert to array and sort oldest → newest
+    const merged = Array.from(map.values()).sort(
+      (a, b) => a.timeNumber - b.timeNumber
+    )
+
+    await AsyncStorage.setItem(tableKey(table), JSON.stringify(merged))
+  } catch (err) {
+    console.error(`Error upserting chats into "${table}"`, err)
+  }
+}
+
+export async function upsertFriends(
+  table: TableName,
+  data: Friend[]
+): Promise<void> {
+  try {
+    const existingRaw = await AsyncStorage.getItem(tableKey(table))
+    const existing: Friend[] = existingRaw ? JSON.parse(existingRaw) : []
+
+    // Use connection as the unique key
+    const map = new Map(existing.map((item) => [item.connection, item]))
+
+    // Insert or update incoming friends
+    for (const friend of data) {
+      map.set(friend.connection, friend)
+    }
+
+    const merged = Array.from(map.values())
+
+    await AsyncStorage.setItem(tableKey(table), JSON.stringify(merged))
+  } catch (err) {
+    console.error(`Error upserting friends into "${table}"`, err)
   }
 }
 

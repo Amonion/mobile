@@ -5,7 +5,7 @@ import SocketService from '@/store/socket'
 import { ChatStore, PreviewFile } from '@/store/chat/Chat'
 import { AuthStore } from '@/store/AuthStore'
 import { MessageStore } from '@/store/notification/Message'
-import { useLocalSearchParams } from 'expo-router'
+import { useLocalSearchParams, usePathname } from 'expo-router'
 import ChatHead from '@/components/Chat/ChatHead'
 import {
   View,
@@ -40,6 +40,7 @@ const Chats = () => {
     chatUserForm,
     unseenChatIds,
     unseenCheckIds,
+    isFriends,
     postChat,
     updateChatsToRead,
     addNewChat,
@@ -55,6 +56,7 @@ const Chats = () => {
   const color = isDark ? '#BABABA' : '#6E6E6E'
   const insets = useSafeAreaInsets()
   const flatListRef = useRef<FlatList>(null)
+  const pathname = usePathname()
 
   useEffect(() => {
     return () => {
@@ -70,38 +72,26 @@ const Chats = () => {
     flatListRef.current?.scrollToEnd({ animated: true })
   }, [chats.length])
 
-  // useEffect(() => {
-  //   if (username && user) {
-  //     const key = setConnectionKey(String(username), String(user?.username))
-  //     setConnection(key)
-  //     getSavedChats(key)
-  //     getChats(
-  //       `/chats/?connection=${key}&page_size=40&page=1&ordering=-createdAt&deletedUsername[ne]=${user.username}&username=${user.username}`,
-  //       setMessage
-  //     )
-  //   }
-  // }, [username, user, pathname])
-
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (unseenChatIds.length > 0) {
+      if (unseenChatIds.length > 0 && pathname === `/chat/${username}`) {
         updateChatStatus()
         updateChatsToRead(unseenChatIds, connection)
       }
     }, 1000)
 
     return () => clearTimeout(timer)
-  }, [unseenChatIds.length])
+  }, [unseenChatIds.length, pathname])
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (unseenCheckIds.length > 0) {
+      if (unseenCheckIds.length > 0 && pathname === `/chat/${username}`) {
         checkChatStatus()
       }
     }, 1000)
 
     return () => clearTimeout(timer)
-  }, [unseenCheckIds.length])
+  }, [unseenCheckIds.length, pathname])
 
   const updateChatStatus = () => {
     if (socket) {
@@ -135,11 +125,6 @@ const Chats = () => {
       })
     }
   }
-
-  // const setConnectionKey = (id1: string, id2: string) => {
-  //   const participants = [id1, id2].sort()
-  //   return participants.join('')
-  // }
 
   const removeFile = (index: number) => {
     setFiles((prev) => {
@@ -228,7 +213,7 @@ const Chats = () => {
         day: formatDateToDDMMYY(new Date()),
         connection: connection,
         repliedChat: repliedChat,
-        isFriends: friendForm.isFriends,
+        isFriends: isFriends,
         senderDisplayName: String(user?.displayName),
         senderUsername: String(user?.username),
         senderPicture: String(user?.picture),
@@ -296,7 +281,7 @@ const Chats = () => {
       }
       setFiles([])
       setText('')
-
+      Keyboard.dismiss()
       ChatStore.setState(() => {
         return {
           repliedChat: null,
@@ -368,12 +353,10 @@ const Chats = () => {
               </View>
             </View>
           )}
-          {/* <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}> */}
 
           <View className="flex-1 sm:px-0 px-1 relative">
             <ChatBody />
           </View>
-          {/* </TouchableWithoutFeedback> */}
 
           {/* {activeChat.timeNumber > 0 && <ChatActions e={activeChat} />} */}
 
@@ -384,14 +367,14 @@ const Chats = () => {
           >
             <View
               style={{ paddingBottom: insets.bottom }}
-              className="flex-row w-full items-end bg-primary p-2 dark:bg-dark-primary"
+              className="flex-row w-full items-end bg-primary dark:bg-dark-primary"
             >
               {isOptions && (
                 <View
                   style={{
                     position: 'absolute',
                     left: 10,
-                    bottom: 60,
+                    bottom: 100,
                     backgroundColor: isDark ? '#1C1E21' : '#FFFFFF',
                     borderRadius: 10,
                     borderWidth: 1,
@@ -459,8 +442,9 @@ const Chats = () => {
               )}
 
               <TouchableOpacity
+                hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
                 onPress={() => setOptions(!isOptions)}
-                style={{ marginBottom: 10 }}
+                style={{ padding: 10 }}
               >
                 <Plus size={26} color="#DA3986" />
               </TouchableOpacity>
@@ -481,28 +465,20 @@ const Chats = () => {
                 onSubmitEditing={postMessage}
               />
 
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  marginBottom: 12,
-                  marginRight: 8,
-                }}
-              >
-                <TouchableOpacity>
-                  <Smile size={20} color="#DA3986" style={{ marginLeft: 8 }} />
-                </TouchableOpacity>
-
-                {(files.length > 0 ||
-                  text.replace(/<[^>]*>/g, '').trim().length > 0) && (
-                  <TouchableOpacity
-                    onPress={postMessage}
-                    style={{ marginLeft: 8 }}
-                  >
-                    <Send size={20} color="#DA3986" />
-                  </TouchableOpacity>
+              {files.length === 0 &&
+                text.replace(/<[^>]*>/g, '').trim().length === 0 && (
+                  <View style={{ padding: 8 }}></View>
                 )}
-              </View>
+              {(files.length > 0 ||
+                text.replace(/<[^>]*>/g, '').trim().length > 0) && (
+                <TouchableOpacity
+                  hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+                  onPress={postMessage}
+                  style={{ padding: 8 }}
+                >
+                  <Send size={20} color="#DA3986" />
+                </TouchableOpacity>
+              )}
             </View>
           </KeyboardAvoidingView>
         </View>

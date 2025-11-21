@@ -1,7 +1,8 @@
 import { create } from 'zustand'
 import _debounce from 'lodash/debounce'
 import { customRequest } from '@/lib/api'
-import { upsert } from '@/lib/localStorage/db'
+import { clearTable, getAll, upsert, upsertChats } from '@/lib/localStorage/db'
+import { AuthStore } from '../AuthStore'
 
 export interface PreviewFile {
   index: number
@@ -31,7 +32,6 @@ interface ChatState {
   count: number
   current: number
   favChatContentResults: ChatContent[]
-  favChatResults: Chat[]
   isAllChecked: boolean
   isFriends: boolean
   loading: boolean
@@ -47,6 +47,7 @@ interface ChatState {
   unread: number
   chatUserForm: ChatUserForm
   setActiveChat: (chat: ChatContent) => void
+  setIsFriends: (status: boolean) => void
   getSavedChats: (url: string) => Promise<void>
   getChats: (
     url: string,
@@ -73,7 +74,6 @@ interface ChatState {
   setProcessedResults: (data: ChatContent[]) => void
   processedAndAddResults: (data: ChatContent[]) => void
   processMoreResults: (data: ChatContent[]) => void
-  setProcessedFavResults: (data: Chat[]) => void
   setLoading?: (loading: boolean) => void
   massDelete: (
     url: string,
@@ -96,7 +96,6 @@ interface ChatState {
   selectChats: (id: string) => void
   setConnection: (connection: string) => void
   addNewChat: (saved: ChatContent) => void
-  selectFavChats: (id: number) => void
   toggleChecked: (index: number) => void
   toggleActive: (index: number) => void
   toggleAllSelected: () => void
@@ -172,6 +171,12 @@ export const ChatStore = create<ChatState>((set) => ({
     })
   },
 
+  setIsFriends: (status) => {
+    set({
+      isFriends: status,
+    })
+  },
+
   setActiveChat: (chat) => {
     set({
       activeChat: chat,
@@ -211,47 +216,6 @@ export const ChatStore = create<ChatState>((set) => ({
       }
     })
   },
-
-  // setProcessedResults: (newResults) => {
-  //   set((prev) => {
-  //     const newResultsMap = new Map(
-  //       newResults.map((chat) => [chat.timeNumber, chat])
-  //     )
-
-  //     // Update existing chats if they appear in newResults
-  //     const updatedChats = prev.chats.map((chat) => {
-  //       const newChat = newResultsMap.get(chat.timeNumber)
-  //       if (newChat) {
-  //         return { ...chat, ...newChat } // merge all updates
-  //       }
-  //       return chat
-  //     })
-
-  //     // Add new chats that don’t already exist
-  //     const merged = [
-  //       ...updatedChats,
-  //       ...newResults.filter(
-  //         (chat) => !prev.chats.some((c) => c.timeNumber === chat.timeNumber)
-  //       ),
-  //     ]
-
-  //     // ✅ Sort oldest → newest
-  //     merged.sort((a, b) => {
-  //       const dateA = a.createdAt
-  //         ? new Date(a.createdAt).getTime()
-  //         : Number(a.timeNumber)
-  //       const dateB = b.createdAt
-  //         ? new Date(b.createdAt).getTime()
-  //         : Number(b.timeNumber)
-  //       return dateA - dateB // ascending → oldest first
-  //     })
-
-  //     return {
-  //       loading: false,
-  //       chats: merged,
-  //     }
-  //   })
-  // },
 
   processedAndAddResults: (newResults) => {
     set((prev) => {
@@ -297,13 +261,6 @@ export const ChatStore = create<ChatState>((set) => ({
     })
   },
 
-  setProcessedFavResults: (results) => {
-    set({
-      loading: false,
-      favChatResults: results,
-    })
-  },
-
   setLoading: (loadState: boolean) => {
     set({ loading: loadState })
   },
@@ -333,7 +290,33 @@ export const ChatStore = create<ChatState>((set) => ({
       const response = await customRequest({ url })
       const data = response?.data
       if (data) {
-        ChatStore.getState().processedAndAddResults(data.results)
+        const fetchedChats = data.results
+        const savedChats = ChatStore.getState().chats
+
+        const fetchedMap = new Map(
+          fetchedChats.map((chat: any) => [chat.timeNumber, chat])
+        )
+
+        const merged = savedChats.map((saved: any) => {
+          if (fetchedMap.has(saved.timeNumber)) {
+            return fetchedMap.get(saved.timeNumber)
+          }
+          return saved
+        })
+
+        fetchedChats.forEach((fetched: any) => {
+          const exists = savedChats.some(
+            (s) => s.timeNumber === fetched.timeNumber
+          )
+          if (!exists) merged.push(fetched)
+        })
+
+        merged.sort((a: any, b: any) => a.timeNumber - b.timeNumber)
+
+        ChatStore.setState({ chats: merged })
+        if (merged.length > 0) {
+          upsertChats('chats', merged)
+        }
       }
     } catch (error: unknown) {
       console.log(error)
@@ -343,10 +326,21 @@ export const ChatStore = create<ChatState>((set) => ({
   getSavedChats: async (connection) => {
     try {
       set({ loading: true })
-      // const chats = await getMessagesByConnection(connection)
-      // if (chats) {
-      //   ChatStore.getState().setProcessedResults(chats)
-      // }
+      clearTable('chats')
+      const chats = await getAll<ChatContent>('chats', {
+        page: 1,
+        pageSize: 20,
+        filter: { connection },
+        sortBy: 'timeNumber',
+        sortOrder: 'asc',
+      })
+      if (chats.length > 0) {
+        set({ chats: chats })
+      }
+      const user = AuthStore.getState().user
+      ChatStore.getState().getChats(
+        `/chats/?connection=${connection}&page_size=40&page=1&ordering=-createdAt&deletedUsername[ne]=${user?.username}&username=${user?.username}`
+      )
     } catch (error: unknown) {
       console.log(error)
     } finally {
@@ -392,14 +386,25 @@ export const ChatStore = create<ChatState>((set) => ({
 
   addNewChat: async (saved: ChatContent) => {
     ChatStore.setState((prev) => {
-      const newChat = saved
       const chats = [...prev.chats]
-      const updateChats = [...chats, newChat]
 
+      // Find existing chat with same timeNumber
+      const index = chats.findIndex((c) => c.timeNumber === saved.timeNumber)
+
+      if (index !== -1) {
+        // Replace existing chat
+        chats[index] = saved
+      } else {
+        // Add new chat
+        chats.push(saved)
+      }
+
+      // Persist to storage
       upsert('chats', saved)
+
       return {
-        senderUsername: updateChats[updateChats.length - 1].senderUsername,
-        chats: updateChats,
+        senderUsername: saved.senderUsername,
+        chats,
       }
     })
   },
@@ -500,7 +505,6 @@ export const ChatStore = create<ChatState>((set) => ({
             moveUp: true,
           }
         })
-        ChatStore.getState().selectFavChats(data.results[0].timeNumber)
       }
     } catch (error: unknown) {
       console.log(error)
@@ -601,8 +605,25 @@ export const ChatStore = create<ChatState>((set) => ({
     console.log(index)
   },
 
-  toggleChecked: (index: number) => {
-    console.log(index)
+  toggleChecked: (timeNumber: number) => {
+    set((state) => {
+      const updatedResults = state.chats.map((item) =>
+        item.timeNumber === timeNumber
+          ? { ...item, isChecked: !item.isChecked }
+          : item
+      )
+
+      const isAllChecked = updatedResults.every((item) => item.isChecked)
+      const updatedSelectedItems = updatedResults.filter(
+        (item) => item.isChecked
+      )
+
+      return {
+        chats: updatedResults,
+        selectedItems: updatedSelectedItems,
+        isAllChecked,
+      }
+    })
   },
 
   selectChats: (_id: string) => {
@@ -610,83 +631,8 @@ export const ChatStore = create<ChatState>((set) => ({
     }
   },
 
-  selectFavChats: (timeNumber) => {
-    set((state) => {
-      const chatExists = state.favChatResults.some((group) =>
-        group.chats.some((chat) => chat.timeNumber === timeNumber)
-      )
-
-      if (!chatExists) {
-        const oldestCreatedAt = (() => {
-          let oldest: Date | null = null
-
-          ChatStore.getState().favChatResults.forEach((group) => {
-            group.chats.forEach((chat) => {
-              const chatDate = new Date(chat.timeNumber)
-              if (!oldest || chatDate < oldest) {
-                oldest = chatDate
-              }
-            })
-          })
-
-          return oldest
-        })()
-
-        if (oldestCreatedAt) {
-          ChatStore.getState().addFavSearchedChats(timeNumber, oldestCreatedAt)
-        }
-        return {}
-      }
-
-      const updatedResults = state.favChatResults.map((group) => ({
-        ...group,
-        chats: group.chats.map((chat) => {
-          const isChecked =
-            chat.timeNumber === timeNumber ? !chat.isChecked : chat.isChecked
-          return {
-            ...chat,
-            isChecked,
-            isAlert:
-              state.selectedFavItems.length < 2 && !isChecked ? true : false,
-          }
-        }),
-      }))
-
-      const allChats = updatedResults.flatMap((group) => group.chats)
-      const updatedSelectedItems = allChats.filter((chat) => chat.isChecked)
-
-      const newUpdatedResults = updatedResults.map((group) => ({
-        ...group,
-        chats: group.chats.map((chat) => ({
-          ...chat,
-          isAlert: updatedSelectedItems.length === 0 ? false : true,
-        })),
-      }))
-
-      const isAllChecked =
-        allChats.length > 0 && updatedSelectedItems.length === allChats.length
-
-      return {
-        searchResult: [],
-        favChatResults: newUpdatedResults,
-        selectedFavItems: updatedSelectedItems,
-        isAllChecked: isAllChecked,
-      }
-    })
-  },
-
   toggleAllSelected: () => {},
 }))
-
-export interface Chat {
-  day: string
-  chats: ChatContent[]
-}
-
-export const Chat = {
-  day: '',
-  chats: [],
-}
 
 export interface ChatContent {
   connection: string

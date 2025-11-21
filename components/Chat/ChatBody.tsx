@@ -13,6 +13,7 @@ import {
   ViewToken,
 } from 'react-native'
 import { ArrowDown } from 'lucide-react-native'
+import { useLocalSearchParams, usePathname } from 'expo-router'
 
 type response = {
   friend: Friend
@@ -31,16 +32,18 @@ const ChatBody = () => {
     loading,
     unread,
     connection,
-    username,
+    isFriends,
+    setIsFriends,
     updatePendingChat,
     addNewChat,
   } = ChatStore()
-  const { updatePendingFriendsChat, updateFriendsChat } = FriendStore()
+  const { updatePendingFriendsChat } = FriendStore()
   const { user } = AuthStore()
   const [isNearBottom, setIsNearBottom] = useState(true)
   const socket = SocketService.getSocket()
-  const [isFriends, setIsFriends] = useState(true)
   const flatListRef = useRef<FlatList>(null)
+  const { username } = useLocalSearchParams()
+  const pathname = usePathname()
 
   const scrollDown = () => {
     flatListRef.current?.scrollToEnd({ animated: true })
@@ -54,17 +57,16 @@ const ChatBody = () => {
 
   useEffect(() => {
     if (chats.length > 0 && user) {
-      const isUsersFriends = ChatStore.getState().chats.some(
-        (item) =>
-          (item.senderUsername === user.username ||
-            item.receiverUsername === user.username) &&
-          (item.senderUsername === username ||
-            item.receiverUsername === username)
+      const myChats = ChatStore.getState().chats.some(
+        (item) => item.senderUsername === user.username
+      )
+      const userChats = ChatStore.getState().chats.some(
+        (item) => item.senderUsername === username
       )
 
-      setIsFriends(isUsersFriends)
+      setIsFriends(myChats && userChats)
     }
-  }, [chats.length, user])
+  }, [chats, user])
 
   useEffect(() => {
     return () => {
@@ -81,13 +83,20 @@ const ChatBody = () => {
 
     if (user) {
       socket.on(`updateChatToRead${connection}`, (data: response) => {
-        // if (username === data.receiverUsername) {
-        for (let i = 0; i < data.chats.length; i++) {
-          const el = data.chats[i]
-          updatePendingChat(el)
+        if (username === data.receiverUsername) {
+          for (let i = 0; i < data.chats.length; i++) {
+            const el = data.chats[i]
+            console.log(
+              'Read chat sender is: ',
+              el.senderUsername,
+              ' receiver is: ',
+              el.receiverUsername
+            )
+
+            updatePendingChat(el)
+          }
+          // updatePendingFriendsChat(data.friend)
         }
-        updatePendingFriendsChat(data.friend)
-        // }
       })
     }
 
@@ -101,7 +110,6 @@ const ChatBody = () => {
 
     if (user) {
       socket.on(`addCreatedChat${user.username}`, (data: response) => {
-        updateFriendsChat({ ...data.friend })
         if (data.connection === connection) {
           addNewChat(data.chat)
         }
@@ -120,7 +128,8 @@ const ChatBody = () => {
 
         if (
           chat.receiverUsername === user?.username &&
-          chat.status !== 'read'
+          chat.status !== 'read' &&
+          pathname === `/chat/${username}`
         ) {
           ChatStore.setState((prev) => {
             const updatedIds = new Set([
@@ -141,7 +150,7 @@ const ChatBody = () => {
 
   return (
     <>
-      <View className="flex relative flex-1 px-1 flex-col">
+      <View className="flex relative flex-1 flex-col">
         {chats.length === 0 && !loading && (
           <View className="w-full flex-1 flex flex-col items-center px-[10px] mt-10">
             <View className="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden mb-5">

@@ -467,7 +467,6 @@ export const PostStore = create<PostState>((set, get) => ({
       const data = response?.data
       if (data) {
         const fetchedPosts = data.results
-        console.log('The fetched posts are: ', fetchedPosts.length)
         const savedPosts = PostStore.getState().postResults
 
         if (savedPosts.length > 0) {

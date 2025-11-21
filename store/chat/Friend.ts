@@ -2,7 +2,13 @@ import { create } from 'zustand'
 import _debounce from 'lodash/debounce'
 import { customRequest } from '@/lib/api'
 import { PreviewFile } from './Chat'
-import { getAll, upsert } from '@/lib/localStorage/db'
+import {
+  clearTable,
+  getAll,
+  upsert,
+  upsertChats,
+  upsertFriends,
+} from '@/lib/localStorage/db'
 import { User } from '../user/User'
 
 interface UnreadMessage {
@@ -157,7 +163,7 @@ const FriendStore = create<FriendState>((set) => ({
         }
         return { ...item }
       })
-
+      upsertFriends('friends', [data])
       // saveOrUpdateFriendInDB(data).catch(console.error)
 
       // updatePendingFriendMessageStatus(
@@ -172,6 +178,8 @@ const FriendStore = create<FriendState>((set) => ({
   getSavedFriends: async (user) => {
     try {
       set({ loading: true })
+      clearTable('friends')
+
       const friends = await getAll<Friend>('friends', { page: 1, pageSize: 20 })
       if (friends.length > 0) {
         set({ friendsResults: friends })
@@ -192,7 +200,31 @@ const FriendStore = create<FriendState>((set) => ({
       const response = await customRequest({ url })
       const data = response?.data
       if (data) {
-        // FriendStore.getState().setProcessedResults(data.results)
+        const fetchedFriends = data.results
+        const savedFriends = FriendStore.getState().friendsResults
+
+        const fetchedMap = new Map(
+          fetchedFriends.map((friend: any) => [friend.timeNumber, friend])
+        )
+
+        const merged = savedFriends.map((saved: any) => {
+          if (fetchedMap.has(saved.timeNumber)) {
+            return fetchedMap.get(saved.timeNumber)
+          }
+          return saved
+        })
+
+        fetchedFriends.forEach((fetched: any) => {
+          const exists = savedFriends.some(
+            (s) => s.timeNumber === fetched.timeNumber
+          )
+          if (!exists) merged.push(fetched)
+        })
+
+        merged.sort((a: any, b: any) => a.timeNumber - b.timeNumber)
+
+        FriendStore.setState({ friendsResults: merged })
+        upsertChats('friends', merged)
       }
     } catch (error: unknown) {
       console.log(error)

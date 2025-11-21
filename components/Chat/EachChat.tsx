@@ -4,21 +4,9 @@ import { formatTimeTo12Hour } from '@/lib/helpers'
 import ChatMedia from './ChatMedia'
 import { ChatContent, ChatStore } from '@/store/chat/Chat'
 import { AuthStore } from '@/store/AuthStore'
-import {
-  TouchableOpacity,
-  useColorScheme,
-  useWindowDimensions,
-  View,
-  Text,
-} from 'react-native'
-import {
-  Check,
-  CheckCheck,
-  Clock,
-  Heart,
-  MoreVertical,
-} from 'lucide-react-native'
-import RenderHTML from 'react-native-render-html'
+import { TouchableOpacity, useColorScheme, View, Text } from 'react-native'
+import { Check, CheckCheck, Clock } from 'lucide-react-native'
+import { ChatHTML } from './ChatHTML'
 type ChatContentProps = {
   e: ChatContent
   isFirst: boolean
@@ -28,31 +16,35 @@ type ChatContentProps = {
 }
 
 const EachChat = ({ e, isFirst, isGroupEnd }: ChatContentProps) => {
-  const { selectChats, setActiveChat, selectedItems } = ChatStore()
+  const { toggleChecked, selectedItems } = ChatStore()
   const { user } = AuthStore()
-  const optionsRef = useRef<View | null>(null)
   const firstCardRef = useRef<View | null>(null)
   const messageRefs = useRef<Record<string, View | null>>({})
   const isSender = e.senderUsername === user?.username
-  const { width } = useWindowDimensions()
   const colorScheme = useColorScheme()
   const isDark = colorScheme === 'dark' ? true : false
 
   const primaryColor = isDark ? '#BABABA' : '#6E6E6E'
 
-  const selectItem = (id: string) => {
+  const selectItem = () => {
+    toggleChecked(e.timeNumber)
+  }
+  const tapSelectChat = () => {
     if (selectedItems.length > 0) {
-      selectChats(id)
+      toggleChecked(e.timeNumber)
     }
   }
 
   return (
     <TouchableOpacity
+      onLongPress={selectItem}
+      onPress={tapSelectChat}
+      activeOpacity={0.8}
       className={`
-    ${e.isChecked ? 'selected' : ''}
+    ${e.isChecked ? 'bg-custom/50' : ''}
     ${e.isAlert ? 'cursor-pointer' : 'cursor-default'}
-    ${isGroupEnd ? 'mb-3' : 'mb-1'}
-
+    ${isGroupEnd ? 'mb-2' : 'mb-[1px]'}
+        w-full px-2 py-1
     ${isSender ? 'self-end' : 'self-start'}
     flex flex-col
   `}
@@ -109,7 +101,13 @@ const EachChat = ({ e, isFirst, isGroupEnd }: ChatContentProps) => {
         {/* <ChatMedia e={e} /> */}
 
         <View style={{ marginBottom: 4 }}>
-          <RenderHTML
+          <ChatHTML
+            html={e.content}
+            color={!isSender ? '#FFF' : primaryColor}
+            isSender={isSender}
+          />
+
+          {/* <RenderHTML
             contentWidth={width}
             source={{ html: e.content }}
             baseStyle={{
@@ -119,7 +117,7 @@ const EachChat = ({ e, isFirst, isGroupEnd }: ChatContentProps) => {
               lineHeight: 23,
               textAlign: 'left',
             }}
-          />
+          /> */}
         </View>
 
         <View
@@ -155,15 +153,6 @@ const EachChat = ({ e, isFirst, isGroupEnd }: ChatContentProps) => {
                 {formatTimeTo12Hour(String(e.receiverTime))}
               </Text>
             )}
-          </View>
-
-          <View ref={optionsRef}>
-            <TouchableOpacity onPress={() => setActiveChat(e)}>
-              <MoreVertical
-                color={!isSender ? '#FFF' : isDark ? '#BABABA' : '#6E6E6E'}
-                size={16}
-              />
-            </TouchableOpacity>
           </View>
         </View>
         {/* {e.isSavedUsernames?.includes(String(user?.username)) && (

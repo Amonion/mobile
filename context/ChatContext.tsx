@@ -42,8 +42,12 @@ type response = {
 }
 
 export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
-  const { friendsResults, getSavedFriends, updatePendingFriendsChat } =
-    FriendStore()
+  const {
+    friendsResults,
+    updateFriendsChat,
+    getSavedFriends,
+    updatePendingFriendsChat,
+  } = FriendStore()
   const { connection, updatePendingChat } = ChatStore()
   const [chat, setChat] = useState<ChatContent | null>(null)
 
@@ -60,6 +64,10 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
     if (!socket) return
 
     if (user) {
+      socket.on(`addCreatedChat${user.username}`, (data: response) => {
+        updateFriendsChat({ ...data.friend })
+      })
+
       socket.on(`updatePendingChat${user.username}`, (data: response) => {
         updatePendingChat(data.chat)
         setChat(data.chat)
