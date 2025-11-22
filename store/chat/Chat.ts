@@ -594,7 +594,7 @@ export const ChatStore = create<ChatState>((set) => ({
             ),
           }
         })
-        // saveOrUpdateMessageInDB(data.chat)
+        upsert('chats', data.chat)
       }
     } catch (error) {
       console.log(error)

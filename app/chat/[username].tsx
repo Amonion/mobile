@@ -9,13 +9,11 @@ import { useLocalSearchParams, usePathname } from 'expo-router'
 import ChatHead from '@/components/Chat/ChatHead'
 import {
   View,
-  Image,
   StyleSheet,
   Text,
   TouchableOpacity,
   useColorScheme,
   TextInput,
-  TouchableWithoutFeedback,
   KeyboardAvoidingView,
   Keyboard,
   Platform,
@@ -23,12 +21,13 @@ import {
 } from 'react-native'
 import { Video, ResizeMode } from 'expo-av'
 import Feather from '@expo/vector-icons/Feather'
-import { Plus, Send, Smile } from 'lucide-react-native'
+import { Plus, Send } from 'lucide-react-native'
 import * as ImagePicker from 'expo-image-picker'
 import * as DocumentPicker from 'expo-document-picker'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import ChatBody from '@/components/Chat/ChatBody'
-
+import { Directory, File, Paths } from 'expo-file-system'
+import PreloadChatMedia from '@/components/Chat/PreloadChatMedia'
 const Chats = () => {
   const { updateFriendsChat, friendForm } = FriendStore()
   const socket = SocketService.getSocket()
@@ -140,39 +139,136 @@ const Chats = () => {
     })
   }
 
-  // const serializeFiles = async (files: File[]) => {
-  //   const serialized = await Promise.all(
-  //     files.map(async (file, index) => {
-  //       const buffer = await file.arrayBuffer()
-  //       const blob = new Blob([buffer], { type: file.type })
-  //       const previewUrl = URL.createObjectURL(blob)
+  // const pickImagesVideos = async () => {
+  //   try {
+  //     const result = await ImagePicker.launchImageLibraryAsync({
+  //       mediaTypes: ImagePicker.MediaTypeOptions.All,
+  //       allowsMultipleSelection: true,
+  //       quality: 1,
+  //     })
+
+  //     if (result.canceled) return
+
+  //     setOptions(false)
+
+  //     const assets = result.assets || []
+
+  //     const newFiles: PreviewFile[] = assets.map((asset, i) => {
+  //       const uri = asset.uri
+
+  //       // Extract clean filename
+  //       const name =
+  //         uri
+  //           .split('/')
+  //           .pop()
+  //           ?.replace(/\.[^/.]+$/, '') || `file_${Date.now()}`
+
+  //       const sizeMB = asset.fileSize
+  //         ? +(asset.fileSize / (1024 * 1024)).toFixed(2)
+  //         : 0
+
+  //       let type: 'image' | 'video' | 'audio' | 'other' = 'other'
+  //       if (asset.type === 'image') type = 'image'
+  //       else if (asset.type === 'video') type = 'video'
+
+  //       console.log(asset, asset.type)
 
   //       return {
-  //         index,
-  //         file,
-  //         name: file.name,
-  //         type: file.type,
-  //         size: file.size,
-  //         status: 'pending', // will become "uploaded" later
-  //         blob,
-  //         previewUrl, // for local preview
-  //         url: '', // ✅ empty now, to be filled with bucket URL later
-  //       } as PreviewFile
+  //         index: i,
+  //         uri,
+  //         name,
+  //         type,
+  //         size: sizeMB,
+  //         status: 'pending',
+  //         pages: 0,
+  //         previewUrl: type === 'image' ? uri : undefined, // Only images
+  //         poster: type === 'video' ? uri : undefined, // Videos get poster only
+  //       }
   //     })
-  //   )
 
-  //   return serialized
+  //     // preserve previous files + index increment
+  //     setFiles((prev) => {
+  //       const baseIndex = prev.length
+
+  //       const indexedFiles = newFiles.map((f, i) => ({
+  //         ...f,
+  //         index: baseIndex + i,
+  //       }))
+
+  //       return [...prev, ...indexedFiles]
+  //     })
+  //   } catch (err) {
+  //     console.error('Error selecting media:', err)
+  //   }
   // }
 
   const pickImagesVideos = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
-      allowsMultipleSelection: true,
-      quality: 1,
-    })
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.All,
+        allowsMultipleSelection: true,
+        quality: 0.8,
+      })
 
-    if (!result.canceled) {
-      // onSelect(result.assets);
+      if (result.canceled) return
+
+      const assets = result.assets || []
+      if (assets.length === 0) return
+
+      // NEW API: Create Directory object (cache/chat_media/)
+      const chatMediaDir = new Directory(Paths.cache, 'chat_media')
+
+      // NEW API: Check if exists (synchronous, no getInfoAsync)
+      if (!chatMediaDir.exists) {
+        // NEW API: Create directory (synchronous, with intermediates)
+        chatMediaDir.create({ intermediates: true })
+      }
+
+      const newFiles: PreviewFile[] = await Promise.all(
+        assets.map(async (asset, i) => {
+          const fileName = `media_${Date.now()}_${i}${
+            asset.fileName ? `_${asset.fileName}` : ''
+          }`
+
+          // NEW API: Create File object in the directory
+          const localFile = new File(chatMediaDir, fileName)
+          const localUri = localFile.uri
+
+          // NEW API: Copy file (synchronous, no copyAsync)
+          const sourceFile = new File(asset.uri)
+          sourceFile.copy(localFile)
+
+          const type: PreviewFile['type'] =
+            asset.type === 'image'
+              ? 'image'
+              : asset.type === 'video'
+              ? 'video'
+              : 'other'
+
+          return {
+            index: i,
+            uri: localUri,
+            previewUrl: type === 'image' ? localUri : undefined,
+            poster: type === 'video' ? localUri : undefined,
+            name: fileName.replace(/\.[^/.]+$/, '') || 'file',
+            type,
+            size: asset.fileSize ?? 0,
+            status: 'pending' as const,
+          }
+        })
+      )
+
+      setFiles((prev) => {
+        const baseIndex = prev.length
+        return [
+          ...prev,
+          ...newFiles.map((f, i) => ({ ...f, index: baseIndex + i })),
+        ]
+      })
+
+      setOptions(false)
+    } catch (err) {
+      console.error('Error selecting media:', err)
     }
   }
 
@@ -274,6 +370,7 @@ const Chats = () => {
       }
       updateFriendsChat(friendChat)
       addNewChat(saved)
+      console.log('The files are: ', files)
       if (files.length > 0) {
         postChat('/chats', form, setMessage)
       } else {
@@ -298,60 +395,7 @@ const Chats = () => {
         <View className="flex-1 bg-secondary dark:bg-dark-secondary relative">
           <ChatHead />
           {files.length > 0 && (
-            <View
-              style={[
-                styles.container,
-                files.length === 1 ? { width: 300 } : {},
-              ]}
-            >
-              <View
-                style={[
-                  styles.grid,
-                  files.length > 1 ? styles.gridTwo : styles.gridOne,
-                ]}
-              >
-                {files.map((item, index) => (
-                  <View key={index} style={styles.mediaWrapper}>
-                    {item.type === 'image' ? (
-                      <Image
-                        source={{ uri: item.previewUrl }}
-                        style={styles.media}
-                        resizeMode="cover"
-                      />
-                    ) : item.type === 'video' ? (
-                      <Video
-                        source={{ uri: String(item.previewUrl) }}
-                        style={styles.media}
-                        resizeMode={ResizeMode.COVER}
-                        isMuted
-                        onLoad={(status) => {
-                          if (status.isLoaded && status.durationMillis) {
-                            files[index].duration = status.durationMillis / 1000
-                          }
-                        }}
-                      />
-                    ) : null}
-
-                    <View style={styles.typeIcon}>
-                      {item.type === 'image' ? (
-                        <Feather name="image" size={12} color="#fff" />
-                      ) : item.type === 'video' ? (
-                        <Feather name="video" size={12} color="#fff" />
-                      ) : (
-                        <Feather name="file" size={12} color="#fff" />
-                      )}
-                    </View>
-
-                    <TouchableOpacity
-                      style={styles.removeBtn}
-                      onPress={() => removeFile(index)}
-                    >
-                      <Feather name="x" size={12} color="#fff" />
-                    </TouchableOpacity>
-                  </View>
-                ))}
-              </View>
-            </View>
+            <PreloadChatMedia files={files} removeFile={removeFile} />
           )}
 
           <View className="flex-1 sm:px-0 px-1 relative">
@@ -494,11 +538,15 @@ const Chats = () => {
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    alignSelf: 'center',
     zIndex: 40,
+    top: '50%',
+    left: '50%',
+    transform: [
+      { translateX: '-50%' }, // -50%
+      { translateY: '-50%' }, // -50%
+    ],
     padding: 12,
     borderRadius: 10,
-    backgroundColor: 'var(--primary)',
   },
   grid: {
     gap: 8,
@@ -510,40 +558,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
-  },
-  mediaWrapper: {
-    position: 'relative',
-    borderRadius: 10,
-    overflow: 'hidden',
-    width: 150,
-    height: 150,
-    margin: 4,
-  },
-  media: {
-    width: '100%',
-    height: '100%',
-  },
-  typeIcon: {
-    position: 'absolute',
-    top: 6,
-    left: 6,
-    height: 24,
-    width: 24,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  removeBtn: {
-    position: 'absolute',
-    top: 6,
-    right: 6,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    height: 24,
-    width: 24,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 })
 

@@ -25,26 +25,14 @@ const MediaModal: React.FC<MediaModalProps> = ({
       <TouchableOpacity
         style={{
           flex: 1,
-          backgroundColor: 'rgba(0,0,0,0.2)',
+          backgroundColor: '#121314',
           justifyContent: 'center',
           alignItems: 'center',
         }}
         activeOpacity={1}
-        onPress={() => setOpenModal(false)}
+        // onPress={() => setOpenModal(false)}
       >
         <View style={{ width: SCREEN_WIDTH, height: SCREEN_HEIGHT }}>
-          <TouchableOpacity
-            onPress={() => setOpenModal(false)}
-            style={{
-              position: 'absolute',
-              top: 40,
-              right: 20,
-              zIndex: 1000,
-            }}
-          >
-            <X size={32} color="white" />
-          </TouchableOpacity>
-
           <Swiper
             index={activeIndex}
             showsPagination

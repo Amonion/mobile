@@ -98,7 +98,7 @@ const EachChat = ({ e, isFirst, isGroupEnd }: ChatContentProps) => {
           </TouchableOpacity>
         )} */}
 
-        {/* <ChatMedia e={e} /> */}
+        <ChatMedia e={e} />
 
         <View style={{ marginBottom: 4 }}>
           <ChatHTML

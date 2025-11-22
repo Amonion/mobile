@@ -109,7 +109,7 @@ export const handlePendingFileUpload = async (
     } as Partial<ImagePickerAsset> as ImagePickerAsset)
 
     // Request presigned URL
-    const { data } = await axios.post(`${baseURL}s3-presigned-url`, {
+    const { data } = await axios.post(`${baseURL}/s3-presigned-url`, {
       fileName,
       fileType,
     })

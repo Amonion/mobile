@@ -1,8 +1,9 @@
 import React, { useEffect } from 'react'
 import { TouchableOpacity, Image, Dimensions } from 'react-native'
-import { PlayCircle } from 'lucide-react-native'
+import { PlayCircle, X } from 'lucide-react-native'
 import { useVideoPlayer, VideoView } from 'expo-video'
 import { PreviewFile } from '@/store/chat/Chat'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 type EachChatMediaModalProps = {
   media: PreviewFile
@@ -15,6 +16,8 @@ const EachChatMediaModal: React.FC<EachChatMediaModalProps> = ({
   media,
   setOpenModal,
 }) => {
+  const insets = useSafeAreaInsets()
+
   const player = useVideoPlayer(String(media.url), (status: any) => {
     if (status?.state === 'ended') {
       setOpenModal(false)
@@ -36,8 +39,29 @@ const EachChatMediaModal: React.FC<EachChatMediaModalProps> = ({
         justifyContent: 'center',
         alignItems: 'center',
       }}
-      onPress={() => setOpenModal(false)}
+      // onPress={() => setOpenModal(false)}
     >
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={() => setOpenModal(false)}
+        hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+        style={{
+          position: 'absolute',
+          top: insets.top + 10,
+          right: 20,
+          zIndex: 9999,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          borderRadius: 25,
+          padding: 8,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.4,
+          shadowRadius: 4,
+          elevation: 10,
+        }}
+      >
+        <X size={32} color="white" strokeWidth={3} />
+      </TouchableOpacity>
       {media.type.includes('video') && (
         <>
           <PlayCircle
