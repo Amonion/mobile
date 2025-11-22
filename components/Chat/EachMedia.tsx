@@ -32,7 +32,6 @@ const EachMedia: React.FC<EachMediaProps> = ({
   item,
   media,
   index,
-  totalCount,
   chatId,
   onPress,
   isSender,
@@ -98,29 +97,11 @@ const EachMedia: React.FC<EachMediaProps> = ({
     upload()
   }, [item.status, item.uri, isSender, chatId])
 
-  const isImageHeight = () => {
-    if (totalCount === 1) return 200
-    if (totalCount === 2) return 200
-    if (totalCount === 3 && index !== 1) return 100
-    if (totalCount === 3 && index === 1) return 200
-    return 150
-  }
-  const isImageWidth = () => {
-    if (totalCount === 1) return 200
-    if (totalCount === 2) return 200
-    if (totalCount === 3 && index !== 1) return 100
-    if (totalCount === 3 && index === 1) return 200
-    return 150
-  }
-
   return (
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.9}
       className="relative overflow-hidden rounded-lg bg-secondary dark:bg-dark-secondary"
-      style={{
-        width: isImageWidth(),
-      }}
     >
       {!isSender && item.status === 'pending' && (
         <View className="absolute inset-0 z-10 items-center justify-center bg-black/40">
@@ -169,8 +150,8 @@ const EachMedia: React.FC<EachMediaProps> = ({
           source={{ uri: item.previewUrl || item.url || item.uri }}
           style={{
             width: '100%',
-            height: isImageHeight(),
-            resizeMode: totalCount === 1 ? 'contain' : 'cover',
+            height: '100%',
+            resizeMode: 'cover',
           }}
         />
       ) : item.type.includes('video') ? (
