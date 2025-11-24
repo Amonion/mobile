@@ -277,7 +277,7 @@ const ExamStore = create<ExamState>((set) => ({
               await upsert('exams', item)
             }
 
-            console.log(`✅ Upserted ${toUpsert.length} featured news item(s).`)
+            console.log(`✅ Upserted ${toUpsert.length} exams item(s).`)
           } else {
             console.log('No new or updated featured news to upsert.')
           }

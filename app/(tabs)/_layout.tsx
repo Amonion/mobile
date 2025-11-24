@@ -14,7 +14,7 @@ type TabIconProps = {
   focused: boolean
 }
 
-const TabIcon = ({ icon, name, color, focused }: TabIconProps) => {
+const TabIcon = ({ icon }: TabIconProps) => {
   return (
     <View className="items-center justify-center ">
       <View>{icon}</View>

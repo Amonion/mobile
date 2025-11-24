@@ -16,6 +16,7 @@ import {
 import * as Haptics from 'expo-haptics'
 import * as Clipboard from 'expo-clipboard'
 import { upsert } from '@/lib/localStorage/db'
+import CommentStore from '@/store/post/Comment'
 
 type NewsStatProps = {
   newsForm: News
@@ -24,6 +25,7 @@ type NewsStatProps = {
 
 const NewsStat: React.FC<NewsStatProps> = ({ newsForm, onCommentPress }) => {
   const { updatePost } = PostStore()
+  const { getComments, comments, page_size, sort } = CommentStore()
   const { user } = AuthStore()
   const newsLink = `https://schoolingsocial.com/home/news/${newsForm._id}?action=shared`
   const colorScheme = useColorScheme()
@@ -118,6 +120,19 @@ const NewsStat: React.FC<NewsStatProps> = ({ newsForm, onCommentPress }) => {
     }
   }
 
+  const handleShowComments = () => {
+    fetchComments()
+    if (onCommentPress) {
+      onCommentPress()
+    }
+  }
+
+  const fetchComments = async () => {
+    getComments(
+      `/comments/?postId=${newsForm._id}&myId=${user?._id}&page_size=${page_size}&page=1&ordering=${sort}`
+    )
+  }
+
   return (
     <View className="py-1 flex-row cursor-default flex items-center justify-between px-1">
       <TouchableOpacity
@@ -149,7 +164,7 @@ const NewsStat: React.FC<NewsStatProps> = ({ newsForm, onCommentPress }) => {
       </TouchableOpacity>
 
       <TouchableOpacity
-        onPress={onCommentPress}
+        onPress={handleShowComments}
         className="flex gap-1 flex-row items-center p-2"
         activeOpacity={0.7}
         hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}

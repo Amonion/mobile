@@ -185,6 +185,7 @@ interface PostState {
     url: string,
     updatedItem: FormData | Record<string, unknown>
   ) => Promise<void>
+  processPostMedia: (posts: Post[]) => void
   togglePost: (index: number) => void
   toggleActive: (id: string) => void
   reshuffleResults: () => void
@@ -353,6 +354,43 @@ export const PostStore = create<PostState>((set, get) => ({
     })
   },
 
+  processPostMedia: (posts) => {
+    const mediaResults: IMedia[] = []
+    posts.forEach((post) => {
+      if (
+        (Array.isArray(post.media) && post.media.length > 0) ||
+        post.backgroundColor
+      ) {
+        if (post.backgroundColor) {
+          mediaResults.push({
+            postId: post._id,
+            src: '',
+            preview: '',
+            type: 'poster',
+            content: post.content,
+            replies: post.replies,
+            backgroundColor: post.backgroundColor,
+          })
+        } else {
+          post.media.forEach((mediaItem) => {
+            mediaResults.push({
+              postId: post._id,
+              src: mediaItem.source,
+              preview: mediaItem.preview,
+              type: post.backgroundColor ? 'poster' : mediaItem.type,
+              content: post.content,
+              replies: post.replies,
+              backgroundColor: post.backgroundColor,
+            })
+          })
+        }
+      }
+    })
+    set({
+      mediaResults: mediaResults,
+    })
+  },
+
   setFollowingResults: ({ count, results }: FetchPostResponse) => {
     set((state) => {
       const updatedResults = results.map((item: Post) => ({
@@ -466,8 +504,48 @@ export const PostStore = create<PostState>((set, get) => ({
       const response = await customRequest({ url })
       const data = response?.data
       if (data) {
+        // const fetchedPosts = data.results
+        // const savedPosts = PostStore.getState().postResults
+
+        // if (savedPosts.length > 0) {
+        //   const toUpsert = fetchedPosts.filter((apiItem: Post) => {
+        //     const existing = savedPosts.find(
+        //       (localItem) => localItem._id === apiItem._id
+        //     )
+        //     return !existing || !isEqual(existing, apiItem)
+        //   })
+
+        //   if (toUpsert.length > 0) {
+        //     for (const item of toUpsert) {
+        //       await upsert('posts', item)
+        //     }
+        //     console.log(`✅ Upserted ${toUpsert.length} featured posts item(s).`)
+        //   } else {
+        //     console.log('No new or updated featured posts to upsert.')
+        //   }
+        // } else {
+        //   saveAll('posts', fetchedPosts)
+        //   set({ postResults: data.results })
+        // }
+
         const fetchedPosts = data.results
         const savedPosts = PostStore.getState().postResults
+        const first20Fetched = fetchedPosts.slice(0, 20)
+
+        const missingPosts = first20Fetched.filter(
+          (apiPost: Post) =>
+            !savedPosts.some((local) => local._id === apiPost._id)
+        )
+
+        let updatedSavedPosts = savedPosts
+
+        if (missingPosts.length > 0) {
+          updatedSavedPosts = [...savedPosts, ...missingPosts]
+          set({ postResults: updatedSavedPosts })
+          console.log(
+            `📌 Added ${missingPosts.length} new post(s) from first 20 fetched posts.`
+          )
+        }
 
         if (savedPosts.length > 0) {
           const toUpsert = fetchedPosts.filter((apiItem: Post) => {
@@ -481,13 +559,15 @@ export const PostStore = create<PostState>((set, get) => ({
             for (const item of toUpsert) {
               await upsert('posts', item)
             }
-            console.log(`✅ Upserted ${toUpsert.length} featured news item(s).`)
+            console.log(
+              `✅ Upserted ${toUpsert.length} featured posts item(s).`
+            )
           } else {
-            console.log('No new or updated featured news to upsert.')
+            console.log('No new or updated featured posts to upsert.')
           }
         } else {
           saveAll('posts', fetchedPosts)
-          set({ postResults: data.results })
+          set({ postResults: fetchedPosts })
         }
       }
     } catch (error: unknown) {
@@ -673,9 +753,8 @@ export const PostStore = create<PostState>((set, get) => ({
       }))
     }
   },
-  updatePost: async (url, updatedItem) => {
-    set({ loading: true })
 
+  updatePost: async (url, updatedItem) => {
     try {
       const response = await customRequest({
         url,

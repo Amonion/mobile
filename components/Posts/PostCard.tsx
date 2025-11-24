@@ -24,10 +24,11 @@ import PostBottomSheetOptions from './PostBottomSheet'
 
 interface PostCardProps {
   post: Post
+  onCommentPress?: () => void
   visiblePostId?: string | null
 }
 
-const PostCard: React.FC<PostCardProps> = ({ post, visiblePostId }) => {
+const PostCard: React.FC<PostCardProps> = ({ post, onCommentPress }) => {
   const { width } = useWindowDimensions()
   const colorScheme = useColorScheme()
   const isDark = colorScheme === 'dark' ? true : false
@@ -49,6 +50,10 @@ const PostCard: React.FC<PostCardProps> = ({ post, visiblePostId }) => {
       }
     })
     router.push(`/home/profile/${post.username}`)
+  }
+
+  const gotoFulMedia = () => {
+    router.push(`/full-post`)
   }
 
   return (
@@ -126,7 +131,8 @@ const PostCard: React.FC<PostCardProps> = ({ post, visiblePostId }) => {
       </View>
 
       {post.backgroundColor ? (
-        <View
+        <TouchableOpacity
+          onPress={gotoFulMedia}
           className="flex justify-center mt-3 px-3 items-center"
           style={{
             backgroundColor: post.backgroundColor,
@@ -153,11 +159,14 @@ const PostCard: React.FC<PostCardProps> = ({ post, visiblePostId }) => {
               },
             }}
           />
-        </View>
+        </TouchableOpacity>
       ) : (
         <>
           {post.content && (
-            <TouchableOpacity className="text-secondary px-3 mt-3 dark:text-dark-secondary">
+            <TouchableOpacity
+              onPress={gotoFulMedia}
+              className="text-secondary px-3 mt-3 dark:text-dark-secondary"
+            >
               <RenderHtml
                 contentWidth={width}
                 source={{ html: truncateString(post.content, 220) }}
@@ -198,7 +207,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, visiblePostId }) => {
         />
       )}
 
-      <PostStat post={post} />
+      <PostStat post={post} onCommentPress={onCommentPress} />
     </View>
   )
 }

@@ -24,7 +24,7 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import CommentBox from './CommentBox'
+import CommentPostBox from './CommentPostBox'
 import { Comment } from '@/store/post/Comment'
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window')
@@ -36,7 +36,7 @@ const SNAP_BOTTOM = SCREEN_HEIGHT
 
 const AnimatedView = Animated.createAnimatedComponent(View)
 
-export interface CommentSheetRef {
+export interface CommentPostSheetRef {
   open: (initialComments?: Comment[]) => void
   close: () => void
 }
@@ -48,7 +48,7 @@ interface Props {
   onClose?: () => void
 }
 
-export const CommentSheet = forwardRef<CommentSheetRef, Props>(
+export const CommentPostSheet = forwardRef<CommentPostSheetRef, Props>(
   ({ onSubmitComment, initialComments = [], onOpen, onClose }, ref) => {
     const translateY = useSharedValue(SNAP_BOTTOM)
     const visibleHeight = useDerivedValue(
@@ -133,7 +133,7 @@ export const CommentSheet = forwardRef<CommentSheetRef, Props>(
     //     damping: 20,
     //     stiffness: 120,
     //   })
-    //   commentSheetVisibility.value = withTiming(0, { duration: 300 })
+    //   commentPostSheetVisibility.value = withTiming(0, { duration: 300 })
     //   setTimeout(() => runOnJS(() => (isVisible.value = 0))(), 300)
     // }
 
@@ -248,7 +248,7 @@ export const CommentSheet = forwardRef<CommentSheetRef, Props>(
               <Text className="text-secondary text-xl dark:text-dark-secondary mb-2">
                 Comments
               </Text>
-              <CommentBox
+              <CommentPostBox
                 translateY={translateY}
                 visibleHeight={visibleHeight}
               />
@@ -260,7 +260,7 @@ export const CommentSheet = forwardRef<CommentSheetRef, Props>(
   }
 )
 
-CommentSheet.displayName = 'CommentSheet'
+CommentPostSheet.displayName = 'CommentPostSheet'
 
 const styles = StyleSheet.create({
   backdrop: {

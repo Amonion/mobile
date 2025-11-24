@@ -63,10 +63,12 @@ const Moments = () => {
           className="w-full h-[100px]"
           resizeMode="cover"
         />
-        <View className="absolute bottom-[35px] left-[50%] -translate-x-[12px] w-[30px] h-[30px] bg-white rounded-full items-center justify-center">
-          <Plus size={18} color={isDark ? '#111' : '#DA3986'} />
+        <View className="absolute bottom-[35px] left-[50%] -translate-x-[12px] w-[30px] h-[30px] bg-custom rounded-full items-center justify-center">
+          <Plus size={18} color={isDark ? '#FFF' : '#FFF'} />
         </View>
-        <Text className="text-white mt-auto mb-4 text-center">Share</Text>
+        <Text className="text-secondary dark:text-dark-secondary mt-auto mb-4 text-center">
+          Share
+        </Text>
       </View>
     </Pressable>
   )

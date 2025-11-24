@@ -18,6 +18,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.schoolingsocial.schooling",
       "infoPlist": {
+        "NSCameraUsageDescription": "This app requires camera access to let users scan QR codes for school assignments.",
         "UIBackgroundModes": ["remote-notification", "remote-notification"],
         "NSPhotoLibraryUsageDescription": "We need access to your photo library so you can upload images and videos.",
         "NSPhotoLibraryAddUsageDescription": "We need permission to save media to your photo library.",
@@ -29,6 +30,7 @@
           "http",
           "https"
         ],
+        "UIStatusBarStyle": "automatic",
         "associatedDomains": [
           "applinks:schoolingsocial.com",
           "applinks:schoolingsocial.com"
@@ -90,7 +92,9 @@
           "xlargeScreens": false,
           "anyDensity": true
         }
-      }
+      },
+      "softwareKeyboardLayoutMode": "pan",
+      "windowSoftInputMode": "adjustResize"
     },
     "web": {
       "bundler": "metro",
@@ -130,7 +134,6 @@
       ]
     ],
     "extra": {
-      "router": {},
       "eas": {
         "projectId": "e3553066-167e-4d82-85cb-257822e3b233"
       }

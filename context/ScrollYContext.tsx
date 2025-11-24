@@ -1,18 +1,20 @@
 import { HEADER_HEIGHT } from '@/constants/Sizes'
-import React, { createContext, useContext, useRef } from 'react'
-import { useSharedValue, withTiming } from 'react-native-reanimated'
+import React, { createContext, useContext, useRef, ReactNode } from 'react'
+import {
+  useSharedValue,
+  withTiming,
+  SharedValue,
+} from 'react-native-reanimated'
 
-const ScrollYContext = createContext<{
-  scrollY: number
+interface ScrollYContextType {
+  scrollY: SharedValue<number>
   onScroll: (y: number) => void
-  appBarTranslateY: any
-} | null>(null)
+  appBarTranslateY: SharedValue<number>
+}
 
-export const ScrollYProvider = ({
-  children,
-}: {
-  children: React.ReactNode
-}) => {
+const ScrollYContext = createContext<ScrollYContextType | null>(null)
+
+export const ScrollYProvider = ({ children }: { children: ReactNode }) => {
   const scrollY = useSharedValue(0)
   const appBarTranslateY = useSharedValue(0)
 
@@ -39,9 +41,7 @@ export const ScrollYProvider = ({
   }
 
   return (
-    <ScrollYContext.Provider
-      value={{ scrollY: scrollY.value, onScroll, appBarTranslateY }}
-    >
+    <ScrollYContext.Provider value={{ scrollY, onScroll, appBarTranslateY }}>
       {children}
     </ScrollYContext.Provider>
   )
@@ -49,7 +49,8 @@ export const ScrollYProvider = ({
 
 export const useScrollY = () => {
   const context = useContext(ScrollYContext)
-  if (!context)
+  if (!context) {
     throw new Error('useScrollY must be used within ScrollYProvider')
+  }
   return context
 }

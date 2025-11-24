@@ -7,20 +7,21 @@ import {
   useColorScheme,
 } from 'react-native'
 import type { SharedValue } from 'react-native-reanimated'
-import EachComment from './EachComment'
 import { useEffect } from 'react'
 import CommentStore from '@/store/post/Comment'
 import { AuthStore } from '@/store/AuthStore'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import NewsStore from '@/store/news/News'
 import Animated, { useAnimatedStyle } from 'react-native-reanimated'
+import EachComment from '../Sheets/EachComment'
+import { PostStore } from '@/store/post/Post'
 
-interface CommentBoxProps {
+interface CommentPostBoxProps {
   translateY: SharedValue<number>
   visibleHeight: SharedValue<number>
 }
 
-const CommentBox: React.FC<CommentBoxProps> = ({ visibleHeight }) => {
+const CommentPostBox: React.FC<CommentPostBoxProps> = ({ visibleHeight }) => {
   const {
     mainPost,
     postedComment,
@@ -107,12 +108,14 @@ const CommentBox: React.FC<CommentBoxProps> = ({ visibleHeight }) => {
     if (!postedComment._id || !postedComment.uniqueId) return
 
     if (postedComment.level === 1) {
-      NewsStore.setState((state) => ({
-        newsForm: {
-          ...state.newsForm,
-          replies: state.newsForm.replies + 1,
-        },
-      }))
+      PostStore.setState((state) => {
+        const updatedPosts = state.postResults.map((p) =>
+          p._id === postedComment.postId ? { ...p, replies: p.replies + 1 } : p
+        )
+        return {
+          postResults: updatedPosts,
+        }
+      })
     }
 
     CommentStore.setState((prev) => {
@@ -187,4 +190,4 @@ const CommentBox: React.FC<CommentBoxProps> = ({ visibleHeight }) => {
     </>
   )
 }
-export default CommentBox
+export default CommentPostBox

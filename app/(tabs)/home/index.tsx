@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { debounce } from 'lodash'
 import {
   Animated,
@@ -9,6 +9,8 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
   RefreshControl,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
@@ -18,6 +20,11 @@ import { AuthStore } from '@/store/AuthStore'
 import PostCard from '@/components/Posts/PostCard'
 import FeaturedNews from '@/components/News/FeaturedNews'
 import Moments from '@/components/Moments/Moments'
+import CommentPostSheetInput from '@/components/Posts/CommentPostSheetInput'
+import {
+  CommentPostSheet,
+  CommentPostSheetRef,
+} from '@/components/Posts/CommentPostSheet'
 
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList<Post>)
 const viewedPostsSet = new Set<string>()
@@ -38,7 +45,8 @@ const Home = () => {
   const colorScheme = useColorScheme()
   const isDark = colorScheme === 'dark' ? true : false
   const router = useRouter()
-
+  const commentPostSheetRef = useRef<CommentPostSheetRef>(null)
+  const [showCommentInput, setShowCommentInput] = useState(false)
   // useEffect(() => {
   //   if (currentPage > 1) {
   //     fetchMore(
@@ -106,7 +114,12 @@ const Home = () => {
   )
 
   const renderItem = useCallback(
-    ({ item }: { item: Post }) => <PostCard post={item} />,
+    ({ item }: { item: Post }) => (
+      <PostCard
+        post={item}
+        onCommentPress={() => commentPostSheetRef.current?.open()}
+      />
+    ),
     []
   )
 
@@ -114,35 +127,52 @@ const Home = () => {
 
   return (
     <View className="flex-1 bg-secondary dark:bg-dark-secondary relative">
-      <AnimatedFlatList
-        data={postResults}
-        keyExtractor={keyExtractor}
-        renderItem={renderItem}
-        showsVerticalScrollIndicator={false}
-        extraData={postResults}
-        onScroll={handleScroll}
-        scrollEventThrottle={16}
-        onEndReachedThreshold={0.2}
-        onEndReached={fetchMorePosts}
-        contentInsetAdjustmentBehavior="never"
-        contentContainerStyle={{
-          paddingBottom: 0,
-        }}
-        refreshControl={
-          <RefreshControl
-            refreshing={loading}
-            onRefresh={refreshPosts}
-            tintColor={isDark ? '#6E6E6E' : '#1C1E21'}
-            colors={['#DA3986']}
-          />
-        }
-        ListHeaderComponent={
-          <View>
-            <FeaturedNews />
-            <Moments />
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={50} // adjust for your fixed tab bar height
+      >
+        <AnimatedFlatList
+          data={postResults}
+          keyExtractor={keyExtractor}
+          renderItem={renderItem}
+          showsVerticalScrollIndicator={false}
+          extraData={postResults}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
+          onEndReachedThreshold={0.2}
+          onEndReached={fetchMorePosts}
+          contentInsetAdjustmentBehavior="never"
+          contentContainerStyle={{
+            paddingBottom: 0,
+          }}
+          refreshControl={
+            <RefreshControl
+              refreshing={loading}
+              onRefresh={refreshPosts}
+              tintColor={isDark ? '#6E6E6E' : '#1C1E21'}
+              colors={['#DA3986']}
+            />
+          }
+          ListHeaderComponent={
+            <View>
+              <FeaturedNews />
+              <Moments />
+            </View>
+          }
+        />
+        {showCommentInput && (
+          <View className="absolute bottom-0 left-0 right-0 z-50 bg-primary dark:bg-dark-primary pb-2  px-3">
+            <CommentPostSheetInput />
           </View>
-        }
-      />
+        )}
+
+        <CommentPostSheet
+          ref={commentPostSheetRef}
+          onOpen={() => setShowCommentInput(true)}
+          onClose={() => setShowCommentInput(false)}
+        />
+      </KeyboardAvoidingView>
       <TouchableOpacity
         onPress={() => router.push('/create-post')}
         className="rounded-full bg-custom absolute bottom-6 right-4 items-center justify-center"

@@ -6,19 +6,23 @@ import {
   useColorScheme,
   TouchableOpacity,
   useWindowDimensions,
-  Share,
+  Share as RNShare,
+  Alert,
 } from 'react-native'
 import { formatCount } from '@/lib/helpers'
 import { decode } from 'html-entities'
 import { AuthStore } from '@/store/AuthStore'
 import { Post, PostStore } from '@/store/post/Post'
 import CommentStore from '@/store/post/Comment'
-
+import * as Haptics from 'expo-haptics'
+import * as Clipboard from 'expo-clipboard'
+import { upsert } from '@/lib/localStorage/db'
 interface Props {
   post: Post
+  onCommentPress?: () => void
 }
 
-const PostStat = ({ post }: Props) => {
+const PostStat = ({ post, onCommentPress }: Props) => {
   const colorScheme = useColorScheme()
   const isDark = colorScheme === 'dark'
   const {
@@ -35,31 +39,28 @@ const PostStat = ({ post }: Props) => {
   const { width } = useWindowDimensions()
   const fontSize = 20
   const plainText = decode(post.content.replace(/<[^>]+>/g, ''))
+  const newsLink = `https://schoolingsocial.com/home/news/${post._id}?action=shared`
 
-  // ✅ Subscribe to the latest post data from store
   const livePost =
     PostStore((state) => state.postResults.find((p) => p._id === post._id)) ||
     post
 
   const handleLike = async () => {
     PostStore.setState((state) => ({
-      postResults: state.postResults.map((p) =>
-        p._id === livePost._id
-          ? {
-              ...p,
-              liked: !p.liked,
-              likes: p.liked ? p.likes - 1 : p.likes + 1,
-            }
-          : p
-      ),
+      postResults: state.postResults.map((p) => {
+        if (p._id !== livePost._id) return p
+
+        const likes = typeof p.likes === 'number' ? p.likes : 0
+
+        return {
+          ...p,
+          liked: !p.liked,
+          likes: p.liked ? likes - 1 : likes + 1,
+        }
+      }),
     }))
 
-    const updatedPost = PostStore.getState().postResults.find(
-      (p) => p._id === livePost._id
-    )
-
-    updatePost(`/posts/stats`, {
-      likes: updatedPost?.liked,
+    updatePost(`/posts/like`, {
       id: livePost._id,
       userId: user?._id,
     })
@@ -67,23 +68,23 @@ const PostStat = ({ post }: Props) => {
 
   const handleBookmark = async () => {
     PostStore.setState((state) => ({
-      postResults: state.postResults.map((p) =>
-        p._id === livePost._id
-          ? {
-              ...p,
-              bookmarked: !p.bookmarked,
-              bookmarks: p.bookmarked ? p.bookmarks - 1 : p.bookmarks + 1,
-            }
-          : p
-      ),
+      postResults: state.postResults.map((p) => {
+        if (p._id !== livePost._id) return p
+
+        const bookmarks = typeof p.bookmarks === 'number' ? p.bookmarks : 0
+
+        const updatedPost = {
+          ...p,
+          bookmarked: !p.bookmarked,
+          bookmarks: p.bookmarked ? bookmarks - 1 : bookmarks + 1,
+        }
+        upsert('posts', updatedPost)
+
+        return updatedPost
+      }),
     }))
 
-    const updatedPost = PostStore.getState().postResults.find(
-      (p) => p._id === livePost._id
-    )
-
-    updatePost(`/posts/stats`, {
-      bookmarks: updatedPost?.bookmarked,
+    updatePost(`/posts/bookmarks`, {
       id: livePost._id,
       userId: user?._id,
     })
@@ -91,40 +92,37 @@ const PostStat = ({ post }: Props) => {
 
   const handleShare = async () => {
     try {
-      const result = await Share.share({
-        title: 'Schooling Social',
-        message: `${plainText}\n\nCheck out our app here: https://schoolingsocial.com/home`,
-        url: 'https://schoolingsocial.com/home',
-      })
+      await Clipboard.setStringAsync(newsLink)
 
-      if (result.action === Share.sharedAction) {
-        if (result.activityType) {
-          console.log(`Shared with ${result.activityType}`)
-        } else {
-          console.log('Shared successfully')
-        }
-      } else if (result.action === Share.dismissedAction) {
-        console.log('Share dismissed')
-      }
-    } catch (error) {
-      console.error('Error sharing', error)
+      Haptics.selectionAsync()
+
+      await RNShare.share({
+        title: 'Schooling Social',
+        message: `${plainText}\n\nCheck out our app here: ${newsLink}`,
+        url: newsLink,
+      })
+    } catch (err) {
+      console.error('Error sharing link:', err)
+      Alert.alert('Error', 'Could not share the link.')
     }
   }
 
   const handleShowComments = () => {
     setMainPost(post)
-    if (comments.length === 0) {
-      fetchComments()
-    } else if (comments.length > 0 && comments[0].postId !== post._id) {
-      fetchComments()
+    if (comments.length > 0 && comments[0].postId !== post._id) {
+      CommentStore.setState({ comments: [] })
     }
     setShowComment(!showComments)
+    fetchComments()
   }
 
   const fetchComments = async () => {
     getComments(
-      `/posts/?postId=${post._id}&myId=${user?._id}&page_size=${page_size}&page=1&ordering=${sort}`
+      `/comments/?postId=${post._id}&myId=${user?._id}&page_size=${page_size}&page=1&ordering=${sort}`
     )
+    if (onCommentPress) {
+      onCommentPress()
+    }
   }
 
   return (

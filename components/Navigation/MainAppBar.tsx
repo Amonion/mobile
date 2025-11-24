@@ -13,6 +13,7 @@ const MainAppBar = ({ onMenuPress }: { onMenuPress: () => void }) => {
   const colorScheme = useColorScheme()
   const isDark = colorScheme === 'dark' ? true : false
   const router = useRouter()
+
   // const { setNavBarHeight } = NavStore()
   const insets = useSafeAreaInsets()
 
