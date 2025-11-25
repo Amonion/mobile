@@ -1,9 +1,9 @@
 import { View, Image, TouchableOpacity, useColorScheme } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { ArrowLeft, Bell } from 'lucide-react-native'
+import { ArrowLeft, Bell, Menu } from 'lucide-react-native'
 import { useRouter } from 'expo-router'
 
-const MinorAppBar = () => {
+const MinorAppBar = ({ onMenuPress }: { onMenuPress: () => void }) => {
   const colorScheme = useColorScheme()
   const isDark = colorScheme === 'dark' ? true : false
   const insets = useSafeAreaInsets()
@@ -19,7 +19,7 @@ const MinorAppBar = () => {
       <View className="flex flex-row w-full relative items-center justify-between">
         <TouchableOpacity
           hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-          className="p-2"
+          className="p-3"
           onPress={() => router.back()}
         >
           <ArrowLeft size={26} color={isDark ? '#BABABA' : '#6E6E6E'} />
@@ -34,8 +34,12 @@ const MinorAppBar = () => {
             }}
           />
         </TouchableOpacity>
-        <TouchableOpacity>
-          <Bell size={26} color={isDark ? '#BABABA' : '#6E6E6E'} />
+        <TouchableOpacity
+          hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+          className="p-3"
+          onPress={onMenuPress}
+        >
+          <Menu size={26} color={isDark ? '#BABABA' : '#6E6E6E'} />
         </TouchableOpacity>
       </View>
     </View>

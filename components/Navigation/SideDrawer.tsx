@@ -14,6 +14,8 @@ import { useRouter } from 'expo-router'
 import { AuthStore } from '@/store/AuthStore'
 import ThemeToggle from './ThemeToggle'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { UserStore } from '@/store/user/User'
+import UserPostStore from '@/store/post/UserPost'
 
 const SCREEN_WIDTH = Dimensions.get('window').width
 
@@ -28,6 +30,8 @@ const SideDrawer = ({
   const { user, logout } = AuthStore()
   const router = useRouter()
   const insets = useSafeAreaInsets()
+  const { getUser } = UserStore()
+  const { getPosts } = UserPostStore()
 
   React.useEffect(() => {
     Animated.timing(animation, {
@@ -43,6 +47,26 @@ const SideDrawer = ({
   const logoutUser = () => {
     logout()
     router.replace('/sign-in')
+  }
+
+  const move = () => {
+    if (user) {
+      getUser(`/users/${user?.username}/?userId=${user?._id}`)
+      getPosts(`/posts/user/?username=${user?.username}&page_size=40`)
+
+      UserStore.setState((prev) => {
+        return {
+          userForm: {
+            ...prev.userForm,
+            username: user?.username,
+            picture: user?.picture,
+            displayName: user?.displayName,
+          },
+        }
+      })
+
+      router.push(`/home/profile/${user?.username}`)
+    }
   }
 
   return (
@@ -90,7 +114,7 @@ const SideDrawer = ({
 
             <View className="flex-1">
               <TouchableOpacity
-                // onPress={() => router.push('/home')}
+                onPress={() => router.push('/home')}
                 className="w-full py-5 flex-row items-center border-b border-b-border dark:border-b-dark-border"
               >
                 <Feather
@@ -104,7 +128,7 @@ const SideDrawer = ({
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                // onPress={() => router.push(`/home/user/${user?.username}`)}
+                onPress={move}
                 className="w-full py-5 flex-row items-center border-b border-b-border dark:border-b-dark-border"
               >
                 <Feather

@@ -12,16 +12,17 @@ import {
   useColorScheme,
   useWindowDimensions,
   TouchableOpacity,
+  Linking,
 } from 'react-native'
 import RenderHtml from 'react-native-render-html'
 import PostStat from './PostStat'
 import { useRouter } from 'expo-router'
 import PollCard from './PollCard'
 import HomePostMedia from './HomePostMedia'
-import { Post, PostStore } from '@/store/post/Post'
+import { Post } from '@/store/post/Post'
 import { UserStore } from '@/store/user/User'
 import PostBottomSheetOptions from './PostBottomSheet'
-import CommentStore from '@/store/post/Comment'
+import UserPostStore from '@/store/post/UserPost'
 
 interface PostCardProps {
   post: Post
@@ -34,13 +35,13 @@ const PostCard: React.FC<PostCardProps> = ({ post, onCommentPress }) => {
   const colorScheme = useColorScheme()
   const isDark = colorScheme === 'dark' ? true : false
   const { getUser } = UserStore()
+  const { getPosts } = UserPostStore()
   const router = useRouter()
   const [visible, setVisible] = useState(false)
-  const { page_size, currentPage, getComments } = CommentStore()
-  const { mediaResults, setSelectedMedia, setCurrentIndex, setFitMode } =
-    PostStore()
   const move = () => {
     getUser(`/users/${post.username}/?userId=${post?.userId}`)
+    UserPostStore.setState({ postResults: [] })
+    getPosts(`/posts/user/?username=${post?.username}&page_size=40`)
 
     UserStore.setState((prev) => {
       return {
@@ -53,37 +54,6 @@ const PostCard: React.FC<PostCardProps> = ({ post, onCommentPress }) => {
       }
     })
     router.push(`/home/profile/${post.username}`)
-  }
-
-  const setMainPost = (index: number) => {
-    let comment: Post | undefined
-    PostStore.setState((prev) => {
-      comment = prev.postResults.find(
-        (item) => item._id === mediaResults[index].postId
-      )
-      return {
-        postForm: prev.postResults.find(
-          (item) => item._id === mediaResults[index].postId
-        ),
-      }
-    })
-    CommentStore.setState({ mainPost: comment })
-    if (mediaResults[index].postId) {
-      getComments(
-        `/posts/comments?page=${currentPage}&page_size=${page_size}&postType=comment&postId=${mediaResults[index].postId}&level=1`
-      )
-    }
-    router.push(`/full-post`)
-  }
-
-  const setMedia = () => {
-    const mediaIndex = mediaResults.findIndex(
-      (item) => item.postId === post._id
-    )
-    setMainPost(mediaIndex)
-    setCurrentIndex(mediaIndex)
-    setFitMode(false)
-    setSelectedMedia(mediaResults[mediaIndex])
   }
 
   return (
@@ -162,7 +132,6 @@ const PostCard: React.FC<PostCardProps> = ({ post, onCommentPress }) => {
 
       {post.backgroundColor ? (
         <TouchableOpacity
-          onPress={setMedia}
           className="flex justify-center mt-3 px-3 items-center"
           style={{
             backgroundColor: post.backgroundColor,
@@ -209,15 +178,15 @@ const PostCard: React.FC<PostCardProps> = ({ post, onCommentPress }) => {
                     textDecorationLine: 'underline',
                   },
                 }}
-                // renderersProps={{
-                //   a: {
-                //     onPress: (event, href) => {
-                //       Linking.openURL(href).catch((err) =>
-                //         console.error('Failed to open URL:', err)
-                //       )
-                //     },
-                //   },
-                // }}
+                renderersProps={{
+                  a: {
+                    onPress: (event, href) => {
+                      Linking.openURL(href).catch((err) =>
+                        console.error('Failed to open URL:', err)
+                      )
+                    },
+                  },
+                }}
               />
             </TouchableOpacity>
           )}

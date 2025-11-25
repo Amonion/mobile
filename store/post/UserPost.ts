@@ -287,29 +287,7 @@ const UserPostStore = create<PostState>((set, get) => ({
       const response = await customRequest({ url })
       const data = response?.data
       if (data) {
-        const fetchedPosts = data.results
-        const savedPosts = UserPostStore.getState().postResults
-
-        if (savedPosts.length > 0) {
-          const toUpsert = fetchedPosts.filter((apiItem: Post) => {
-            const existing = savedPosts.find(
-              (localItem) => localItem._id === apiItem._id
-            )
-            return !existing || !isEqual(existing, apiItem)
-          })
-
-          if (toUpsert.length > 0) {
-            for (const item of toUpsert) {
-              await upsert('posts', item)
-            }
-            console.log(`✅ Upserted ${toUpsert.length} featured news item(s).`)
-          } else {
-            console.log('No new or updated featured news to upsert.')
-          }
-        } else {
-          saveAll('posts', fetchedPosts)
-          set({ postResults: data.results })
-        }
+        UserPostStore.getState().setProcessedResults(data)
       }
     } catch (error: unknown) {
       console.log(error)

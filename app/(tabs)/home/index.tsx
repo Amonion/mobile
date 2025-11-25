@@ -130,7 +130,7 @@ const Home = () => {
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={50} // adjust for your fixed tab bar height
+        keyboardVerticalOffset={50}
       >
         <AnimatedFlatList
           data={postResults}

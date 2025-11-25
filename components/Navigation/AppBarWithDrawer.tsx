@@ -31,7 +31,9 @@ const AppBarWithDrawer = () => {
       ) : pathName === '/questions' ? (
         <View></View>
       ) : (
-        !pathName.includes('/friends') && <MinorAppBar />
+        !pathName.includes('/friends') && (
+          <MinorAppBar onMenuPress={() => setDrawerVisible(true)} />
+        )
       )}
 
       <SideDrawer

@@ -227,7 +227,7 @@ export const CommentPostSheet = forwardRef<CommentPostSheetRef, Props>(
         </AnimatedView>
 
         <AnimatedView
-          className={`bg-primary dark:bg-dark-primary elevation-20 z-20 absolute left-0 top-0 right-0`}
+          className={`bg-primary dark:bg-dark-primary elevation-20 z-50 absolute left-0 top-0 right-0`}
           style={[
             {
               height: SCREEN_HEIGHT,

@@ -1,48 +1,25 @@
+import ProfileCommentSheet from '@/components/Profile/ProfileCommentSheet'
 import UserPostCard from '@/components/Profile/UserPostCard'
 import { getDeviceWidth } from '@/lib/helpers'
-import { AuthStore } from '@/store/AuthStore'
 import UserPostStore from '@/store/post/UserPost'
 import { UserStore } from '@/store/user/User'
-import { usePathname } from 'expo-router'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import {
   View,
   Text,
   ActivityIndicator,
   Image,
-  RefreshControl,
-  useColorScheme,
   ScrollView,
   NativeSyntheticEvent,
   NativeScrollEvent,
 } from 'react-native'
 
 export default function UserPosts() {
-  const [page_size] = useState(10)
-  const { userForm } = UserStore()
-  const [sort] = useState('-createdAt')
-  const {
-    postResults,
-    loading,
-    currentPage,
-    hasMore,
-    getMoreSavedPost,
-    getPosts,
-  } = UserPostStore()
+  const { postResults, loading, hasMore, getMoreSavedPost } = UserPostStore()
   const width = getDeviceWidth()
-  const pathName = usePathname()
-  const colorScheme = useColorScheme()
-  const isDark = colorScheme === 'dark' ? true : false
-  const { user } = AuthStore()
+  const { userForm } = UserStore()
   const scrollViewRef = useRef(null)
-
-  const fetchPosts = () => {
-    if (user) {
-      getPosts(
-        `/posts/?source=user&username=${userForm.username}&myId=${userForm._id}&page_size=${page_size}&page=1&ordering=${sort}&postType=main`
-      )
-    }
-  }
+  const [visible, setVisible] = useState(false)
 
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -51,47 +28,38 @@ export default function UserPosts() {
       const distanceFromBottom =
         contentSize.height - (contentOffset.y + layoutMeasurement.height)
 
-      if (distanceFromBottom === 0 && !loading && hasMore && user) {
-        getMoreSavedPost(user)
+      if (
+        distanceFromBottom === 0 &&
+        !loading &&
+        hasMore &&
+        userForm.username
+      ) {
+        getMoreSavedPost(userForm)
       }
     },
     []
   )
 
-  // useEffect(() => {
-  //   if (currentPage > 1) {
-  //     getMorePosts(
-  //       `/posts/?source=user&username=${userForm?.username}&myId=${userForm?._id}&ordering=-createdAt&postType=main&page_size=${page_size}&page=${currentPage}`
-  //     );
-  //   }
-  // }, [currentPage]);
-
-  // useEffect(() => {
-  //   if (userForm.username) {
-  //     fetchPosts();
-  //   }
-  // }, [pathName, userForm]);
+  const showSheet = () => {
+    setVisible(true)
+  }
 
   return (
-    <>
+    <View className="flex-1">
       {postResults.length > 0 ? (
         <ScrollView
           ref={scrollViewRef}
           showsVerticalScrollIndicator={false}
           onScroll={handleScroll}
           scrollEventThrottle={16}
-          refreshControl={
-            <RefreshControl
-              refreshing={loading}
-              onRefresh={fetchPosts}
-              tintColor={'#DA3986'}
-              colors={['#DA3986', '#DA3986']}
-              progressBackgroundColor={isDark ? '#121314' : '#FFFFFF'}
-            />
-          }
         >
           {postResults.map((item, index) => (
-            <UserPostCard key={index} index={index} post={item} />
+            <UserPostCard
+              key={index}
+              index={index}
+              post={item}
+              onCommentPress={showSheet}
+            />
           ))}
         </ScrollView>
       ) : (
@@ -113,7 +81,9 @@ export default function UserPosts() {
           </View>
         </View>
       )}
+      <ProfileCommentSheet visible={visible} setVisible={setVisible} />
+
       {loading && <ActivityIndicator size={25} color={'#DA3986'} />}
-    </>
+    </View>
   )
 }

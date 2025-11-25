@@ -10,6 +10,7 @@ import { Play } from 'lucide-react-native'
 import { Video, ResizeMode } from 'expo-av'
 import { Post, PostStore } from '@/store/post/Post'
 import CommentStore from '@/store/post/Comment'
+import { router } from 'expo-router'
 
 interface MediaSource {
   source: string
@@ -45,6 +46,7 @@ const HomePostMedia: React.FC<HomePostMediaProps> = ({ sources }) => {
         `/posts/comments?page=${currentPage}&page_size=${page_size}&postType=comment&postId=${mediaResults[index].postId}&level=1`
       )
     }
+    router.push(`/full-post`)
   }
 
   const setMedia = (src: string) => {

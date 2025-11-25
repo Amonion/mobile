@@ -357,21 +357,9 @@ export const PostStore = create<PostState>((set, get) => ({
   processPostMedia: (posts) => {
     const mediaResults: IMedia[] = []
     posts.forEach((post) => {
-      if (
-        (Array.isArray(post.media) && post.media.length > 0) ||
-        post.backgroundColor
-      ) {
-        if (post.backgroundColor) {
-          mediaResults.push({
-            postId: post._id,
-            src: '',
-            preview: '',
-            type: 'poster',
-            content: post.content,
-            replies: post.replies,
-            backgroundColor: post.backgroundColor,
-          })
-        } else {
+      if (Array.isArray(post.media) && post.media.length > 0) {
+        console.log('The post id is: ', post._id)
+        {
           post.media.forEach((mediaItem) => {
             mediaResults.push({
               postId: post._id,
