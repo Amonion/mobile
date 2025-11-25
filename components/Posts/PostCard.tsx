@@ -18,9 +18,10 @@ import PostStat from './PostStat'
 import { useRouter } from 'expo-router'
 import PollCard from './PollCard'
 import HomePostMedia from './HomePostMedia'
-import { Post } from '@/store/post/Post'
+import { Post, PostStore } from '@/store/post/Post'
 import { UserStore } from '@/store/user/User'
 import PostBottomSheetOptions from './PostBottomSheet'
+import CommentStore from '@/store/post/Comment'
 
 interface PostCardProps {
   post: Post
@@ -35,7 +36,9 @@ const PostCard: React.FC<PostCardProps> = ({ post, onCommentPress }) => {
   const { getUser } = UserStore()
   const router = useRouter()
   const [visible, setVisible] = useState(false)
-
+  const { page_size, currentPage, getComments } = CommentStore()
+  const { mediaResults, setSelectedMedia, setCurrentIndex, setFitMode } =
+    PostStore()
   const move = () => {
     getUser(`/users/${post.username}/?userId=${post?.userId}`)
 
@@ -52,8 +55,35 @@ const PostCard: React.FC<PostCardProps> = ({ post, onCommentPress }) => {
     router.push(`/home/profile/${post.username}`)
   }
 
-  const gotoFulMedia = () => {
+  const setMainPost = (index: number) => {
+    let comment: Post | undefined
+    PostStore.setState((prev) => {
+      comment = prev.postResults.find(
+        (item) => item._id === mediaResults[index].postId
+      )
+      return {
+        postForm: prev.postResults.find(
+          (item) => item._id === mediaResults[index].postId
+        ),
+      }
+    })
+    CommentStore.setState({ mainPost: comment })
+    if (mediaResults[index].postId) {
+      getComments(
+        `/posts/comments?page=${currentPage}&page_size=${page_size}&postType=comment&postId=${mediaResults[index].postId}&level=1`
+      )
+    }
     router.push(`/full-post`)
+  }
+
+  const setMedia = () => {
+    const mediaIndex = mediaResults.findIndex(
+      (item) => item.postId === post._id
+    )
+    setMainPost(mediaIndex)
+    setCurrentIndex(mediaIndex)
+    setFitMode(false)
+    setSelectedMedia(mediaResults[mediaIndex])
   }
 
   return (
@@ -132,7 +162,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, onCommentPress }) => {
 
       {post.backgroundColor ? (
         <TouchableOpacity
-          onPress={gotoFulMedia}
+          onPress={setMedia}
           className="flex justify-center mt-3 px-3 items-center"
           style={{
             backgroundColor: post.backgroundColor,
@@ -163,10 +193,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, onCommentPress }) => {
       ) : (
         <>
           {post.content && (
-            <TouchableOpacity
-              onPress={gotoFulMedia}
-              className="text-secondary px-3 mt-3 dark:text-dark-secondary"
-            >
+            <TouchableOpacity className="text-secondary px-3 mt-3 dark:text-dark-secondary">
               <RenderHtml
                 contentWidth={width}
                 source={{ html: truncateString(post.content, 220) }}

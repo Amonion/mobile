@@ -386,6 +386,7 @@ export const PostStore = create<PostState>((set, get) => ({
         }
       }
     })
+    console.log('The media results are: ', mediaResults.length)
     set({
       mediaResults: mediaResults,
     })
@@ -565,9 +566,13 @@ export const PostStore = create<PostState>((set, get) => ({
           } else {
             console.log('No new or updated featured posts to upsert.')
           }
+
+          const results = PostStore.getState().postResults
+          PostStore.getState().processPostMedia(results)
         } else {
           saveAll('posts', fetchedPosts)
           set({ postResults: fetchedPosts })
+          PostStore.getState().processPostMedia(fetchedPosts)
         }
       }
     } catch (error: unknown) {
