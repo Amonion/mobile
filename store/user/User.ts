@@ -125,10 +125,7 @@ export const UserStore = create<UserState>((set) => ({
     }
   },
 
-  getUsers: async (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void
-  ) => {
+  getUsers: async (url: string) => {
     try {
       const response = await customRequest({ url })
       const data = response?.data
@@ -266,8 +263,7 @@ export const UserStore = create<UserState>((set) => ({
 
   updateUser: async (
     url: string,
-    updatedItem: FormData | Record<string, unknown>,
-    setMessage: (message: string, isError: boolean) => void
+    updatedItem: FormData | Record<string, unknown>
   ) => {
     set({ loading: true })
     const response = await customRequest({
@@ -284,8 +280,7 @@ export const UserStore = create<UserState>((set) => ({
 
   updateMyUser: async (
     url: string,
-    updatedItem: FormData | Record<string, unknown>,
-    setMessage: (message: string, isError: boolean) => void
+    updatedItem: FormData | Record<string, unknown>
   ) => {
     try {
       set({ loading: true })

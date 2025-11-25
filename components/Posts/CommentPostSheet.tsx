@@ -96,21 +96,6 @@ export const CommentPostSheet = forwardRef<CommentPostSheetRef, Props>(
       }
     }, [])
 
-    // const openSheet = (to = SNAP_MID_HIGH) => {
-    //   isVisible.value = 1
-    //   translateY.value = withSpring(to, { damping: 20, stiffness: 120 })
-    // }
-
-    // const closeSheet = () => {
-    //   translateY.value = withSpring(SNAP_BOTTOM, {
-    //     damping: 20,
-    //     stiffness: 120,
-    //   })
-    //   setTimeout(() => {
-    //     isVisible.value = 0
-    //   }, 300)
-    // }
-
     const openSheet = (to = SNAP_MID_HIGH) => {
       isVisible.value = 1
       translateY.value = withSpring(to, { damping: 20, stiffness: 120 })
@@ -127,42 +112,6 @@ export const CommentPostSheet = forwardRef<CommentPostSheetRef, Props>(
         isVisible.value = 0
       }, 300)
     }
-
-    // const closeSheet = () => {
-    //   translateY.value = withSpring(SNAP_BOTTOM, {
-    //     damping: 20,
-    //     stiffness: 120,
-    //   })
-    //   commentPostSheetVisibility.value = withTiming(0, { duration: 300 })
-    //   setTimeout(() => runOnJS(() => (isVisible.value = 0))(), 300)
-    // }
-
-    // const panGesture = Gesture.Pan()
-    //   .onChange((e) => {
-    //     translateY.value = Math.max(0, translateY.value + e.changeY)
-    //   })
-    //   .onEnd((e) => {
-    //     const velocity = e.velocityY
-    //     const shouldClose = velocity > 1200 || translateY.value > SNAP_MIDDLE
-
-    //     if (shouldClose) {
-    //       translateY.value = withSpring(SNAP_BOTTOM, {
-    //         damping: 20,
-    //         stiffness: 120,
-    //       })
-    //       runOnJS(onClose || (() => {}))()
-    //       setTimeout(() => {
-    //         isVisible.value = 0
-    //       }, 300)
-    //     } else {
-    //       const target =
-    //         translateY.value < SNAP_MID_HIGH + 100 ? SNAP_TOP : SNAP_MID_HIGH
-    //       translateY.value = withSpring(target, {
-    //         damping: 20,
-    //         stiffness: 120,
-    //       })
-    //     }
-    //   })
 
     const panGesture = Gesture.Pan()
       .onChange((e) => {
@@ -227,7 +176,7 @@ export const CommentPostSheet = forwardRef<CommentPostSheetRef, Props>(
         </AnimatedView>
 
         <AnimatedView
-          className={`bg-primary dark:bg-dark-primary elevation-20 z-50 absolute left-0 top-0 right-0`}
+          className={`bg-primary dark:bg-dark-primary elevation-20 z-30 absolute left-0 top-0 right-0`}
           style={[
             {
               height: SCREEN_HEIGHT,

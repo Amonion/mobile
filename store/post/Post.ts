@@ -144,14 +144,8 @@ interface PostState {
     url: string,
     setMessage: (message: string, isError: boolean) => void
   ) => Promise<void>
-  getFollowingPosts: (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void
-  ) => Promise<void>
-  getBookmarkedPosts: (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void
-  ) => Promise<void>
+  getFollowingPosts: (url: string) => Promise<void>
+  getBookmarkedPosts: (url: string) => Promise<void>
   getQueryPosts: (url: string) => Promise<void>
   getAPost: (
     url: string,
@@ -617,10 +611,7 @@ export const PostStore = create<PostState>((set, get) => ({
     }
   },
 
-  getFollowingPosts: async (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void
-  ) => {
+  getFollowingPosts: async (url: string) => {
     try {
       const response = await customRequest({ url })
       const data = response?.data
@@ -632,15 +623,13 @@ export const PostStore = create<PostState>((set, get) => ({
     }
   },
 
-  getBookmarkedPosts: async (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void
-  ) => {
+  getBookmarkedPosts: async (url: string) => {
     try {
       const response = await customRequest({ url })
 
       const data = response?.data
       if (data) {
+        console.log(data.results.length, ' Number of bookmarks')
         PostStore.getState().setBookmarkedResults(data)
       }
     } catch (error: unknown) {

@@ -181,7 +181,7 @@ const CommentPostBox: React.FC<CommentPostBoxProps> = ({ visibleHeight }) => {
             renderItem={({ item }) => <EachComment comment={item} />}
             keyboardShouldPersistTaps="handled"
             contentContainerStyle={{
-              paddingBottom: Platform.OS === 'ios' ? 120 : insets.bottom + 70,
+              paddingBottom: Platform.OS === 'ios' ? 120 : insets.bottom + 200,
             }}
             showsVerticalScrollIndicator={false}
           />

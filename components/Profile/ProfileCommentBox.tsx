@@ -137,7 +137,10 @@ export default function ProfileCommentBox() {
   }, [postedComment])
   return (
     <View className="flex-1">
-      <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        className="flex-1 mb-[50px]"
+      >
         {comments.map((result, index) => (
           <EachComment key={index} comment={result} />
         ))}

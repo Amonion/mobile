@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react'
+import React, { useRef, useState, useCallback } from 'react'
 import {
   View,
   Text,
@@ -17,6 +17,9 @@ import CommentStore, { Comment } from '@/store/post/Comment'
 import { customRequest } from '@/lib/api'
 import { formatRelativeDate, truncateString } from '@/lib/helpers'
 import RenderHtml from 'react-native-render-html'
+import { router } from 'expo-router'
+import UserPostStore from '@/store/post/UserPost'
+import { UserStore } from '@/store/user/User'
 
 interface FetchCommentResponse {
   count: number
@@ -41,7 +44,9 @@ const EachComment: React.FC<EachCommentProps> = ({
   depth = 0,
 }) => {
   const { user } = AuthStore()
+  const { getUser } = UserStore()
   const { setActiveComment, updateComment } = CommentStore()
+  const { getPosts } = UserPostStore()
   const { width } = useWindowDimensions()
   const [loading, setLoading] = useState(false)
   const [page, setPage] = useState(1)
@@ -118,6 +123,24 @@ const EachComment: React.FC<EachCommentProps> = ({
     />
   )
 
+  const move = () => {
+    getUser(`/users/${comment.username}/?userId=${comment?.userId}`)
+    UserPostStore.setState({ postResults: [] })
+    getPosts(`/posts/user/?username=${comment?.username}&page_size=40`)
+
+    UserStore.setState((prev) => {
+      return {
+        userForm: {
+          ...prev.userForm,
+          username: comment.username,
+          picture: comment.picture,
+          displayName: comment.displayName,
+        },
+      }
+    })
+    router.push(`/home/profile/${comment.username}`)
+  }
+
   return (
     <View className="flex-row py-2 mb-2" onLayout={handleLayout}>
       <Image
@@ -126,9 +149,11 @@ const EachComment: React.FC<EachCommentProps> = ({
       />
       <View className="flex-1">
         <View className="flex-row text-primary mb-1 justify-between">
-          <Text className="font-semibold text-primary dark:text-dark-primary">
-            {comment.displayName}
-          </Text>
+          <TouchableOpacity onPress={move}>
+            <Text className="font-semibold text-primary dark:text-dark-primary">
+              {comment.displayName}
+            </Text>
+          </TouchableOpacity>
           <Text className="text-[12px] text-primaryLight dark:text-dark-primaryLight">
             {formatRelativeDate(String(comment.createdAt))} ago
           </Text>

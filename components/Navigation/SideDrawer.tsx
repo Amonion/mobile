@@ -16,6 +16,7 @@ import ThemeToggle from './ThemeToggle'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { UserStore } from '@/store/user/User'
 import UserPostStore from '@/store/post/UserPost'
+import { PostStore } from '@/store/post/Post'
 
 const SCREEN_WIDTH = Dimensions.get('window').width
 
@@ -32,6 +33,7 @@ const SideDrawer = ({
   const insets = useSafeAreaInsets()
   const { getUser } = UserStore()
   const { getPosts } = UserPostStore()
+  const { loading, bookmarkedPostResults, getBookmarkedPosts } = PostStore()
 
   React.useEffect(() => {
     Animated.timing(animation, {
@@ -66,6 +68,15 @@ const SideDrawer = ({
       })
 
       router.push(`/home/profile/${user?.username}`)
+    }
+  }
+
+  const moveToBookmarks = () => {
+    if (user) {
+      getBookmarkedPosts(
+        `/posts/bookmarks/?myId=${user._id}&page_size=20&page=1&ordering=-score`
+      )
+      router.push(`/home/post/bookmarks`)
     }
   }
 
@@ -142,7 +153,7 @@ const SideDrawer = ({
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                // onPress={() => router.push('/home/post/bookmarks')}
+                onPress={moveToBookmarks}
                 className="w-full py-5 flex-row items-center border-b border-b-border dark:border-b-dark-border"
               >
                 <Feather

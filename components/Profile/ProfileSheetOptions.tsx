@@ -2,6 +2,8 @@ import { Feather, MaterialIcons } from '@expo/vector-icons'
 import { router } from 'expo-router'
 import { Text, useColorScheme, TouchableOpacity } from 'react-native'
 import BottomSheetProfileOptions from './BottomSheetProfileOptions'
+import { AuthStore } from '@/store/AuthStore'
+import { PostStore } from '@/store/post/Post'
 
 interface ProfileSheetOptionsProps {
   setVisible: (state: boolean) => void
@@ -12,7 +14,20 @@ const ProfileSheetOptions: React.FC<ProfileSheetOptionsProps> = ({
   setVisible,
   visible,
 }) => {
+  const { user } = AuthStore()
+  const { getFollowingPosts } = PostStore()
+
   const isDark = useColorScheme() === 'dark'
+
+  const moveToFollowings = () => {
+    if (user) {
+      getFollowingPosts(
+        `/posts/following/?myId=${user._id}&page_size=20&page=1&ordering=-score`
+      )
+      router.push(`/home/profile/following`)
+      setVisible(false)
+    }
+  }
 
   return (
     <BottomSheetProfileOptions
@@ -37,10 +52,7 @@ const ProfileSheetOptions: React.FC<ProfileSheetOptionsProps> = ({
         </Text>
       </TouchableOpacity>
       <TouchableOpacity
-        onPress={() => {
-          setVisible(false)
-          router.push(`/home/user/followings`)
-        }}
+        onPress={moveToFollowings}
         className="py-4 flex-row px-2 items-center border-b border-b-border dark:border-b-dark-border"
       >
         <Feather
