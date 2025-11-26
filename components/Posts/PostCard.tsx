@@ -23,6 +23,7 @@ import { Post } from '@/store/post/Post'
 import { UserStore } from '@/store/user/User'
 import PostBottomSheetOptions from './PostBottomSheet'
 import UserPostStore from '@/store/post/UserPost'
+import { AuthStore } from '@/store/AuthStore'
 
 interface PostCardProps {
   post: Post
@@ -35,13 +36,16 @@ const PostCard: React.FC<PostCardProps> = ({ post, onCommentPress }) => {
   const colorScheme = useColorScheme()
   const isDark = colorScheme === 'dark' ? true : false
   const { getUser } = UserStore()
+  const { user } = AuthStore()
   const { getPosts } = UserPostStore()
   const router = useRouter()
   const [visible, setVisible] = useState(false)
   const move = () => {
-    getUser(`/users/${post.username}/?userId=${post?.userId}`)
+    getUser(`/users/${post.username}/?userId=${user?._id}`)
     UserPostStore.setState({ postResults: [] })
-    getPosts(`/posts/user/?username=${post?.username}&page_size=40`)
+    getPosts(
+      `/posts/user/?username=${post?.username}&page_size=40&myId=${user?._id}`
+    )
 
     UserStore.setState((prev) => {
       return {
@@ -50,6 +54,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, onCommentPress }) => {
           username: post.username,
           picture: post.picture,
           displayName: post.displayName,
+          followed: post.followed,
         },
       }
     })

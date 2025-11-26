@@ -473,7 +473,7 @@ export const PostStore = create<PostState>((set, get) => ({
         set({ postResults: postResults })
       }
       PostStore.getState().getPosts(
-        `/posts/?myId=${user?._id}&page_size=40&page=1&postType=main&status=true`
+        `/posts/?myId=${user?._id}&page_size=40&page=1`
       )
     } catch (error: unknown) {
       console.log(error)

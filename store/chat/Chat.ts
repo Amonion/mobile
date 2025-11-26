@@ -111,6 +111,7 @@ export interface ChatUserForm {
   picture: string
   _id: string
   isFriends?: boolean
+  followed?: boolean
 }
 
 export const ChatUserFormEmpty = {

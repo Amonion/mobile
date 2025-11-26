@@ -1,6 +1,8 @@
+import { AuthStore } from '@/store/AuthStore'
 import { ChatStore } from '@/store/chat/Chat'
 import FriendStore, { FriendEmpty } from '@/store/chat/Friend'
 import { MessageStore } from '@/store/notification/Message'
+import UserPostStore from '@/store/post/UserPost'
 import { UserStore } from '@/store/user/User'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import Feather from '@expo/vector-icons/Feather'
@@ -18,7 +20,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 export default function ChatHead() {
   const { setMessage } = MessageStore()
   const { friendsResults } = FriendStore()
-  const { userForm } = UserStore()
+  const { userForm, getUser } = UserStore()
+  const { user } = AuthStore()
+  const { getPosts } = UserPostStore()
   const pathname = usePathname()
   const { chatUserForm, getChatUser } = ChatStore()
   const { username } = useLocalSearchParams()
@@ -50,6 +54,27 @@ export default function ChatHead() {
     }
   }, [username, friendsResults.length])
 
+  const move = () => {
+    getUser(`/users/${chatUserForm.username}/?userId=${user?._id}`)
+    UserPostStore.setState({ postResults: [] })
+    getPosts(
+      `/posts/user/?username=${chatUserForm?.username}&page_size=40&myId=${user?._id}`
+    )
+
+    UserStore.setState((prev) => {
+      return {
+        userForm: {
+          ...prev.userForm,
+          username: chatUserForm.username,
+          picture: chatUserForm.picture,
+          displayName: chatUserForm.displayName,
+          followed: chatUserForm.followed ? chatUserForm.followed : false,
+        },
+      }
+    })
+    router.push(`/home/profile/${chatUserForm.username}`)
+  }
+
   return (
     <>
       <View
@@ -73,9 +98,7 @@ export default function ChatHead() {
 
         <View className="flex-row items-center flex-1">
           <TouchableOpacity
-            onPress={() =>
-              router.push(`/home/profile/${chatUserForm.username}`)
-            }
+            onPress={move}
             style={{
               width: 50,
               height: 50,
@@ -92,11 +115,7 @@ export default function ChatHead() {
 
           <View style={{ flex: 1 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <TouchableOpacity
-                onPress={() =>
-                  router.push(`/home/profile/${chatUserForm.username}`)
-                }
-              >
+              <TouchableOpacity onPress={move}>
                 <Text
                   className="text-primary dark:text-dark-primary text-lg"
                   numberOfLines={1}
@@ -123,11 +142,7 @@ export default function ChatHead() {
                 marginTop: 2,
               }}
             >
-              <TouchableOpacity
-                onPress={() =>
-                  router.push(`/home/profile/${chatUserForm.username}`)
-                }
-              >
+              <TouchableOpacity onPress={move}>
                 <Text className="text-custom" style={{ marginRight: 28 }}>
                   @{chatUserForm.username}
                 </Text>

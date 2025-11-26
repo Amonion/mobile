@@ -4,8 +4,7 @@ import ProfileTabs from '@/components/Profile/ProfileTabs'
 import { formatDateToDayMonthYY } from '@/lib/helpers'
 import { AuthStore } from '@/store/AuthStore'
 import { ChatStore } from '@/store/chat/Chat'
-import { MessageStore } from '@/store/notification/Message'
-import UserPostStore from '@/store/post/UserPost'
+import SocialStore from '@/store/post/Social'
 import { UserStore } from '@/store/user/User'
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
 import { router, Slot, useLocalSearchParams, usePathname } from 'expo-router'
@@ -24,9 +23,8 @@ import {
 
 export default function UserLayout() {
   const { user } = AuthStore()
-  const { setMessage } = MessageStore()
-  const { getUser, userForm, updateMyUser } = UserStore()
-  const { getPosts, loading } = UserPostStore()
+  const { getUser, setForm, userForm } = UserStore()
+  const { followUser } = SocialStore()
   const { getSavedChats, setConnection } = ChatStore()
   const { username } = useLocalSearchParams()
   const pathname = usePathname()
@@ -51,23 +49,14 @@ export default function UserLayout() {
     }
   }, [username, user])
 
-  const fetchPosts = () => {
-    if (user) {
-      getPosts(`/posts/user/?username=${user?.username}&page_size=40`)
-    }
-  }
-
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const offsetY = event.nativeEvent.contentOffset.y
     setSticky(offsetY >= tabsY)
   }
 
   const followAccount = () => {
-    updateMyUser(
-      `/users/follow/${username}`,
-      { user: userForm, followerId: user?._id },
-      setMessage
-    )
+    setForm('followed', !userForm.followed)
+    followUser(`/users/follow/${userForm._id}`, { followerId: user?._id })
   }
 
   const showFullScreen = (image: string) => {
@@ -97,15 +86,6 @@ export default function UserLayout() {
         showsVerticalScrollIndicator={false}
         onScroll={handleScroll}
         className="flex-1 bg-secondary dark:bg-dark-secondary"
-        refreshControl={
-          <RefreshControl
-            refreshing={loading}
-            onRefresh={fetchPosts}
-            tintColor={'#DA3986'}
-            colors={['#DA3986', '#DA3986']}
-            progressBackgroundColor={isDark ? '#121314' : '#FFFFFF'}
-          />
-        }
       >
         <View
           onLayout={(e) => setTabsY(e.nativeEvent.layout.height)}

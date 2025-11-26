@@ -1,6 +1,8 @@
 import { create } from 'zustand'
 import { PostStore } from './Post'
 import { customRequest } from '@/lib/api'
+import UserPostStore from './UserPost'
+import { UserStore } from '../user/User'
 
 interface FetchSocialResponse {
   count: number
@@ -612,20 +614,30 @@ const SocialStore = create<PostState>((set, get) => ({
       })
       const data = response?.data
       if (data) {
-        set((state) => {
-          const updatedFollwers = state.followers.filter(
-            (item) => item.userId !== data.id
-          )
-          return {
-            followers: updatedFollwers,
-          }
+        set({
+          followers: data.followers,
         })
+
         PostStore.setState((state) => {
           return {
             postResults: state.postResults.map((post) =>
               post.userId === data.id ? { ...post, followed: true } : post
             ),
             searchedPosts: state.searchedPosts.map((post) =>
+              post.userId === data.id ? { ...post, followed: true } : post
+            ),
+          }
+        })
+
+        UserStore.setState((state) => {
+          return {
+            userForm: { ...state.userForm, followers: data.followers },
+          }
+        })
+
+        UserPostStore.setState((state) => {
+          return {
+            postResults: state.postResults.map((post) =>
               post.userId === data.id ? { ...post, followed: true } : post
             ),
           }
