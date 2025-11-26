@@ -86,6 +86,8 @@ export const UserEmpty = {
   phone: '',
   picture: '',
   posts: 0,
+  blocks: 0,
+  mutes: 0,
   postMedia: 0,
   country: '',
   state: '',
@@ -321,6 +323,8 @@ export interface User {
   followed: boolean
   followers: number
   followings: number
+  mutes: number
+  blocks: number
   intro: string
   isFirstTime: boolean
   isActive?: boolean

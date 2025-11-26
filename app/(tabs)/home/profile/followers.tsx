@@ -1,15 +1,14 @@
-// Following.tsx
-import { useEffect, useState } from 'react'
+// Followers.tsx
+import { useState } from 'react'
 import { Animated, RefreshControl, View } from 'react-native'
 import { HEADER_HEIGHT } from '@/constants/Sizes'
 import { useScrollY } from '@/context/ScrollYContext'
-import { PostStore } from '@/store/post/Post'
 import { AuthStore } from '@/store/AuthStore'
-import PostCard from '@/components/Posts/PostCard'
 import FollowerCard from '@/components/Profile/FollowerCard'
+import SocialStore from '@/store/post/Social'
 
-const Following = () => {
-  const { loading, followingPostResults, getFollowingPosts } = PostStore()
+const Followers = () => {
+  const { loading, followers, getFollowers } = SocialStore()
   const [sort] = useState('-createdAt')
   const { user } = AuthStore()
   const [currentPage, setCurrentPage] = useState(1)
@@ -18,7 +17,7 @@ const Following = () => {
   // useEffect(() => {
   //   if (user) {
   //     setCurrentPage(1)
-  //     getFollowingPosts(
+  //     getFollowers(
   //       `/posts/following/?myId=${user._id}&page_size=20&page=${currentPage}&ordering=${sort}&postType=main`
   //     )
   //   }
@@ -27,7 +26,7 @@ const Following = () => {
   const fetchPosts = () => {
     if (user) {
       setCurrentPage(1)
-      getFollowingPosts(
+      getFollowers(
         `/posts/bookmarks/?myId=${user._id}&page_size=20&page=${currentPage}&ordering=${sort}&postType=main`
       )
     }
@@ -36,7 +35,7 @@ const Following = () => {
   return (
     <View className="flex-1 dark:bg-dark-secondary bg-secondary">
       <Animated.FlatList
-        data={followingPostResults}
+        data={followers}
         keyExtractor={(item) => item._id}
         renderItem={({ item }) => <FollowerCard socialUser={item} />}
         showsVerticalScrollIndicator={false}
@@ -60,4 +59,4 @@ const Following = () => {
   )
 }
 
-export default Following
+export default Followers

@@ -35,11 +35,11 @@ export default function UserLayout() {
   const [imageSource, setImageSource] = useState('')
   const [visible, setVisible] = useState(false)
 
-  useEffect(() => {
-    if (username !== userForm.username) {
-      getUser(`/users/${username}/?userId=${user?._id}`)
-    }
-  }, [username, pathname, user])
+  // useEffect(() => {
+  //   if (username !== userForm.username) {
+  //     getUser(`/users/${username}/?userId=${user?._id}`)
+  //   }
+  // }, [username, pathname, user])
 
   useEffect(() => {
     if (username && user) {
@@ -156,7 +156,7 @@ export default function UserLayout() {
                 {userForm.followers === 1 ? 'Follower' : 'Followers'}
               </Text>
               <Text className="text-primary dark:text-dark-primary text-lg">
-                {userForm?.followed} Following
+                {userForm?.followings} Followings
               </Text>
 
               {user?.username !== userForm.username ? (

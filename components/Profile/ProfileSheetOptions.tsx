@@ -4,6 +4,7 @@ import { Text, useColorScheme, TouchableOpacity } from 'react-native'
 import BottomSheetProfileOptions from './BottomSheetProfileOptions'
 import { AuthStore } from '@/store/AuthStore'
 import { PostStore } from '@/store/post/Post'
+import { formatCount } from '@/lib/helpers'
 
 interface ProfileSheetOptionsProps {
   setVisible: (state: boolean) => void
@@ -22,7 +23,7 @@ const ProfileSheetOptions: React.FC<ProfileSheetOptionsProps> = ({
   const moveToFollowings = () => {
     if (user) {
       getFollowingPosts(
-        `/posts/following/?myId=${user._id}&page_size=20&page=1&ordering=-score`
+        `/posts/following/?followerId=${user._id}&page_size=20&page=1&ordering=-score`
       )
       router.push(`/home/profile/following`)
       setVisible(false)
@@ -37,7 +38,7 @@ const ProfileSheetOptions: React.FC<ProfileSheetOptionsProps> = ({
       <TouchableOpacity
         onPress={() => {
           setVisible(false)
-          router.push(`/home/user/followers`)
+          router.push(`/home/profile/followers`)
         }}
         className="py-4 flex-row px-2 items-center border-b border-b-border dark:border-b-dark-border"
       >
@@ -50,6 +51,11 @@ const ProfileSheetOptions: React.FC<ProfileSheetOptionsProps> = ({
         <Text className="text-xl text-primary dark:text-dark-primary">
           Account Followers
         </Text>
+        {user && (
+          <Text className="ml-auto text-primary dark:text-dark-primary">
+            {formatCount(user?.followers)}
+          </Text>
+        )}
       </TouchableOpacity>
       <TouchableOpacity
         onPress={moveToFollowings}
@@ -64,6 +70,11 @@ const ProfileSheetOptions: React.FC<ProfileSheetOptionsProps> = ({
         <Text className="text-xl text-primary dark:text-dark-primary">
           Account Followings
         </Text>
+        {user && (
+          <Text className="ml-auto text-primary dark:text-dark-primary">
+            {formatCount(user?.followings)}
+          </Text>
+        )}
       </TouchableOpacity>
       <TouchableOpacity
         onPress={() => {
@@ -81,6 +92,11 @@ const ProfileSheetOptions: React.FC<ProfileSheetOptionsProps> = ({
         <Text className="text-xl text-primary dark:text-dark-primary">
           Muted Accounts
         </Text>
+        {user && (
+          <Text className="ml-auto text-primary dark:text-dark-primary">
+            {formatCount(user?.mutes)}
+          </Text>
+        )}
       </TouchableOpacity>
       <TouchableOpacity
         onPress={() => {
@@ -98,6 +114,11 @@ const ProfileSheetOptions: React.FC<ProfileSheetOptionsProps> = ({
         <Text className="text-xl text-primary dark:text-dark-primary">
           Blocked Accounts
         </Text>
+        {user && (
+          <Text className="ml-auto text-primary dark:text-dark-primary">
+            {formatCount(user?.blocks)}
+          </Text>
+        )}
       </TouchableOpacity>
     </BottomSheetProfileOptions>
   )

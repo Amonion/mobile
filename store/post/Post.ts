@@ -4,6 +4,7 @@ import { customRequest } from '@/lib/api'
 import { getAll, saveAll, upsert } from '@/lib/localStorage/db'
 import { User } from '../user/User'
 import { isEqual } from 'lodash'
+import { SocialUser } from './Social'
 
 interface FetchPostResponse {
   count: number
@@ -119,7 +120,7 @@ interface PostState {
   postResults: Post[]
   mediaResults: IMedia[]
   selectedMedia: IMedia | null
-  followingPostResults: Post[]
+  followingPostResults: SocialUser[]
   bookmarkedPostResults: Post[]
   loading: boolean
   error: string | null
@@ -153,7 +154,6 @@ interface PostState {
   ) => Promise<void>
   setProcessedResults: (data: FetchPostResponse) => void
   processMoreResults: (data: FetchPostResponse) => void
-  setFollowingResults: (data: FetchPostResponse) => void
   setBookmarkedResults: (data: FetchPostResponse) => void
   removePosts: (id: string) => void
   setCurrentPage: (page: number) => void
@@ -371,30 +371,6 @@ export const PostStore = create<PostState>((set, get) => ({
     console.log('The media results are: ', mediaResults.length)
     set({
       mediaResults: mediaResults,
-    })
-  },
-
-  setFollowingResults: ({ count, results }: FetchPostResponse) => {
-    set((state) => {
-      const updatedResults = results.map((item: Post) => ({
-        ...item,
-        isChecked: false,
-        isActive: false,
-      }))
-
-      const existingIds = new Set(
-        state.followingPostResults.map((post) => post._id)
-      )
-      const uniqueResults = updatedResults.filter(
-        (post) => !existingIds.has(post._id)
-      )
-
-      return {
-        loading: false,
-        hasMoreFollowing: state.page_size === results.length,
-        count,
-        followingPostResults: [...state.followingPostResults, ...uniqueResults],
-      }
     })
   },
 
@@ -616,7 +592,9 @@ export const PostStore = create<PostState>((set, get) => ({
       const response = await customRequest({ url })
       const data = response?.data
       if (data) {
-        PostStore.getState().setFollowingResults(data)
+        set({
+          followingPostResults: data.followings,
+        })
       }
     } catch (error: unknown) {
       console.log(error)
