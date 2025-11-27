@@ -5,7 +5,6 @@ import { useRouter } from 'expo-router'
 import { UserStore } from '@/store/user/User'
 import UserPostStore from '@/store/post/UserPost'
 import SocialStore, { SocialUser } from '@/store/post/Social'
-import { PostStore } from '@/store/post/Post'
 import { AuthStore } from '@/store/AuthStore'
 
 interface FollowerCardProps {
@@ -38,10 +37,21 @@ const FollowerCard: React.FC<FollowerCardProps> = ({ socialUser }) => {
   }
 
   const followAccount = () => {
-    PostStore.setState((prev) => {
+    SocialStore.setState((prev) => {
       return {
-        followingPostResults: prev.followingPostResults.filter(
-          (item) => item._id !== socialUser._id
+        followers: prev.followers.map((item) =>
+          item._id === socialUser._id ? { ...item, followed: true } : item
+        ),
+      }
+    })
+    followUser(`/users/follow/${socialUser.userId}`, { followerId: user?._id })
+  }
+
+  const unFollowAccount = () => {
+    SocialStore.setState((prev) => {
+      return {
+        followers: prev.followers.map((item) =>
+          item._id === socialUser._id ? { ...item, followed: false } : item
         ),
       }
     })
@@ -82,14 +92,23 @@ const FollowerCard: React.FC<FollowerCardProps> = ({ socialUser }) => {
             <Text className="text-custom">@{socialUser.username}</Text>
           </TouchableOpacity>
         </View>
-        <TouchableOpacity
-          onPress={followAccount}
-          className={`border-border dark:border-dark-border border rounded-[25px] ml-auto px-2 py-1`}
-        >
-          <Text className={` text-sm text-primary dark:text-dark-primary`}>
-            {'Unfollow'}
-          </Text>
-        </TouchableOpacity>
+        {socialUser.followed ? (
+          <TouchableOpacity
+            onPress={unFollowAccount}
+            className={`border-border dark:border-dark-border border rounded-[25px] ml-auto px-2 py-1`}
+          >
+            <Text className={` text-sm text-primary dark:text-dark-primary`}>
+              {'Unfollow'}
+            </Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            onPress={followAccount}
+            className={`border-custom bg-custom border rounded-[25px] ml-auto px-2 py-1`}
+          >
+            <Text className={` text-sm text-white`}>{'Follow'}</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   )

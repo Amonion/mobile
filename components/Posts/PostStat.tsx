@@ -83,6 +83,20 @@ const PostStat = ({ post, onCommentPress }: Props) => {
         return updatedPost
       }),
     }))
+    PostStore.setState((state) => ({
+      bookmarkedPostResults: state.bookmarkedPostResults.map((p) => {
+        if (p._id !== livePost._id) return p
+
+        const bookmarks = typeof p.bookmarks === 'number' ? p.bookmarks : 0
+
+        const updatedPost = {
+          ...p,
+          bookmarked: !p.bookmarked,
+          bookmarks: p.bookmarked ? bookmarks - 1 : bookmarks + 1,
+        }
+        return updatedPost
+      }),
+    }))
 
     updatePost(`/posts/bookmarks`, {
       id: livePost._id,

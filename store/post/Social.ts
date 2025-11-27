@@ -23,6 +23,7 @@ export interface SocialUser {
   followerDisplayName: string
   username: string
   picture: string
+  media: string
   followerId: string
   followerUsername: string
   followerPicture: string
@@ -32,7 +33,8 @@ export interface SocialUser {
   accountUserId: string
   accountUsername: string
   accountPicture: string
-  accountDisplayName: boolean
+  accountDisplayName: string
+  accountMedia: string
   accountIsVerified: boolean
   isFollowerActive: boolean
 }
@@ -346,7 +348,7 @@ const SocialStore = create<PostState>((set, get) => ({
       const response = await customRequest({ url })
 
       if (response?.data) {
-        get().setProcessedFollowingsResults(response.data)
+        set({ followings: response.data.followings })
       }
     } catch (error) {
       console.log(error)

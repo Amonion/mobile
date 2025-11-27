@@ -11,23 +11,12 @@ const Followers = () => {
   const { loading, followers, getFollowers } = SocialStore()
   const [sort] = useState('-createdAt')
   const { user } = AuthStore()
-  const [currentPage, setCurrentPage] = useState(1)
   const { onScroll } = useScrollY()
-
-  // useEffect(() => {
-  //   if (user) {
-  //     setCurrentPage(1)
-  //     getFollowers(
-  //       `/posts/following/?myId=${user._id}&page_size=20&page=${currentPage}&ordering=${sort}&postType=main`
-  //     )
-  //   }
-  // }, [currentPage, user])
 
   const fetchPosts = () => {
     if (user) {
-      setCurrentPage(1)
       getFollowers(
-        `/posts/bookmarks/?myId=${user._id}&page_size=20&page=${currentPage}&ordering=${sort}&postType=main`
+        `/posts/bookmarks/?myId=${user._id}&page_size=20&page=1&ordering=${sort}&postType=main`
       )
     }
   }

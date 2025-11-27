@@ -149,6 +149,7 @@ const PostBox: React.FC = () => {
         content: content,
         postType: 'main',
         polls: polls,
+        userMedia: user?.media,
         sender: {
           picture: user?.picture,
           displayName: user?.displayName,

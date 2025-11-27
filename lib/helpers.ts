@@ -1,3 +1,5 @@
+import UserPostStore from '@/store/post/UserPost'
+import { UserStore } from '@/store/user/User'
 import axios from 'axios'
 import { ImagePickerAsset } from 'expo-image-picker'
 import { Dimensions } from 'react-native'
@@ -81,6 +83,40 @@ export const addQuery = (
   }
   const regex = new RegExp(`${startWith}[^&]*&`, 'g')
   return input.replace(regex, replacement)
+}
+
+interface UserProfile {
+  followed: boolean
+  username: string
+  picture: string
+  media: string
+  displayName: string
+  _id: string
+}
+
+export const moveToProfile = (user: UserProfile, username: string) => {
+  UserStore.getState().getUser(`/users/${user.username}/?userId=${user?._id}`)
+  UserPostStore.setState({ postResults: [] })
+  UserPostStore.getState().getPosts(
+    `/posts/user/?username=${user?.username}&page_size=40&myId=${user?._id}${
+      username === user.username ? '&myPost=true' : ''
+    }`
+  )
+
+  console.log('Users username: ', user.username, ' Username: ', username)
+
+  UserStore.setState((prev) => {
+    return {
+      userForm: {
+        ...prev.userForm,
+        username: user.username,
+        picture: user.picture,
+        media: user.media,
+        displayName: user.displayName,
+        followed: user.followed,
+      },
+    }
+  })
 }
 
 export const handlePendingFileUpload = async (

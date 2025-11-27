@@ -1,30 +1,21 @@
-// Following.tsx
+// Blocks.tsx
 import { useState } from 'react'
 import { Animated, RefreshControl, View } from 'react-native'
 import { HEADER_HEIGHT } from '@/constants/Sizes'
 import { useScrollY } from '@/context/ScrollYContext'
 import { AuthStore } from '@/store/AuthStore'
 import SocialStore from '@/store/post/Social'
-import FollowingCard from '@/components/Profile/FollowingCard'
+import BlockCard from '@/components/Profile/BlockCard'
 
-const Following = () => {
-  const { loading, followings, getFollowings } = SocialStore()
+const Blocks = () => {
+  const { loading, mutedUsers, getMutedUsers } = SocialStore()
   const [sort] = useState('-createdAt')
   const { user } = AuthStore()
   const { onScroll } = useScrollY()
 
-  // useEffect(() => {
-  //   if (user) {
-  //     setCurrentPage(1)
-  //     getFollowingPosts(
-  //       `/posts/following/?myId=${user._id}&page_size=20&page=${currentPage}&ordering=${sort}&postType=main`
-  //     )
-  //   }
-  // }, [currentPage, user])
-
   const fetchPosts = () => {
     if (user) {
-      getFollowings(
+      getMutedUsers(
         `/posts/bookmarks/?myId=${user._id}&page_size=20&page=1&ordering=${sort}&postType=main`
       )
     }
@@ -33,9 +24,9 @@ const Following = () => {
   return (
     <View className="flex-1 dark:bg-dark-secondary bg-secondary">
       <Animated.FlatList
-        data={followings}
+        data={mutedUsers}
         keyExtractor={(item) => item._id}
-        renderItem={({ item }) => <FollowingCard socialUser={item} />}
+        renderItem={({ item }) => <BlockCard socialUser={item} />}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -57,4 +48,4 @@ const Following = () => {
   )
 }
 
-export default Following
+export default Blocks

@@ -1,4 +1,8 @@
-import { formatRelativeDate, truncateString } from '@/lib/helpers'
+import {
+  formatRelativeDate,
+  moveToProfile,
+  truncateString,
+} from '@/lib/helpers'
 import {
   Feather,
   MaterialCommunityIcons,
@@ -20,9 +24,7 @@ import { useRouter } from 'expo-router'
 import PollCard from './PollCard'
 import HomePostMedia from './HomePostMedia'
 import { Post } from '@/store/post/Post'
-import { UserStore } from '@/store/user/User'
 import PostBottomSheetOptions from './PostBottomSheet'
-import UserPostStore from '@/store/post/UserPost'
 import { AuthStore } from '@/store/AuthStore'
 
 interface PostCardProps {
@@ -35,30 +37,26 @@ const PostCard: React.FC<PostCardProps> = ({ post, onCommentPress }) => {
   const { width } = useWindowDimensions()
   const colorScheme = useColorScheme()
   const isDark = colorScheme === 'dark' ? true : false
-  const { getUser } = UserStore()
   const { user } = AuthStore()
-  const { getPosts } = UserPostStore()
   const router = useRouter()
   const [visible, setVisible] = useState(false)
   const move = () => {
-    getUser(`/users/${post.username}/?userId=${user?._id}`)
-    UserPostStore.setState({ postResults: [] })
-    getPosts(
-      `/posts/user/?username=${post?.username}&page_size=40&myId=${user?._id}`
-    )
-
-    UserStore.setState((prev) => {
-      return {
-        userForm: {
-          ...prev.userForm,
-          username: post.username,
-          picture: post.picture,
-          displayName: post.displayName,
-          followed: post.followed,
+    if (user) {
+      moveToProfile(
+        {
+          ...post,
+          _id: post.userId,
+          media: String(post.userMedia),
         },
-      }
-    })
-    router.push(`/home/profile/${post.username}`)
+        user.username
+      )
+
+      router.push(
+        user.username === post.username
+          ? `/home/profile/my-profile`
+          : `/home/profile/${post?.username}`
+      )
+    }
   }
 
   return (

@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import _debounce from 'lodash/debounce'
 import { customRequest } from '@/lib/api'
-import { getAll, saveAll, upsert } from '@/lib/localStorage/db'
+import { clearTable, getAll, saveAll, upsert } from '@/lib/localStorage/db'
 import { User } from '../user/User'
 import { isEqual } from 'lodash'
 import { SocialUser } from './Social'
@@ -42,6 +42,7 @@ export interface Post {
   username: string
   userId: string
   postId: string
+  userMedia: string
   backgroundColor: string
   displayName: string
   content: string
@@ -83,6 +84,7 @@ export const PostEmpty = {
   backgroundColor: '',
   displayName: '',
   content: '',
+  userMedia: '',
   media: [],
   polls: [],
   users: [],
@@ -448,6 +450,7 @@ export const PostStore = create<PostState>((set, get) => ({
       if (postResults.length > 0) {
         set({ postResults: postResults })
       }
+      clearTable('posts')
       PostStore.getState().getPosts(
         `/posts/?myId=${user?._id}&page_size=40&page=1`
       )
@@ -463,30 +466,6 @@ export const PostStore = create<PostState>((set, get) => ({
       const response = await customRequest({ url })
       const data = response?.data
       if (data) {
-        // const fetchedPosts = data.results
-        // const savedPosts = PostStore.getState().postResults
-
-        // if (savedPosts.length > 0) {
-        //   const toUpsert = fetchedPosts.filter((apiItem: Post) => {
-        //     const existing = savedPosts.find(
-        //       (localItem) => localItem._id === apiItem._id
-        //     )
-        //     return !existing || !isEqual(existing, apiItem)
-        //   })
-
-        //   if (toUpsert.length > 0) {
-        //     for (const item of toUpsert) {
-        //       await upsert('posts', item)
-        //     }
-        //     console.log(`✅ Upserted ${toUpsert.length} featured posts item(s).`)
-        //   } else {
-        //     console.log('No new or updated featured posts to upsert.')
-        //   }
-        // } else {
-        //   saveAll('posts', fetchedPosts)
-        //   set({ postResults: data.results })
-        // }
-
         const fetchedPosts = data.results
         const savedPosts = PostStore.getState().postResults
         const first20Fetched = fetchedPosts.slice(0, 20)
@@ -724,10 +703,11 @@ export const PostStore = create<PostState>((set, get) => ({
       })
       const data = response?.data?.data
       if (data) {
+        upsert('posts', data)
         PostStore.setState((state) => ({
           postResults: state.postResults.map((post) =>
             post.userId === data.userId
-              ? { ...post, followed: data.followed, isActive: false }
+              ? { ...post, followed: data.followed }
               : post
           ),
         }))

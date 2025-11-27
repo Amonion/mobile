@@ -14,9 +14,8 @@ import { useRouter } from 'expo-router'
 import { AuthStore } from '@/store/AuthStore'
 import ThemeToggle from './ThemeToggle'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { UserStore } from '@/store/user/User'
-import UserPostStore from '@/store/post/UserPost'
 import { PostStore } from '@/store/post/Post'
+import { moveToProfile } from '@/lib/helpers'
 
 const SCREEN_WIDTH = Dimensions.get('window').width
 
@@ -31,9 +30,7 @@ const SideDrawer = ({
   const { user, logout } = AuthStore()
   const router = useRouter()
   const insets = useSafeAreaInsets()
-  const { getUser } = UserStore()
-  const { getPosts } = UserPostStore()
-  const { loading, bookmarkedPostResults, getBookmarkedPosts } = PostStore()
+  const { getBookmarkedPosts } = PostStore()
 
   React.useEffect(() => {
     Animated.timing(animation, {
@@ -53,21 +50,16 @@ const SideDrawer = ({
 
   const move = () => {
     if (user) {
-      getUser(`/users/${user?.username}/?userId=${user?._id}`)
-      getPosts(`/posts/user/?username=${user?.username}&page_size=40`)
+      moveToProfile(
+        {
+          ...user,
+          picture: String(user.picture),
+          media: String(user.media),
+        },
+        user.username
+      )
 
-      UserStore.setState((prev) => {
-        return {
-          userForm: {
-            ...prev.userForm,
-            username: user?.username,
-            picture: user?.picture,
-            displayName: user?.displayName,
-          },
-        }
-      })
-
-      router.push(`/home/profile/${user?.username}`)
+      router.push(`/home/profile/my-profile`)
     }
   }
 

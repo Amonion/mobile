@@ -1,3 +1,4 @@
+import { moveToProfile } from '@/lib/helpers'
 import { AuthStore } from '@/store/AuthStore'
 import { ChatStore } from '@/store/chat/Chat'
 import FriendStore, { FriendEmpty } from '@/store/chat/Friend'
@@ -55,24 +56,18 @@ export default function ChatHead() {
   }, [username, friendsResults.length])
 
   const move = () => {
-    getUser(`/users/${chatUserForm.username}/?userId=${user?._id}`)
-    UserPostStore.setState({ postResults: [] })
-    getPosts(
-      `/posts/user/?username=${chatUserForm?.username}&page_size=40&myId=${user?._id}`
-    )
-
-    UserStore.setState((prev) => {
-      return {
-        userForm: {
-          ...prev.userForm,
-          username: chatUserForm.username,
-          picture: chatUserForm.picture,
-          displayName: chatUserForm.displayName,
-          followed: chatUserForm.followed ? chatUserForm.followed : false,
+    if (user) {
+      moveToProfile(
+        {
+          ...userForm,
+          media: String(userForm.media),
+          picture: String(userForm.picture),
         },
-      }
-    })
-    router.push(`/home/profile/${chatUserForm.username}`)
+        user.username
+      )
+
+      router.push(`/home/profile/${userForm?.username}`)
+    }
   }
 
   return (

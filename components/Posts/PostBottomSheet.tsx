@@ -5,6 +5,7 @@ import { AuthStore } from '@/store/AuthStore'
 import { Post, PostStore } from '@/store/post/Post'
 import SocialStore from '@/store/post/Social'
 import BottomSheetPostOptions from '../Sheets/BottomSheetPostOptions'
+import { remove } from '@/lib/localStorage/db'
 
 interface PostOptionsProps {
   post: Post
@@ -23,6 +24,9 @@ const PostBottomSheetOptions: React.FC<PostOptionsProps> = ({
   const { deletePost, updatePost, updatePinPost, repostItem } = PostStore()
   const { muteUser, blockUser } = SocialStore()
   const { user } = AuthStore()
+  const storePost = PostStore(
+    (state) => state.postResults.find((p) => p._id === post._id) || post
+  )
 
   const deleteItem = (id: string) => {
     deletePost(`/posts/${id}`)
@@ -30,6 +34,13 @@ const PostBottomSheetOptions: React.FC<PostOptionsProps> = ({
   }
 
   const followAccount = () => {
+    // PostStore.setState((prev) => {
+    //   return {
+    //     postResults: prev.postResults.map((item) =>
+    //       item._id === post._id ? { ...item, followed: !item.followed } : item
+    //     ),
+    //   }
+    // })
     updatePost(`/posts/follow/${post.userId}`, {
       post: post,
       followerId: user?._id,
@@ -89,6 +100,7 @@ const PostBottomSheetOptions: React.FC<PostOptionsProps> = ({
       accountPicture: post.picture,
       accountIsVerified: post.isVerified,
     })
+    remove('posts', post._id)
   }
 
   return (
@@ -106,13 +118,13 @@ const PostBottomSheetOptions: React.FC<PostOptionsProps> = ({
           />
 
           <Text className="text-xl text-primary dark:text-dark-primary">
-            {post.isPinned ? `Unpin Post` : `Pin Post`}
+            {storePost.isPinned ? `Unpin Post` : `Pin Post`}
           </Text>
         </TouchableOpacity>
-        {user?._id !== post.userId && (
+        {user?._id !== storePost.userId && (
           <>
             <TouchableOpacity
-              onPress={() => repost(post._id)}
+              onPress={() => repost(storePost._id)}
               className="py-4 flex-row px-2 items-center border-b border-b-border dark:border-b-dark-border"
             >
               <Feather
@@ -136,7 +148,7 @@ const PostBottomSheetOptions: React.FC<PostOptionsProps> = ({
                 style={{ marginRight: 15 }}
               />
               <Text className="text-xl text-primary dark:text-dark-primary">
-                {post.followed ? `Unfollow Account` : `Follow Account`}
+                {storePost.followed ? `Unfollow Account` : `Follow Account`}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -164,15 +176,15 @@ const PostBottomSheetOptions: React.FC<PostOptionsProps> = ({
                 style={{ marginRight: 15 }}
               />
               <Text className="text-xl text-primary dark:text-dark-primary">
-                {post.blocked ? 'Unblock User' : 'Block User'}
+                {storePost.blocked ? 'Unblock User' : 'Block User'}
               </Text>
             </TouchableOpacity>
           </>
         )}
-        {user?._id === post.userId && (
+        {user?._id === storePost.userId && (
           <>
             <TouchableOpacity
-              onPress={() => deleteItem(post._id)}
+              onPress={() => deleteItem(storePost._id)}
               className="py-4 flex-row px-2 items-center border-b border-b-border dark:border-b-dark-border"
             >
               <Feather
