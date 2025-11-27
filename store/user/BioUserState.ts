@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import apiRequest from '@/lib/axios'
+import { customRequest } from '@/lib/api'
 import { AuthStore } from './AuthStore'
 import { User } from './User'
 
@@ -102,14 +102,8 @@ interface BioUserStatesState {
   page_size: number
   loading: boolean
   isAllChecked: boolean
-  getBioUserState: (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void
-  ) => Promise<void>
-  getBioUsersState: (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void
-  ) => Promise<void>
+  getBioUserState: (url: string) => Promise<void>
+  getBioUsersState: (url: string) => Promise<void>
   reshuffleResults: () => void
   resetForm: () => void
   setProcessedResults: (data: FetchResponse) => void
@@ -129,14 +123,10 @@ export const BioUserStateStore = create<BioUserStatesState>((set) => ({
   page_size: 20,
   loading: false,
   isAllChecked: false,
-  getBioUserState: async (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void
-  ) => {
+  getBioUserState: async (url: string) => {
     try {
-      const response = await apiRequest<FetchResponse>(url, {
-        setMessage,
-      })
+      const response = await customRequest({ url })
+
       const data = response?.data
       if (data) {
         set({
@@ -149,14 +139,10 @@ export const BioUserStateStore = create<BioUserStatesState>((set) => ({
     }
   },
 
-  getBioUsersState: async (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void
-  ) => {
+  getBioUsersState: async (url: string) => {
     try {
-      const response = await apiRequest<FetchResponse>(url, {
-        setMessage,
-      })
+      const response = await customRequest({ url })
+
       const data = response?.data
       if (data) {
         BioUserStateStore.getState().setProcessedResults(data)
@@ -233,14 +219,14 @@ export const BioUserStateStore = create<BioUserStatesState>((set) => ({
 
   updateBioUserState: async (
     url: string,
-    updatedItem: FormData | Record<string, unknown>,
-    setMessage: (message: string, isError: boolean) => void
+    updatedItem: FormData | Record<string, unknown>
   ) => {
     set({ loading: true })
-    const response = await apiRequest<FetchResponse>(url, {
+    const response = await customRequest({
+      url,
       method: 'PATCH',
-      body: updatedItem,
-      setMessage,
+      showMessage: true,
+      data: updatedItem,
     })
     const data = response?.data
     if (data) {

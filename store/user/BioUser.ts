@@ -1,8 +1,7 @@
 import { create } from 'zustand'
-import _debounce from 'lodash/debounce'
 import { AuthStore } from './AuthStore'
 import { User } from './User'
-import apiRequest from '@/lib/axios'
+import { customRequest } from '@/lib/api'
 import { BioUserState } from './BioUserState'
 import { Post } from '../post/Post'
 import { News } from '../news/News'
@@ -48,28 +47,11 @@ interface BioUsersState {
   page_size: number
   selectedBioUsers: BioUser[]
   searchedBioUsers: BioUser[]
+  getBioUser: (url: string) => Promise<void>
 
-  deleteBioUser: (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void
-  ) => Promise<void>
-  getBioUser: (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void
-  ) => Promise<void>
-  getBioUsers: (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void
-  ) => Promise<void>
-  massDeleteBioUsers: (
-    url: string,
-    selectedUsers: BioUser[],
-    setMessage: (message: string, isError: boolean) => void
-  ) => Promise<void>
   resetForm: () => void
   reshuffleResults: () => void
   setForm: (key: keyof BioUser, value: BioUser[keyof BioUser]) => void
-  searchBioUser: (url: string) => void
   setProcessedResults: (data: FetchUserResponse) => void
   setBioUser: (data: BioUser) => void
   toggleChecked: (index: number) => void
@@ -77,13 +59,11 @@ interface BioUsersState {
   toggleAllSelected: () => void
   updateBioUser: (
     url: string,
-    updatedItem: FormData | Record<string, unknown>,
-    setMessage: (message: string, isError: boolean) => void
+    updatedItem: FormData | Record<string, unknown>
   ) => Promise<void>
   updateMyBioUser: (
     url: string,
     updatedItem: FormData | Record<string, unknown>,
-    setMessage: (message: string, isError: boolean) => void,
     redirect?: () => void
   ) => Promise<void>
 }
@@ -195,29 +175,9 @@ export const BioUserStore = create<BioUsersState>((set) => ({
   selectedBioUsers: [],
   searchedBioUsers: [],
 
-  deleteBioUser: async (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void
-  ) => {
-    set({
-      loading: true,
-    })
-    const response = await apiRequest<FetchUser>(url, {
-      method: 'PATCH',
-      setMessage,
-    })
-    if (response) {
-    }
-  },
-
-  getBioUser: async (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void
-  ) => {
+  getBioUser: async (url: string) => {
     try {
-      const response = await apiRequest<FetchUserResponse>(url, {
-        setMessage,
-      })
+      const response = await customRequest({ url })
       const data = response?.data
       if (data) {
         set({
@@ -230,43 +190,11 @@ export const BioUserStore = create<BioUsersState>((set) => ({
     }
   },
 
-  getBioUsers: async (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void
-  ) => {
-    try {
-      const response = await apiRequest<FetchUserResponse>(url, { setMessage })
-      const data = response?.data
-      if (data) {
-        BioUserStore.getState().setProcessedResults(data)
-      }
-    } catch (error: unknown) {
-      console.log(error)
-    }
-  },
-
-  massDeleteBioUsers: async (
-    url: string,
-    selectedUsers: BioUser[],
-    setMessage: (message: string, isError: boolean) => void
-  ) => {
-    try {
-      set({
-        loading: true,
-      })
-      await apiRequest<FetchUserResponse>(url, {
-        method: 'POST',
-        body: selectedUsers,
-        setMessage,
-      })
-    } catch (error) {
-      console.log(error)
-    }
-  },
   resetForm: () =>
     set({
       bioUserForm: BioUserEmpty,
     }),
+
   reshuffleResults: async () => {
     set((state) => ({
       bioUsers: state.bioUsers.map((item: BioUser) => ({
@@ -276,6 +204,7 @@ export const BioUserStore = create<BioUsersState>((set) => ({
       })),
     }))
   },
+
   setForm: (key, value) =>
     set((state) => ({
       bioUserForm: {
@@ -287,23 +216,6 @@ export const BioUserStore = create<BioUsersState>((set) => ({
   setBioUser: (user: BioUser) => {
     set({ bioUserForm: user })
   },
-
-  searchBioUser: _debounce(async (url: string) => {
-    try {
-      const response = await apiRequest<FetchUserResponse>(url)
-      if (response) {
-        const { results } = response?.data
-        const updatedResults = results.map((item: BioUser) => ({
-          ...item,
-          isChecked: false,
-          isActive: false,
-        }))
-        set({ searchedBioUsers: updatedResults })
-      }
-    } catch (error: unknown) {
-      console.log(error)
-    }
-  }, 1000),
 
   setProcessedResults: ({ count, page_size, results }: FetchUserResponse) => {
     const updatedResults = results.map((item: BioUser) => ({
@@ -319,6 +231,7 @@ export const BioUserStore = create<BioUsersState>((set) => ({
       bioUsers: updatedResults,
     })
   },
+
   toggleActive: (index: number) => {
     set((state) => {
       const isCurrentlyActive = state.bioUsers[index]?.isActive
@@ -331,6 +244,7 @@ export const BioUserStore = create<BioUsersState>((set) => ({
       }
     })
   },
+
   toggleAllSelected: () => {
     set((state) => {
       const isAllChecked =
@@ -349,6 +263,7 @@ export const BioUserStore = create<BioUsersState>((set) => ({
       }
     })
   },
+
   toggleChecked: (index: number) => {
     set((state) => {
       const updatedResults = state.bioUsers.map((tertiary, idx) =>
@@ -371,16 +286,17 @@ export const BioUserStore = create<BioUsersState>((set) => ({
       }
     })
   },
+
   updateBioUser: async (
     url: string,
-    updatedItem: FormData | Record<string, unknown>,
-    setMessage: (message: string, isError: boolean) => void
+    updatedItem: FormData | Record<string, unknown>
   ) => {
     set({ loading: true })
-    const response = await apiRequest<FetchUser>(url, {
+    const response = await customRequest({
+      url,
       method: 'PATCH',
-      body: updatedItem,
-      setMessage,
+      showMessage: true,
+      data: updatedItem,
     })
     const data = response?.data
     if (data) {
@@ -391,14 +307,14 @@ export const BioUserStore = create<BioUsersState>((set) => ({
   updateMyBioUser: async (
     url: string,
     updatedItem: FormData | Record<string, unknown>,
-    setMessage: (message: string, isError: boolean) => void,
     redirect?: () => void
   ) => {
     set({ loading: true })
-    const response = await apiRequest<FetchUser>(url, {
+    const response = await customRequest({
+      url,
       method: 'PATCH',
-      body: updatedItem,
-      setMessage,
+      showMessage: true,
+      data: updatedItem,
     })
     const data = response?.data
     if (data) {

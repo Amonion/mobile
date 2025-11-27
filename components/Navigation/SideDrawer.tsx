@@ -159,7 +159,7 @@ const SideDrawer = ({
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                // onPress={() => router.push('/home/verification/profile')}
+                onPress={() => router.push('/home/verification')}
                 className="w-full py-5 flex-row items-center border-b border-b-border dark:border-b-dark-border"
               >
                 <Feather

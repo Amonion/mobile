@@ -11,17 +11,17 @@ export default function HomeLayout() {
       >
         <Stack.Screen name="notifications" />
         <Stack.Screen name="post/[id]" />
-        <Stack.Screen name="exam/[id]" />
+        {/* <Stack.Screen name="exam/[id]" />
         <Stack.Screen name="school/[id]" />
         <Stack.Screen
           name="exam/start/[id]"
           options={{
             gestureEnabled: false,
           }}
-        />
+        /> */}
         <Stack.Screen name="profile" />
         <Stack.Screen name="verification" />
-        <Stack.Screen name="user/[username]" />
+        {/* <Stack.Screen name="user/[username]" /> */}
         <Stack.Screen name="settings" />
       </Stack>
     </View>
