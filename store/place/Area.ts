@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import _debounce from 'lodash/debounce'
-import apiRequest from '@/lib/axios'
+import { customRequest } from '@/lib/api'
 
 interface FetchResponse {
   message: string
@@ -63,33 +63,9 @@ interface AreaState {
   resetForm: () => void
   setAllArea: () => void
   getArea: (url: string) => Promise<void>
-  getOneArea: (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void,
-    isNew?: boolean
-  ) => Promise<void>
+  getOneArea: (url: string, isNew?: boolean) => Promise<void>
   setProcessedResults: (data: FetchResponse) => void
   setLoading?: (loading: boolean) => void
-  massDeleteCountries: (
-    url: string,
-    selectedArea: Area[],
-    setMessage: (message: string, isError: boolean) => void
-  ) => Promise<void>
-  deleteItem: (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void,
-    setLoading?: (loading: boolean) => void
-  ) => Promise<void>
-  updateItem: (
-    url: string,
-    updatedItem: FormData | Record<string, unknown>,
-    setMessage: (message: string, isError: boolean) => void
-  ) => Promise<void>
-  postItem: (
-    url: string,
-    data: FormData | Record<string, unknown>,
-    setMessage: (message: string, isError: boolean) => void
-  ) => Promise<void>
   toggleCheckedArea: (index: number) => void
   toggleActiveArea: (index: number) => void
   toggleAllSelectedArea: () => void
@@ -159,9 +135,8 @@ const AreaStore = create<AreaState>((set) => ({
 
   getArea: async (url: string) => {
     try {
-      const response = await apiRequest<FetchResponse>(url, {
-        setLoading: AreaStore.getState().setLoading,
-      })
+      const response = await customRequest({ url })
+
       const data = response?.data
       if (data) {
         AreaStore.getState().setProcessedResults(data)
@@ -171,15 +146,9 @@ const AreaStore = create<AreaState>((set) => ({
     }
   },
 
-  getOneArea: async (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void,
-    isNew?: boolean
-  ) => {
+  getOneArea: async (url: string, isNew?: boolean) => {
     try {
-      const response = await apiRequest<FetchResponse>(url, {
-        setLoading: AreaStore.getState().setLoading,
-      })
+      const response = await customRequest({ url })
       const data = response?.data
       if (data) {
         if (isNew) {
@@ -199,7 +168,7 @@ const AreaStore = create<AreaState>((set) => ({
         }
       }
     } catch (error: unknown) {
-      console.log(error, setMessage)
+      console.log(error)
     }
   },
 
@@ -214,79 +183,12 @@ const AreaStore = create<AreaState>((set) => ({
   },
 
   searchItem: _debounce(async (url: string) => {
-    const response = await apiRequest<FetchResponse>(url, {
-      setLoading: AreaStore.getState().setLoading,
-    })
+    const response = await customRequest({ url })
     const results = response?.data.results
     if (results) {
       set({ searchedItems: results })
     }
   }, 1000),
-
-  massDeleteCountries: async (
-    url: string,
-    selectedArea: Area[],
-    setMessage: (message: string, isError: boolean) => void
-  ) => {
-    const response = await apiRequest<FetchResponse>(url, {
-      method: 'PATCH',
-      body: selectedArea,
-      setMessage,
-    })
-    if (response) {
-      console.log(response)
-    }
-  },
-
-  deleteItem: async (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void,
-    setLoading?: (loading: boolean) => void
-  ) => {
-    const response = await apiRequest<FetchResponse>(url, {
-      method: 'DELETE',
-      setMessage,
-      setLoading,
-    })
-    const data = response?.data
-    if (data) {
-      AreaStore.getState().setProcessedResults(data)
-    }
-  },
-
-  updateItem: async (
-    url: string,
-    updatedItem: FormData | Record<string, unknown>,
-    setMessage: (message: string, isError: boolean) => void
-  ) => {
-    set({ loadingArea: true, error: null })
-    const response = await apiRequest<FetchResponse>(url, {
-      method: 'PATCH',
-      body: updatedItem,
-      setMessage,
-      setLoading: AreaStore.getState().setLoading,
-    })
-    if (response?.status !== 404 && response?.data) {
-      AreaStore.getState().setProcessedResults(response.data)
-    }
-  },
-
-  postItem: async (
-    url: string,
-    updatedItem: FormData | Record<string, unknown>,
-    setMessage: (message: string, isError: boolean) => void
-  ) => {
-    set({ loadingArea: true, error: null })
-    const response = await apiRequest<FetchResponse>(url, {
-      method: 'POST',
-      body: updatedItem,
-      setMessage,
-      setLoading: AreaStore.getState().setLoading,
-    })
-    if (response?.status !== 404 && response?.data) {
-      AreaStore.getState().setProcessedResults(response.data)
-    }
-  },
 
   toggleActiveArea: (index: number) => {
     set((state) => {
@@ -347,5 +249,4 @@ const AreaStore = create<AreaState>((set) => ({
     })
   },
 }))
-
 export default AreaStore

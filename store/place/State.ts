@@ -2,12 +2,13 @@ import { create } from 'zustand'
 import _debounce from 'lodash/debounce'
 import { customRequest } from '@/lib/api'
 import { State, StateEmpty } from './StateOrigin'
+import { Area } from './Area'
 
 interface FetchResponse {
   message: string
   count: number
   page_size: number
-  results: State[]
+  results: Area[]
   state: string
   stateCapital: string
   stateLogo: string
@@ -17,7 +18,7 @@ interface StateState {
   links: { next: string | null; previous: string | null } | null
   count: number
   page_size: number
-  states: State[]
+  states: Area[]
   loadingStates: boolean
   error: string | null
   successs?: string | null
@@ -40,20 +41,9 @@ interface StateState {
   ) => Promise<void>
   setProcessedResults: (data: FetchResponse) => void
   setLoading?: (loading: boolean) => void
-  updateItem: (
-    url: string,
-    updatedItem: FormData | Record<string, unknown>,
-    setMessage: (message: string, isError: boolean) => void
-  ) => Promise<void>
-  postItem: (
-    url: string,
-    data: FormData | Record<string, unknown>,
-    setMessage: (message: string, isError: boolean) => void
-  ) => Promise<void>
   toggleCheckedState: (index: number) => void
   toggleActiveState: (index: number) => void
   toggleAllSelectedState: () => void
-  reshuffleStates: () => void
   searchItem: (url: string) => void
 }
 
@@ -83,7 +73,7 @@ const StateStore = create<StateState>((set, get) => ({
 
   setProcessedResults: ({ count, page_size, results }: FetchResponse) => {
     if (results) {
-      const updatedResults = results.map((item: State) => ({
+      const updatedResults = results.map((item: Area) => ({
         ...item,
         isChecked: false,
         isActive: false,
@@ -161,17 +151,6 @@ const StateStore = create<StateState>((set, get) => ({
     }
   },
 
-  reshuffleStates: async () => {
-    set((state) => ({
-      states: state.states.map((item: State) => ({
-        ...item,
-        isChecked: false,
-        isActive: false,
-      })),
-      selectedStates: [],
-    }))
-  },
-
   searchItem: _debounce(async (url: string) => {
     const response = await customRequest({ url })
     const results = response?.data.results
@@ -179,41 +158,6 @@ const StateStore = create<StateState>((set, get) => ({
       set({ searchedItems: results })
     }
   }, 1000),
-
-  updateItem: async (
-    url: string,
-    updatedItem: FormData | Record<string, unknown>,
-    setMessage: (message: string, isError: boolean) => void
-  ) => {
-    set({ loadingStates: true, error: null })
-    const response = await customRequest({
-      url,
-      method: 'PATCH',
-      showMessage: true,
-      data: updatedItem,
-    })
-    if (response?.status !== 404 && response?.data) {
-      StateStore.getState().setProcessedResults(response.data)
-    }
-  },
-
-  postItem: async (
-    url: string,
-    updatedItem: FormData | Record<string, unknown>,
-    setMessage: (message: string, isError: boolean) => void
-  ) => {
-    set({ loadingStates: true, error: null })
-    const response = await customRequest({
-      url,
-      method: 'PATCH',
-      showMessage: true,
-      data: updatedItem,
-    })
-
-    if (response?.status !== 404 && response?.data) {
-      StateStore.getState().setProcessedResults(response.data)
-    }
-  },
 
   toggleActiveState: (index: number) => {
     set((state) => {

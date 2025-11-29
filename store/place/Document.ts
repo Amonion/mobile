@@ -1,6 +1,12 @@
 import { create } from 'zustand'
 import _debounce from 'lodash/debounce'
-import apiRequest from '@/lib/axios'
+import { customRequest } from '@/lib/api'
+
+export interface FileLike {
+  uri: string
+  name: string
+  type: string
+}
 
 export interface Document {
   _id: string
@@ -21,7 +27,7 @@ export const DocumentEmpty = {
   picture: '',
   name: '',
   tempDoc: '',
-  required: 0,
+  required: false,
   description: '',
   country: '',
   countryFlag: '',
@@ -47,41 +53,13 @@ interface DocumentState {
   selectedItems: Document[]
   searchedPositions: Document[]
   isAllChecked: boolean
-  formData: Document
+  documentForm: Document
   setForm: (key: keyof Document, value: Document[keyof Document]) => void
   resetForm: () => void
-  getDocuments: (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void
-  ) => Promise<void>
-  getDocument: (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void
-  ) => Promise<void>
+  getDocuments: (url: string) => Promise<void>
+  getDocument: (url: string) => Promise<void>
   setProcessedResults: (data: FetchResponse) => void
   setLoading?: (loading: boolean) => void
-  massDelete: (
-    url: string,
-    refreshUrl: string,
-    selectedItems: Document[],
-    setMessage: (message: string, isError: boolean) => void
-  ) => Promise<void>
-  deleteItem: (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void,
-    setLoading?: (loading: boolean) => void
-  ) => Promise<void>
-
-  updateItem: (
-    url: string,
-    updatedItem: FormData | Record<string, unknown>,
-    setMessage: (message: string, isError: boolean) => void
-  ) => Promise<void>
-  postItem: (
-    url: string,
-    updatedItem: FormData | Record<string, unknown>,
-    setMessage: (message: string, isError: boolean) => void
-  ) => Promise<void>
   toggleChecked: (index: number) => void
   toggleActive: (index: number) => void
   toggleAllSelected: () => void
@@ -99,37 +77,18 @@ const DocumentStore = create<DocumentState>((set, get) => ({
   selectedItems: [],
   searchedPositions: [],
   isAllChecked: false,
-  formData: {
-    _id: '',
-    country: '',
-    countryFlag: '',
-    description: '',
-    placeId: '',
-    name: '',
-    tempDoc: '',
-    required: false,
-    picture: null,
-  },
+  documentForm: DocumentEmpty,
   setForm: (key, value) =>
     set((state) => ({
-      formData: {
-        ...state.formData,
+      documentForm: {
+        ...state.documentForm,
         [key]: value,
       },
     })),
+
   resetForm: () =>
     set({
-      formData: {
-        _id: '',
-        country: '',
-        countryFlag: '',
-        description: '',
-        placeId: '',
-        name: '',
-        tempDoc: '',
-        picture: null,
-        required: false,
-      },
+      documentForm: DocumentEmpty,
     }),
 
   setLoading: (loadState: boolean) => {
@@ -153,41 +112,34 @@ const DocumentStore = create<DocumentState>((set, get) => ({
     }
   },
 
-  getDocuments: async (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void
-  ) => {
+  getDocuments: async (url: string) => {
     try {
-      const response = await apiRequest<FetchResponse>(url, {
-        setLoading: DocumentStore.getState().setLoading,
-      })
+      const response = await customRequest({ url })
       const data = response?.data
       if (data) {
         DocumentStore.getState().setProcessedResults(data)
       }
     } catch (error: unknown) {
-      console.log(error, setMessage)
+      console.log(error)
     }
   },
 
-  getDocument: async (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void
-  ) => {
+  getDocument: async (url: string) => {
     try {
-      const response = await apiRequest<FetchResponse>(url, {
-        setLoading: DocumentStore.getState().setLoading,
-      })
+      const response = await customRequest({ url })
       const data = response?.data
       console.log(data)
       if (data) {
         set({
-          formData: { ...DocumentStore.getState().formData, ...data.data },
+          documentForm: {
+            ...DocumentStore.getState().documentForm,
+            ...data.data,
+          },
           loading: false,
         })
       }
     } catch (error: unknown) {
-      console.log(error, setMessage)
+      console.log(error)
     }
   },
 
@@ -202,8 +154,7 @@ const DocumentStore = create<DocumentState>((set, get) => ({
   },
 
   searchPosition: _debounce(async (url: string) => {
-    const response = await apiRequest<FetchResponse>(url)
-
+    const response = await customRequest({ url })
     const results = response?.data.results
     if (results) {
       const updatedResults = results.map((item: Document) => ({
@@ -214,74 +165,6 @@ const DocumentStore = create<DocumentState>((set, get) => ({
       set({ searchedPositions: updatedResults })
     }
   }, 1000),
-
-  massDelete: async (
-    url: string,
-    refreshUrl: string,
-    selectedItems: Document[],
-    setMessage: (message: string, isError: boolean) => void
-  ) => {
-    const response = await apiRequest<FetchResponse>(url, {
-      method: 'DELETE',
-      setMessage,
-      body: selectedItems,
-    })
-    if (response) {
-      const getDocuments = get().getDocuments
-      getDocuments(refreshUrl, setMessage)
-    }
-  },
-
-  deleteItem: async (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void,
-    setLoading?: (loading: boolean) => void
-  ) => {
-    const response = await apiRequest<FetchResponse>(url, {
-      method: 'DELETE',
-      setMessage,
-      setLoading,
-    })
-    const data = response?.data
-
-    if (data) {
-      DocumentStore.getState().setProcessedResults(data)
-    }
-  },
-
-  updateItem: async (
-    url: string,
-    updatedItem: FormData | Record<string, unknown>,
-    setMessage: (message: string, isError: boolean) => void
-  ) => {
-    set({ loading: true, error: null })
-    const response = await apiRequest<FetchResponse>(url, {
-      method: 'PATCH',
-      body: updatedItem,
-      setMessage,
-      setLoading: DocumentStore.getState().setLoading,
-    })
-    if (response?.data) {
-      DocumentStore.getState().setProcessedResults(response.data)
-    }
-  },
-
-  postItem: async (
-    url: string,
-    updatedItem: FormData | Record<string, unknown>,
-    setMessage: (message: string, isError: boolean) => void
-  ) => {
-    set({ loading: true, error: null })
-    const response = await apiRequest<FetchResponse>(url, {
-      method: 'POST',
-      body: updatedItem,
-      setMessage,
-      setLoading: DocumentStore.getState().setLoading,
-    })
-    if (response?.data) {
-      DocumentStore.getState().setProcessedResults(response.data)
-    }
-  },
 
   toggleActive: (index: number) => {
     set((state) => {

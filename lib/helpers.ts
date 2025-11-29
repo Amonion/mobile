@@ -103,8 +103,6 @@ export const moveToProfile = (user: UserProfile, username: string) => {
     }`
   )
 
-  console.log('Users username: ', user.username, ' Username: ', username)
-
   UserStore.setState((prev) => {
     return {
       userForm: {

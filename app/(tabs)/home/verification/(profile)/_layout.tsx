@@ -8,7 +8,7 @@ import {
 } from 'react-native'
 import React, { useRef } from 'react'
 import { router, Slot, usePathname } from 'expo-router'
-import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
+import { Feather } from '@expo/vector-icons'
 import { MessageStore } from '@/store/notification/Message'
 import { AuthStore } from '@/store/AuthStore'
 
@@ -34,6 +34,7 @@ export default function VerificationLayout() {
         }}
       >
         <Animated.View
+          className={'py-3'}
           style={{
             flexDirection: 'row',
             transform: [{ translateX }],
@@ -42,44 +43,33 @@ export default function VerificationLayout() {
         >
           <TouchableOpacity
             onPress={() => {
-              if (pathname !== '/home/verification/profile') {
-                router.push('/home/verification/profile')
+              if (pathname !== '/home/verification') {
+                router.push('/home/verification')
               }
             }}
-            className={`${
-              pathname === '/home/verification/profile'
-                ? 'border-b-custom'
-                : 'border-b-border dark:border-b-dark-border'
-            } py-1 px-3 border-b flex-row items-center`}
+            className={` py-1 px-3 flex-row items-center`}
           >
             <Text
               className={`${
-                pathname === '/home/verification/profile'
+                pathname === '/home/verification'
                   ? 'text-custom'
                   : 'text-primary dark:text-dark-primary'
               } text-xl text-center`}
             >
               Profile
             </Text>
-            {bioUserState?.isBio ? (
-              <MaterialCommunityIcons
-                name="check-circle-outline"
-                size={14}
-                color={
-                  pathname.includes('public')
-                    ? '#0DFF19'
-                    : isDark
-                    ? '#00B809'
-                    : '#05AD0D'
-                }
-                className="ml-1"
-              />
-            ) : (
+            {!bioUserState?.isBio && (
               <Feather
                 name="help-circle"
                 size={14}
                 className="ml-1"
-                color={isDark ? '#BABABA' : '#6E6E6E'}
+                color={
+                  pathname === '/home/verification'
+                    ? '#DA3986'
+                    : isDark
+                    ? '#BABABA'
+                    : '#6E6E6E'
+                }
               />
             )}
           </TouchableOpacity>
@@ -93,39 +83,22 @@ export default function VerificationLayout() {
                 )
                 return
               }
-              if (pathname !== '/home/verification/profile/origin') {
-                router.push('/home/verification/profile/origin')
+              if (pathname !== '/home/verification/origin') {
+                router.push('/home/verification/origin')
               }
             }}
-            className={`${
-              pathname === '/home/verification/profile/origin'
-                ? 'border-b-custom'
-                : 'border-b-border dark:border-b-dark-border'
-            } py-1 px-3 border-b flex-row items-center`}
+            className={` py-1 px-3 flex-row items-center`}
           >
             <Text
               className={`${
-                pathname === '/home/verification/profile/origin'
+                pathname === '/home/verification/origin'
                   ? 'text-custom'
                   : 'text-primary dark:text-dark-primary'
               } text-xl text-center`}
             >
               Origin
             </Text>
-            {bioUserState?.isOrigin ? (
-              <MaterialCommunityIcons
-                name="check-circle-outline"
-                size={14}
-                color={
-                  pathname.includes('public')
-                    ? '#0DFF19'
-                    : isDark
-                    ? '#00B809'
-                    : '#05AD0D'
-                }
-                className="ml-1"
-              />
-            ) : (
+            {!bioUserState?.isOrigin && (
               <Feather
                 name="help-circle"
                 size={14}
@@ -144,39 +117,22 @@ export default function VerificationLayout() {
                 )
                 return
               }
-              if (pathname !== '/home/verification/profile/contact') {
-                router.push('/home/verification/profile/contact')
+              if (pathname !== '/home/verification/contact') {
+                router.push('/home/verification/contact')
               }
             }}
-            className={`${
-              pathname === '/home/verification/profile/contact'
-                ? 'border-b-custom'
-                : 'border-b-border dark:border-b-dark-border'
-            } py-1 px-3 border-b flex-row items-center`}
+            className={`py-1 px-3 flex-row items-center`}
           >
             <Text
               className={`${
-                pathname === '/home/verification/profile/contact'
+                pathname === '/home/verification/contact'
                   ? 'text-custom'
                   : 'text-primary dark:text-dark-primary'
               } text-xl text-center`}
             >
               Contact
             </Text>
-            {bioUserState?.isContact ? (
-              <MaterialCommunityIcons
-                name="check-circle-outline"
-                size={14}
-                color={
-                  pathname.includes('public')
-                    ? '#0DFF19'
-                    : isDark
-                    ? '#00B809'
-                    : '#05AD0D'
-                }
-                className="ml-1"
-              />
-            ) : (
+            {!bioUserState?.isContact && (
               <Feather
                 name="help-circle"
                 size={14}
@@ -199,39 +155,22 @@ export default function VerificationLayout() {
                 )
                 return
               }
-              if (pathname !== '/home/verification/profile/related') {
-                router.push('/home/verification/profile/related')
+              if (pathname !== '/home/verification/related') {
+                router.push('/home/verification/related')
               }
             }}
-            className={`${
-              pathname === '/home/verification/profile/related'
-                ? 'border-b-custom'
-                : 'border-b-border dark:border-b-dark-border'
-            } py-1 px-4 border-b flex-row items-center`}
+            className={`py-1 px-4 flex-row items-center`}
           >
             <Text
               className={`${
-                pathname === '/home/verification/profile/related'
+                pathname === '/home/verification/related'
                   ? 'text-custom'
                   : 'text-primary dark:text-dark-primary'
               } text-xl text-center`}
             >
               Related
             </Text>
-            {bioUserState?.isRelated ? (
-              <MaterialCommunityIcons
-                name="check-circle-outline"
-                size={14}
-                color={
-                  pathname.includes('public')
-                    ? '#0DFF19'
-                    : isDark
-                    ? '#00B809'
-                    : '#05AD0D'
-                }
-                className="ml-1"
-              />
-            ) : (
+            {!bioUserState?.isRelated && (
               <Feather
                 name="help-circle"
                 size={14}
@@ -243,51 +182,34 @@ export default function VerificationLayout() {
 
           <TouchableOpacity
             onPress={() => {
-              if (
-                !bioUserState?.isBio ||
-                !bioUserState?.isOrigin ||
-                !bioUserState.isContact ||
-                !bioUserState.isRelated
-              ) {
-                setMessage(
-                  'Please complete your related verification section to continue',
-                  false
-                )
-                return
-              }
-              if (pathname !== '/home/verification/profile/document') {
-                router.push('/home/verification/profile/document')
+              // if (
+              //   !bioUserState?.isBio ||
+              //   !bioUserState?.isOrigin ||
+              //   !bioUserState.isContact ||
+              //   !bioUserState.isRelated
+              // ) {
+              //   setMessage(
+              //     'Please complete your related verification section to continue',
+              //     false
+              //   )
+              //   return
+              // }
+              if (pathname !== '/home/verification/document') {
+                router.push('/home/verification/document')
               }
             }}
-            className={`${
-              pathname === '/home/verification/profile/document'
-                ? 'border-b-custom'
-                : 'border-b-border dark:border-b-dark-border'
-            } py-1 px-4 border-b flex-row items-center`}
+            className={`py-1 px-4 flex-row items-center`}
           >
             <Text
               className={`${
-                pathname === '/home/verification/profile/document'
+                pathname === '/home/verification/document'
                   ? 'text-custom'
                   : 'text-primary dark:text-dark-primary'
               } text-xl text-center`}
             >
               Document
             </Text>
-            {bioUserState?.isDocument ? (
-              <MaterialCommunityIcons
-                name="check-circle-outline"
-                size={14}
-                color={
-                  pathname.includes('public')
-                    ? '#0DFF19'
-                    : isDark
-                    ? '#00B809'
-                    : '#05AD0D'
-                }
-                className="ml-1"
-              />
-            ) : (
+            {!bioUserState?.isDocument && (
               <Feather
                 name="help-circle"
                 size={14}

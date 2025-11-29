@@ -1,12 +1,13 @@
 import { create } from 'zustand'
 import _debounce from 'lodash/debounce'
 import { customRequest } from '@/lib/api'
+import { Area, AreaEmpty } from './Area'
 
 interface FetchResponse {
   message: string
   count: number
   page_size: number
-  results: Country[]
+  results: Area[]
 }
 
 export interface Country {
@@ -39,16 +40,16 @@ interface CountryState {
   links: { next: string | null; previous: string | null } | null
   count: number
   page_size: number
-  countries: Country[]
+  countries: Area[]
   loadingCountries: boolean
   error: string | null
   successs?: string | null
-  selectedCountries: Country[]
-  searchedItems: Country[]
+  selectedCountries: Area[]
+  searchedItems: Area[]
   isAllCountriesChecked: boolean
-  country: Country
+  country: Area
   allCountries: boolean
-  setItemForm: (key: keyof Country, value: Country[keyof Country]) => void
+  setItemForm: (key: keyof Area, value: Area[keyof Area]) => void
   resetForm: () => void
   setAllCountries: () => void
   getCountries: (
@@ -89,7 +90,7 @@ const CountryStore = create<CountryState>((set) => ({
   searchedItems: [],
   isAllCountriesChecked: false,
   allCountries: false,
-  country: CountryEmpty,
+  country: AreaEmpty,
   setItemForm: (key, value) =>
     set((state) => ({
       country: {
@@ -99,7 +100,7 @@ const CountryStore = create<CountryState>((set) => ({
     })),
   resetForm: () =>
     set({
-      country: CountryEmpty,
+      country: AreaEmpty,
     }),
 
   setAllCountries: () => {
@@ -119,7 +120,7 @@ const CountryStore = create<CountryState>((set) => ({
 
   setProcessedResults: ({ count, page_size, results }: FetchResponse) => {
     if (results) {
-      const updatedResults = results.map((item: Country) => ({
+      const updatedResults = results.map((item: Area) => ({
         ...item,
         isChecked: false,
         isActive: false,
@@ -184,7 +185,7 @@ const CountryStore = create<CountryState>((set) => ({
 
   reshuffleResults: async () => {
     set((state) => ({
-      countries: state.countries.map((item: Country) => ({
+      countries: state.countries.map((item: Area) => ({
         ...item,
         isChecked: false,
         isActive: false,

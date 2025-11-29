@@ -9,6 +9,8 @@ export type TableName =
   | 'exams'
   | 'friends'
   | 'chats'
+  | 'accounts'
+  | 'people'
 
 const PREFIX = '@localdb:'
 

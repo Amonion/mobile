@@ -1,12 +1,4 @@
-import {
-  View,
-  Text,
-  ActivityIndicator,
-  Pressable,
-  TextInput,
-  useColorScheme,
-  TouchableOpacity,
-} from 'react-native'
+import { View, Text, useColorScheme, TouchableOpacity } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { validateInputs } from '@/lib/validateInputs'
 import { appendForm, formatDate } from '@/lib/helpers'
@@ -17,7 +9,11 @@ import { useRouter } from 'expo-router'
 import { ValidationResult } from '@/lib/validateAuthInputs'
 import { RadioButton } from '@/components/General/RadioButton'
 import InputField from '@/components/General/InputField'
-import Spinner from '@/components/Response/Spinner'
+import FaceCaptureBox from '@/components/Verification/FaceCaptureBox'
+import CustomBtn from '@/components/General/CustomBtn'
+import PopupCalendar from '@/components/General/PopupCalendar'
+import dayjs from 'dayjs'
+import { Calendar } from 'lucide-react-native'
 
 export default function VerificationBioSettings() {
   const { bioUserForm, setForm, setBioUser, updateMyBioUser, loading } =
@@ -29,6 +25,8 @@ export default function VerificationBioSettings() {
   const isDark = colorScheme === 'dark' ? true : false
   const [isBioEdit, setIsBioEdit] = useState(false)
   const [error, setError] = useState<ValidationResult | null>(null)
+  const [calendarVisible, setCalendarVisible] = useState(false)
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
 
   const url = '/users/bio-user/'
   const router = useRouter()
@@ -174,9 +172,33 @@ export default function VerificationBioSettings() {
             autoCapitalize="words"
             onChangeText={(e) => handleInputChange(e, 'lastName')}
           />
+
+          <View className="mb-8 mt-2">
+            <TouchableOpacity
+              style={{ flexDirection: 'row', alignItems: 'center' }}
+              onPress={() => setCalendarVisible(true)}
+            >
+              <Calendar size={20} color={isDark ? '#6E6E6E' : '#BABABA'} />
+              <Text className="text-primary dark:text-dark-primary text-xl mx-3">
+                Date of Birth:
+              </Text>
+              <Text className="text-custom text-xl">
+                {selectedDate
+                  ? dayjs(selectedDate).format('DD MMM YYYY')
+                  : 'Select Date'}
+              </Text>
+            </TouchableOpacity>
+
+            <PopupCalendar
+              visible={calendarVisible}
+              onClose={() => setCalendarVisible(false)}
+              onSelectDate={(date) => setSelectedDate(date)}
+            />
+          </View>
+
           <View className="flex-row flex-wrap justify-between">
             <View className="mb-4 ">
-              <Text className="text-lg text-primaryLight dark:text-dark-primaryLight mb-2">
+              <Text className="text-lg text-primary dark:text-dark-primary mb-2">
                 Select Gender
               </Text>
               <View className="flex-row">
@@ -195,7 +217,7 @@ export default function VerificationBioSettings() {
             </View>
 
             <View className="mb-4 ">
-              <Text className="text-lg text-primaryLight dark:text-dark-primaryLight mb-2">
+              <Text className="text-lg text-primary dark:text-dark-primary mb-2">
                 Marital Status
               </Text>
               <View className="flex-row">
@@ -214,58 +236,22 @@ export default function VerificationBioSettings() {
             </View>
           </View>
 
-          {/* <FaceCaptureBox onPhotoTaken={setPhotoUri} /> */}
+          {/* <FaceCaptureBox /> */}
 
-          <TouchableOpacity
-            onPress={handleSubmit}
-            activeOpacity={0.7}
-            disabled={loading}
-            className={`${loading ? 'opacity-50' : ''} customBtn`}
-          >
-            {loading ? (
-              <Spinner size={40} />
-            ) : (
-              <Text className={`text-xl text-white font-psemibold`}>
-                Update Profile
-              </Text>
-            )}
-          </TouchableOpacity>
-
-          {/* {loading ? (
-            <View className="relative w-full">
-              <CustomButton
-                containerStyles="w-full mt-1"
-                textStyles="text-white text-xl"
-                handlePress={() => {}}
-                title="Processing..."
-              />
-              <ActivityIndicator
-                className="absolute left-[10px] top-[50%] translate-y-[-50%]"
-                size="large"
-                color="#fff"
-              />
-            </View>
-          ) : (
-            <>
-              <CustomButton
-                containerStyles="w-full mt-1 mb-5"
-                textStyles="text-white text-xl"
-                handlePress={handleSubmit}
-                title="Update Profile"
-              />
-
-              {isBioEdit && (
-                <CustomButton
-                  containerStyles="w-full mt-1 mb-5"
-                  textStyles="text-white text-xl"
-                  handlePress={() => {
-                    setIsBioEdit(false)
-                  }}
-                  title="Cancel Edit"
-                />
-              )}
-            </>
-          )} */}
+          <CustomBtn
+            label="Update Profile"
+            loading={loading}
+            handleSubmit={handleSubmit}
+          />
+          <View className="my-2" />
+          {isBioEdit && bioUserState?.isBio && (
+            <CustomBtn
+              label="Cancle Edit"
+              loading={loading}
+              handleSubmit={handleSubmit}
+              style="outline"
+            />
+          )}
         </View>
       ) : (
         <View className="px-3 flex-1 mb-5">
@@ -332,14 +318,12 @@ export default function VerificationBioSettings() {
 
             {/* <FaceCaptureBox onPhotoTaken={setPhotoUri} /> */}
 
-            {/* <CustomButton
-              containerStyles="w-full mt-1 mb-5"
-              textStyles="text-white text-xl"
-              handlePress={() => {
-                setIsBioEdit(true)
-              }}
-              title="Edit Bio"
-            /> */}
+            <CustomBtn
+              label="Edit Bio"
+              loading={loading}
+              handleSubmit={handleSubmit}
+              style="outline"
+            />
           </View>
         </View>
       )}

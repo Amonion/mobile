@@ -54,7 +54,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, onCommentPress }) => {
       router.push(
         user.username === post.username
           ? `/home/profile/my-profile`
-          : `/home/profile/${post?.username}`
+          : `/home/user/${post?.username}`
       )
     }
   }

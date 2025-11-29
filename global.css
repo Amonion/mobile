@@ -18,6 +18,10 @@
     @apply h-[50px] flex flex-row items-center text-lg px-5 w-full text-primary dark:text-dark-primary rounded-full font-rRegular bg-secondary dark:bg-dark-secondary
 }
 
+.outlineBtn{
+    @apply border w-full border-border dark:border-dark-border h-[50px] flex-row justify-center items-center rounded-full
+}
+
 .pill{
     @apply py-1 px-3 border rounded-full flex-row items-center border-custom bg-custom
 }

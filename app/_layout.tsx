@@ -21,6 +21,7 @@ import { MomentProvider } from '@/context/MomentContext'
 import { ExamProvider } from '@/context/ExamContext'
 import { ChatProvider } from '@/context/ChatContext'
 import { PostProvider } from '@/context/PostContext'
+import { TraceProvider } from '@/context/TraceContext'
 
 SplashScreen.preventAutoHideAsync()
 
@@ -67,30 +68,29 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <GeneralProvider>
-        <ChatProvider>
-          <PostProvider>
-            <NewsProvider>
-              <MomentProvider>
-                <ExamProvider>
-                  {message !== null && <Message />}
-                  <GestureHandlerRootView style={{ flex: 1 }}>
-                    <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
-                      <Stack screenOptions={{ headerShown: false }}>
-                        <Stack.Screen name="index" />
-                        <Stack.Screen
-                          name="modal"
-                          options={{ presentation: 'modal', title: 'Modal' }}
-                        />
-                      </Stack>
-                    </View>
-                  </GestureHandlerRootView>
+        <TraceProvider>
+          <ChatProvider>
+            <PostProvider>
+              <NewsProvider>
+                <MomentProvider>
+                  <ExamProvider>
+                    {message !== null && <Message />}
+                    <GestureHandlerRootView style={{ flex: 1 }}>
+                      <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
+                        <Stack screenOptions={{ headerShown: false }}>
+                          <Stack.Screen name="index" />
+                          <Stack.Screen name="trace" />
+                        </Stack>
+                      </View>
+                    </GestureHandlerRootView>
 
-                  <StatusBar style="auto" />
-                </ExamProvider>
-              </MomentProvider>
-            </NewsProvider>
-          </PostProvider>
-        </ChatProvider>
+                    <StatusBar style="auto" />
+                  </ExamProvider>
+                </MomentProvider>
+              </NewsProvider>
+            </PostProvider>
+          </ChatProvider>
+        </TraceProvider>
       </GeneralProvider>
     </ThemeProvider>
   )

@@ -3,16 +3,6 @@ import _debounce from 'lodash/debounce'
 import { customRequest } from '@/lib/api'
 import { AuthStore } from './AuthStore'
 
-interface FetchUser {
-  count: number
-  message: string
-  id: string
-  page_size: number
-  followers: number
-  isFollowed: boolean
-  data: User
-}
-
 interface FetchUserResponse {
   count: number
   message: string
@@ -30,18 +20,16 @@ interface UserState {
   page: number
   page_size: number
   selectedUsers: User[]
-  searchedUsers: User[]
-  searchedUsersResult: User[]
+  searchedAccounts: User[]
+  searchedAccountResults: User[]
   showProfileSheet: boolean
 
   getUser: (
     url: string,
     setMessage?: (message: string, isError: boolean) => void
   ) => Promise<void>
-  getUsers: (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void
-  ) => Promise<void>
+  getUsers: (url: string) => Promise<void>
+  getAccounts: (url: string) => Promise<void>
   resetForm: () => void
   reshuffleResults: () => void
   setForm: (key: keyof User, value: User[keyof User]) => void
@@ -55,13 +43,11 @@ interface UserState {
   updateUser: (
     url: string,
     updatedItem: FormData | Record<string, unknown>,
-    setMessage: (message: string, isError: boolean) => void
+    redirect?: () => void
   ) => Promise<void>
-
   updateMyUser: (
     url: string,
-    updatedItem: FormData | Record<string, unknown>,
-    setMessage: (message: string, isError: boolean) => void
+    updatedItem: FormData | Record<string, unknown>
   ) => Promise<void>
 }
 
@@ -108,8 +94,8 @@ export const UserStore = create<UserState>((set) => ({
   page: 1,
   page_size: 20,
   selectedUsers: [],
-  searchedUsers: [],
-  searchedUsersResult: [],
+  searchedAccounts: [],
+  searchedAccountResults: [],
   showProfileSheet: false,
 
   getUser: async (url: string) => {
@@ -133,6 +119,18 @@ export const UserStore = create<UserState>((set) => ({
       const data = response?.data
       if (data) {
         UserStore.getState().setProcessedResults(data)
+      }
+    } catch (error: unknown) {
+      console.log(error)
+    }
+  },
+
+  getAccounts: async (url: string) => {
+    try {
+      const response = await customRequest({ url })
+      const data = response?.data
+      if (data) {
+        set({ searchedAccountResults: data.results })
       }
     } catch (error: unknown) {
       console.log(error)
@@ -165,9 +163,9 @@ export const UserStore = create<UserState>((set) => ({
   setSearchedUserResult: () => {
     set((prev) => {
       return {
-        hasMoreSearch: prev.searchedUsersResult.length > prev.page_size,
-        searchedUsers: prev.searchedUsersResult,
-        searchedUsersResult: [],
+        hasMoreSearch: prev.searchedAccountResults.length > prev.page_size,
+        searchedAccounts: prev.searchedAccountResults,
+        searchedAccountResults: [],
       }
     })
   },
@@ -182,7 +180,7 @@ export const UserStore = create<UserState>((set) => ({
           isChecked: false,
           isActive: false,
         }))
-        set({ searchedUsers: updatedResults })
+        set({ searchedAccounts: updatedResults })
       }
     } catch (error: unknown) {
       console.log(error)
@@ -265,7 +263,8 @@ export const UserStore = create<UserState>((set) => ({
 
   updateUser: async (
     url: string,
-    updatedItem: FormData | Record<string, unknown>
+    updatedItem: FormData | Record<string, unknown>,
+    redirect?: () => void
   ) => {
     set({ loading: true })
     const response = await customRequest({
@@ -277,6 +276,7 @@ export const UserStore = create<UserState>((set) => ({
     const data = response?.data
     if (data) {
       AuthStore.getState().setUser(data.data)
+      if (redirect) redirect()
     }
   },
 

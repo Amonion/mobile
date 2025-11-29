@@ -2,28 +2,29 @@ import { create } from 'zustand'
 import _debounce from 'lodash/debounce'
 import { customRequest } from '@/lib/api'
 import { Country, CountryEmpty } from './CountryOrigin'
+import { Area } from './Area'
 
 interface FetchResponse {
   message: string
   count: number
   page_size: number
-  results: Country[]
+  results: Area[]
 }
 
 interface CountryState {
   links: { next: string | null; previous: string | null } | null
   count: number
   page_size: number
-  countries: Country[]
+  countries: Area[]
   loadingCountries: boolean
   error: string | null
   successs?: string | null
-  selectedCountries: Country[]
-  searchedItems: Country[]
+  selectedCountries: Area[]
+  searchedItems: Area[]
   isAllCountriesChecked: boolean
   country: Country
   allCountries: boolean
-  setItemForm: (key: keyof Country, value: Country[keyof Country]) => void
+  setItemForm: (key: keyof Area, value: Area[keyof Area]) => void
   resetForm: () => void
   setAllCountries: () => void
   getCountries: (
@@ -36,16 +37,6 @@ interface CountryState {
   ) => Promise<void>
   setProcessedResults: (data: FetchResponse) => void
   setLoading?: (loading: boolean) => void
-  updateItem: (
-    url: string,
-    updatedItem: FormData | Record<string, unknown>,
-    setMessage: (message: string, isError: boolean) => void
-  ) => Promise<void>
-  postItem: (
-    url: string,
-    data: FormData | Record<string, unknown>,
-    setMessage: (message: string, isError: boolean) => void
-  ) => Promise<void>
   toggleCheckedCountry: (index: number) => void
   toggleActiveCountry: (index: number) => void
   toggleAllSelectedCountry: () => void
@@ -94,7 +85,7 @@ const CountryStore = create<CountryState>((set, get) => ({
 
   setProcessedResults: ({ count, page_size, results }: FetchResponse) => {
     if (results) {
-      const updatedResults = results.map((item: Country) => ({
+      const updatedResults = results.map((item: Area) => ({
         ...item,
         isChecked: false,
         isActive: false,
@@ -159,7 +150,7 @@ const CountryStore = create<CountryState>((set, get) => ({
 
   reshuffleResults: async () => {
     set((state) => ({
-      countries: state.countries.map((item: Country) => ({
+      countries: state.countries.map((item: Area) => ({
         ...item,
         isChecked: false,
         isActive: false,
@@ -174,42 +165,6 @@ const CountryStore = create<CountryState>((set, get) => ({
       set({ searchedItems: results })
     }
   }, 1000),
-
-  updateItem: async (
-    url: string,
-    updatedItem: FormData | Record<string, unknown>,
-    setMessage: (message: string, isError: boolean) => void
-  ) => {
-    set({ loadingCountries: true, error: null })
-    const response = await customRequest({
-      url,
-      method: 'PATCH',
-      showMessage: true,
-      data: updatedItem,
-    })
-
-    if (response?.status !== 404 && response?.data) {
-      CountryStore.getState().setProcessedResults(response.data)
-    }
-  },
-
-  postItem: async (
-    url: string,
-    updatedItem: FormData | Record<string, unknown>,
-    setMessage: (message: string, isError: boolean) => void
-  ) => {
-    set({ loadingCountries: true, error: null })
-
-    const response = await customRequest({
-      url,
-      method: 'POST',
-      showMessage: true,
-      data: updatedItem,
-    })
-    if (response?.status !== 404 && response?.data) {
-      CountryStore.getState().setProcessedResults(response.data)
-    }
-  },
 
   toggleActiveCountry: (index: number) => {
     set((state) => {

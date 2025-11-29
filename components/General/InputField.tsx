@@ -29,7 +29,7 @@ const InputField: React.FC<InputFieldProps> = ({
 
   return (
     <View className="mb-[20px]">
-      <Text className="text-primary dark:text-dark-primary mb-2 font-semibold">
+      <Text className="text-primary dark:text-dark-primaryLight mb-1">
         {label}
       </Text>
 

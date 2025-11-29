@@ -1,12 +1,13 @@
 import { create } from 'zustand'
 import _debounce from 'lodash/debounce'
 import { customRequest } from '@/lib/api'
+import { Area, AreaEmpty } from './Area'
 
 interface FetchResponse {
   message: string
   count: number
   page_size: number
-  results: State[]
+  results: Area[]
   state: string
   stateCapital: string
   stateLogo: string
@@ -45,16 +46,16 @@ interface StateState {
   links: { next: string | null; previous: string | null } | null
   count: number
   page_size: number
-  states: State[]
+  states: Area[]
   loadingStates: boolean
   error: string | null
   successs?: string | null
-  selectedStates: State[]
-  searchedItems: State[]
+  selectedStates: Area[]
+  searchedItems: Area[]
   isAllCountriesChecked: boolean
   allStates: boolean
-  stateForm: State
-  setItemForm: (key: keyof State, value: State[keyof State]) => void
+  stateForm: Area
+  setItemForm: (key: keyof Area, value: Area[keyof Area]) => void
   resetForm: () => void
   setAllStates: () => void
   getStates: (
@@ -68,16 +69,6 @@ interface StateState {
   ) => Promise<void>
   setProcessedResults: (data: FetchResponse) => void
   setLoading?: (loading: boolean) => void
-  updateItem: (
-    url: string,
-    updatedItem: FormData | Record<string, unknown>,
-    setMessage: (message: string, isError: boolean) => void
-  ) => Promise<void>
-  postItem: (
-    url: string,
-    data: FormData | Record<string, unknown>,
-    setMessage: (message: string, isError: boolean) => void
-  ) => Promise<void>
   toggleCheckedState: (index: number) => void
   toggleActiveState: (index: number) => void
   toggleAllSelectedState: () => void
@@ -96,7 +87,7 @@ const StateStore = create<StateState>((set) => ({
   searchedItems: [],
   isAllCountriesChecked: false,
   allStates: false,
-  stateForm: StateEmpty,
+  stateForm: AreaEmpty,
   setItemForm: (key, value) =>
     set((state) => ({
       stateForm: {
@@ -106,12 +97,12 @@ const StateStore = create<StateState>((set) => ({
     })),
   resetForm: () =>
     set({
-      stateForm: StateEmpty,
+      stateForm: AreaEmpty,
     }),
 
   setProcessedResults: ({ count, page_size, results }: FetchResponse) => {
     if (results) {
-      const updatedResults = results.map((item: State) => ({
+      const updatedResults = results.map((item: Area) => ({
         ...item,
         isChecked: false,
         isActive: false,
@@ -191,7 +182,7 @@ const StateStore = create<StateState>((set) => ({
 
   reshuffleStates: async () => {
     set((state) => ({
-      states: state.states.map((item: State) => ({
+      states: state.states.map((item: Area) => ({
         ...item,
         isChecked: false,
         isActive: false,
@@ -207,41 +198,6 @@ const StateStore = create<StateState>((set) => ({
       set({ searchedItems: results })
     }
   }, 1000),
-
-  updateItem: async (
-    url: string,
-    updatedItem: FormData | Record<string, unknown>,
-    setMessage: (message: string, isError: boolean) => void
-  ) => {
-    set({ loadingStates: true, error: null })
-    const response = await customRequest({
-      url,
-      method: 'PATCH',
-      showMessage: true,
-      data: updatedItem,
-    })
-    if (response?.status !== 404 && response?.data) {
-      StateStore.getState().setProcessedResults(response.data)
-    }
-  },
-
-  postItem: async (
-    url: string,
-    updatedItem: FormData | Record<string, unknown>,
-    setMessage: (message: string, isError: boolean) => void
-  ) => {
-    set({ loadingStates: true, error: null })
-    const response = await customRequest({
-      url,
-      method: 'PATCH',
-      showMessage: true,
-      data: updatedItem,
-    })
-
-    if (response?.status !== 404 && response?.data) {
-      StateStore.getState().setProcessedResults(response.data)
-    }
-  },
 
   toggleActiveState: (index: number) => {
     set((state) => {

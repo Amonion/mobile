@@ -54,6 +54,7 @@ const MainAppBar = ({ onMenuPress }: { onMenuPress: () => void }) => {
         <TouchableOpacity
           hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
           className="p-3"
+          onPress={() => router.push('/posts')}
         >
           <Search size={26} color={isDark ? '#BABABA' : '#6E6E6E'} />
         </TouchableOpacity>

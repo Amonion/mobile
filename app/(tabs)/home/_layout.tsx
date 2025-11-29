@@ -19,9 +19,9 @@ export default function HomeLayout() {
             gestureEnabled: false,
           }}
         /> */}
-        <Stack.Screen name="profile" />
+        <Stack.Screen name="profile/my-profile" />
         <Stack.Screen name="verification" />
-        {/* <Stack.Screen name="user/[username]" /> */}
+        <Stack.Screen name="user/[username]" />
         <Stack.Screen name="settings" />
       </Stack>
     </View>

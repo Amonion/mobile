@@ -53,6 +53,7 @@ export default function VerificationLayout() {
           backgroundColor: isDark ? '#1C1E21' : '#FFFFFF',
         }}
       > */}
+
       <ScrollView
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
@@ -60,237 +61,42 @@ export default function VerificationLayout() {
         contentContainerStyle={{
           flexGrow: 1,
           backgroundColor: isDark ? '#1C1E21' : '#FFFFFF',
-          paddingBottom: 60,
-          // paddingBottom: scrollHeight,
+          paddingBottom: 20,
         }}
         className="flex-1 bg-primary dark:bg-dark-primary relative pb-3"
       >
-        <View className="flex-row border-b border-b-border dark:border-b-dark-border py-5 justify-center px-[10px] mb-1">
-          <TouchableOpacity
-            onPress={() => {
-              if (pathname !== '/home/verification') {
-                router.push('/home/verification/profile')
-              }
-            }}
-            className={`${
-              !pathname.includes('education') && !pathname.includes('public')
-                ? 'pill'
-                : 'pillInActive'
-            } mx-2`}
-          >
-            <Text
+        <View className="flex-1 bg-primary dark:bg-dark-primary relative pb-3">
+          <View className="flex-row border-b border-b-border dark:border-b-dark-border py-5 justify-center px-[10px] mb-1">
+            <TouchableOpacity
+              onPress={() => {
+                if (pathname !== '/home/verification') {
+                  router.push('/home/verification/profile')
+                }
+              }}
               className={`${
                 !pathname.includes('education') && !pathname.includes('public')
-                  ? 'text-white'
-                  : 'text-primary dark:text-dark-primary'
-              } `}
-            >
-              Profile
-            </Text>
-            {!isProfile && (
-              <Feather
-                name="help-circle"
-                size={14}
-                className="ml-1"
-                color={
-                  !pathname.includes('education') &&
-                  !pathname.includes('public')
-                    ? '#FFF'
-                    : isDark
-                    ? '#BABABA'
-                    : '#6E6E6E'
-                }
-              />
-            )}
-          </TouchableOpacity>
-          {/*
-          {isProfile ? (
-            <TouchableOpacity
-              onPress={() => {
-                if (pathname !== '/home/verification/public') {
-                  router.push('/home/verification/public')
-                }
-              }}
-              className={`${
-                pathname.includes('public')
-                  ? 'border-custom bg-custom'
-                  : 'border-border dark:border-dark-border '
-              } py-2 px-2 mx-2 border rounded-[5px] flex-row items-center`}
-            >
-              <Text
-                className={`${
-                  pathname.includes('public')
-                    ? 'text-white'
-                    : 'text-primary dark:text-dark-primary'
-                } text-lg`}
-              >
-                Public
-              </Text>
-              {isPublic ? (
-                <MaterialCommunityIcons
-                  name="check-circle-outline"
-                  size={14}
-                  color={
-                    pathname.includes('public')
-                      ? '#00EB0C'
-                      : isDark
-                      ? '#00B809'
-                      : '#05AD0D'
-                  }
-                  className="ml-1"
-                />
-              ) : (
-                <Feather
-                  name="help-circle"
-                  size={14}
-                  className="ml-1"
-                  color={
-                    pathname.includes('public')
-                      ? '#FFF'
-                      : isDark
-                      ? '#BABABA'
-                      : '#6E6E6E'
-                  }
-                />
-              )}
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity
-              onPress={() => {
-                setMessage(
-                  'Complete your profile verification to continue.',
-                  false
-                )
-                if (pathname !== '/home/verification/public') {
-                  router.push('/home/verification/public')
-                }
-              }}
-              className={`${
-                pathname.includes('public')
-                  ? 'border-custom bg-custom'
-                  : 'border-border dark:border-dark-border '
-              } py-2 px-2 mx-2 border rounded-[5px] flex-row items-center`}
-            >
-              <Text
-                className={`${
-                  pathname.includes('public')
-                    ? 'text-white'
-                    : 'text-primary dark:text-dark-primary'
-                } text-lg`}
-              >
-                Public
-              </Text>
-              {isPublic ? (
-                <MaterialCommunityIcons
-                  name="check-circle-outline"
-                  size={14}
-                  color={
-                    pathname.includes('public')
-                      ? '#00EB0C'
-                      : isDark
-                      ? '#00B809'
-                      : '#05AD0D'
-                  }
-                  className="ml-1"
-                />
-              ) : (
-                <Feather
-                  name="help-circle"
-                  size={14}
-                  className="ml-1"
-                  color={
-                    pathname.includes('public')
-                      ? '#FFF'
-                      : isDark
-                      ? '#BABABA'
-                      : '#6E6E6E'
-                  }
-                />
-              )}
-            </TouchableOpacity>
-          )} */}
-
-          {isPublic ? (
-            <TouchableOpacity
-              onPress={() => {
-                if (pathname !== '/home/verification/education') {
-                  router.push('/home/verification/education')
-                }
-              }}
-              className={`${pathname.includes('education') ? '' : ''} `}
-            >
-              <Text
-                className={`${
-                  pathname.includes('education')
-                    ? 'text-white'
-                    : 'text-primary dark:text-dark-primary'
-                }`}
-              >
-                Education
-              </Text>
-              {isEducation ? (
-                <MaterialCommunityIcons
-                  name="check-circle-outline"
-                  size={14}
-                  color={
-                    pathname.includes('education')
-                      ? '#00EB0C'
-                      : isDark
-                      ? '#00B809'
-                      : '#05AD0D'
-                  }
-                  className="ml-1"
-                />
-              ) : (
-                <Feather
-                  name="help-circle"
-                  size={14}
-                  className="ml-1"
-                  color={
-                    pathname.includes('education')
-                      ? '#FFF'
-                      : isDark
-                      ? '#BABABA'
-                      : '#6E6E6E'
-                  }
-                />
-              )}
-            </TouchableOpacity>
-          ) : (
-            <View
-              className={`${
-                pathname.includes('education') ? '' : 'pillInActive '
+                  ? 'pill'
+                  : 'pillInActive'
               } mx-2`}
             >
               <Text
                 className={`${
-                  pathname.includes('education')
+                  !pathname.includes('education') &&
+                  !pathname.includes('public')
                     ? 'text-white'
                     : 'text-primary dark:text-dark-primary'
-                } text-lg`}
+                } `}
               >
-                Education
+                Profile
               </Text>
-              {isEducation ? (
-                <MaterialCommunityIcons
-                  name="check-circle-outline"
-                  size={14}
-                  color={
-                    pathname.includes('education')
-                      ? '#00EB0C'
-                      : isDark
-                      ? '#00B809'
-                      : '#05AD0D'
-                  }
-                  className="ml-1"
-                />
-              ) : (
+              {!isProfile && (
                 <Feather
                   name="help-circle"
                   size={14}
                   className="ml-1"
                   color={
-                    pathname.includes('education')
+                    !pathname.includes('education') &&
+                    !pathname.includes('public')
                       ? '#FFF'
                       : isDark
                       ? '#BABABA'
@@ -298,10 +104,178 @@ export default function VerificationLayout() {
                   }
                 />
               )}
-            </View>
-          )}
+            </TouchableOpacity>
+            {isProfile ? (
+              <TouchableOpacity
+                onPress={() => {
+                  if (pathname !== '/home/verification/public') {
+                    router.push('/home/verification/public')
+                  }
+                }}
+                className={`${
+                  pathname.includes('public')
+                    ? 'border-custom bg-custom'
+                    : 'border-border dark:border-dark-border '
+                } py-2 px-2 mx-2 border rounded-[5px] flex-row items-center`}
+              >
+                <Text
+                  className={`${
+                    pathname.includes('public')
+                      ? 'text-white'
+                      : 'text-primary dark:text-dark-primary'
+                  } text-lg`}
+                >
+                  Public
+                </Text>
+                {!isPublic && (
+                  <Feather
+                    name="help-circle"
+                    size={14}
+                    className="ml-1"
+                    color={
+                      pathname.includes('public')
+                        ? '#FFF'
+                        : isDark
+                        ? '#BABABA'
+                        : '#6E6E6E'
+                    }
+                  />
+                )}
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                onPress={() => {
+                  setMessage(
+                    'Complete your profile verification to continue.',
+                    false
+                  )
+                  if (pathname !== '/home/verification/public') {
+                    router.push('/home/verification/public')
+                  }
+                }}
+                className={`${
+                  pathname.includes('public') ? '' : 'pillInActive'
+                } mx-2`}
+              >
+                <Text
+                  className={`${
+                    pathname.includes('public')
+                      ? 'text-white'
+                      : 'text-primary dark:text-dark-primary'
+                  } `}
+                >
+                  Public
+                </Text>
+                {!isPublic && (
+                  <Feather
+                    name="help-circle"
+                    size={14}
+                    className="ml-1"
+                    color={
+                      pathname.includes('public')
+                        ? '#FFF'
+                        : isDark
+                        ? '#BABABA'
+                        : '#6E6E6E'
+                    }
+                  />
+                )}
+              </TouchableOpacity>
+            )}
+
+            {isPublic ? (
+              <TouchableOpacity
+                onPress={() => {
+                  if (pathname !== '/home/verification/education') {
+                    router.push('/home/verification/education')
+                  }
+                }}
+                className={`${pathname.includes('education') ? '' : ''} `}
+              >
+                <Text
+                  className={`${
+                    pathname.includes('education')
+                      ? 'text-white'
+                      : 'text-primary dark:text-dark-primary'
+                  }`}
+                >
+                  Education
+                </Text>
+                {isEducation ? (
+                  <MaterialCommunityIcons
+                    name="check-circle-outline"
+                    size={14}
+                    color={
+                      pathname.includes('education')
+                        ? '#00EB0C'
+                        : isDark
+                        ? '#00B809'
+                        : '#05AD0D'
+                    }
+                    className="ml-1"
+                  />
+                ) : (
+                  <Feather
+                    name="help-circle"
+                    size={14}
+                    className="ml-1"
+                    color={
+                      pathname.includes('education')
+                        ? '#FFF'
+                        : isDark
+                        ? '#BABABA'
+                        : '#6E6E6E'
+                    }
+                  />
+                )}
+              </TouchableOpacity>
+            ) : (
+              <View
+                className={`${
+                  pathname.includes('education') ? '' : 'pillInActive '
+                } mx-2`}
+              >
+                <Text
+                  className={`${
+                    pathname.includes('education')
+                      ? 'text-white'
+                      : 'text-primary dark:text-dark-primary'
+                  } `}
+                >
+                  Education
+                </Text>
+                {isEducation ? (
+                  <MaterialCommunityIcons
+                    name="check-circle-outline"
+                    size={14}
+                    color={
+                      pathname.includes('education')
+                        ? '#00EB0C'
+                        : isDark
+                        ? '#00B809'
+                        : '#05AD0D'
+                    }
+                    className="ml-1"
+                  />
+                ) : (
+                  <Feather
+                    name="help-circle"
+                    size={14}
+                    className="ml-1"
+                    color={
+                      pathname.includes('education')
+                        ? '#FFF'
+                        : isDark
+                        ? '#BABABA'
+                        : '#6E6E6E'
+                    }
+                  />
+                )}
+              </View>
+            )}
+          </View>
+          <Slot />
         </View>
-        <Slot />
       </ScrollView>
       {/* </KeyboardAvoidingView> */}
     </>
