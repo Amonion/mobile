@@ -3,6 +3,7 @@ import { AuthStore } from '@/store/AuthStore'
 import { PostStore } from '@/store/Trace/Post'
 import { Post } from '@/store/post/Post'
 import { AccountStore } from '@/store/Trace/Accounts'
+import { PeopleStore } from '@/store/Trace/People'
 
 interface TracePostContextType {
   postResults: Post[]
@@ -27,12 +28,14 @@ interface TraceProviderProps {
 export const TraceProvider: React.FC<TraceProviderProps> = ({ children }) => {
   const { postResults, getSavedPosts } = PostStore()
   const { getSavedAccounts } = AccountStore()
+  const { getSavedPeople } = PeopleStore()
   const { user } = AuthStore()
 
   useEffect(() => {
     if (postResults.length === 0 && user) {
       getSavedPosts(user)
       getSavedAccounts(user)
+      getSavedPeople(user)
     }
   }, [user])
 

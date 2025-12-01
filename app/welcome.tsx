@@ -31,6 +31,7 @@ import { createAccount } from '@/lib/auth'
 import { PostStore } from '@/store/post/Post'
 import NewsStore from '@/store/news/News'
 import { Feather } from '@expo/vector-icons'
+import { Area } from '@/store/place/Area'
 // ... keep all your other imports exactly the same
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
@@ -107,7 +108,7 @@ const WelcomeScreen = () => {
     []
   )
 
-  const selectCountry = (country: Country) => {
+  const selectCountry = (country: Area) => {
     setCountry(country.country)
     setCountryList(false)
     getStates(
@@ -188,7 +189,6 @@ const WelcomeScreen = () => {
         return
       }
       const response = await createAccount(userDetails)
-      console.log(response)
       if (response.user) {
         const { user, posts, featuredNews } = response
         AuthStore.getState().setUser(user)

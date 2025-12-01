@@ -1,10 +1,5 @@
-import {
-  formatCount,
-  formatRelativeDate,
-  moveToProfile,
-  truncateString,
-} from '@/lib/helpers'
-import { Feather, MaterialCommunityIcons, Octicons } from '@expo/vector-icons'
+import { formatCount, moveToProfile, truncateString } from '@/lib/helpers'
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
 import React from 'react'
 import {
   View,

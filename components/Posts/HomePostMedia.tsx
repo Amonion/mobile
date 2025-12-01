@@ -43,7 +43,9 @@ const HomePostMedia: React.FC<HomePostMediaProps> = ({ sources }) => {
     CommentStore.setState({ mainPost: comment })
     if (mediaResults[index].postId) {
       getComments(
-        `/posts/comments?page=${currentPage}&page_size=${page_size}&postType=comment&postId=${mediaResults[index].postId}&level=1`
+        `/posts/comments?page=${currentPage}&page_size=${20}&postId=${
+          mediaResults[index].postId
+        }&level=1`
       )
     }
     router.push(`/full-post`)

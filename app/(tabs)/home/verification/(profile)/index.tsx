@@ -236,7 +236,7 @@ export default function VerificationBioSettings() {
             </View>
           </View>
 
-          {/* <FaceCaptureBox /> */}
+          <FaceCaptureBox />
 
           <CustomBtn
             label="Update Profile"

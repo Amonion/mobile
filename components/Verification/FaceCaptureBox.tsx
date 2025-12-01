@@ -164,25 +164,29 @@ export default function FaceCaptureBox() {
             </CameraView>
           </View>
 
-          <View className="flex-row w-full px-4">
-            <TouchableOpacity
-              onPress={() => setCameraStarted(false)}
-              activeOpacity={0.7}
-              className={`customBtn`}
-            >
-              <Text className={`text-xl text-white font-psemibold`}>
-                Stop Capture
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={takePicture}
-              activeOpacity={0.7}
-              className={`customBtn`}
-            >
-              <Text className={`text-xl text-white font-psemibold`}>
-                Take Photo
-              </Text>
-            </TouchableOpacity>
+          <View className="flex-row w-full">
+            <View className="w-1/2 px-2">
+              <TouchableOpacity
+                onPress={() => setCameraStarted(false)}
+                activeOpacity={0.7}
+                className={`customBtn`}
+              >
+                <Text className={`text-xl text-white font-psemibold`}>
+                  Stop Capture
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View className="w-1/2 px-2">
+              <TouchableOpacity
+                onPress={takePicture}
+                activeOpacity={0.7}
+                className={`customBtn`}
+              >
+                <Text className={`text-xl text-white font-psemibold`}>
+                  Take Photo
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </>
       ) : capturedUri ? (
@@ -197,22 +201,28 @@ export default function FaceCaptureBox() {
             }}
           />
           <View className="flex-row flex-1">
-            <TouchableOpacity
-              onPress={closeCapture}
-              activeOpacity={0.7}
-              className={`customBtn`}
-            >
-              <Text className={`text-xl text-white font-psemibold`}>Close</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={handleStartCamera}
-              activeOpacity={0.7}
-              className={`customBtn`}
-            >
-              <Text className={`text-xl text-white font-psemibold`}>
-                Retake
-              </Text>
-            </TouchableOpacity>
+            <View className="w-1/2 px-2">
+              <TouchableOpacity
+                onPress={closeCapture}
+                activeOpacity={0.7}
+                className={`customBtn`}
+              >
+                <Text className={`text-xl text-white font-psemibold`}>
+                  Close
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View className="w-1/2 px-2">
+              <TouchableOpacity
+                onPress={handleStartCamera}
+                activeOpacity={0.7}
+                className={`customBtn`}
+              >
+                <Text className={`text-xl text-white font-psemibold`}>
+                  Retake
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       ) : (
@@ -226,6 +236,17 @@ export default function FaceCaptureBox() {
               marginBottom: 20,
             }}
           />
+          {bioUserForm.passport && (
+            <TouchableOpacity
+              onPress={handleStartCamera}
+              activeOpacity={0.7}
+              className={`customBtn`}
+            >
+              <Text className={`text-xl text-white font-psemibold`}>
+                Retake
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       )}
     </View>

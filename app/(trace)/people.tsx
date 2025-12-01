@@ -9,11 +9,13 @@ import {
   Platform,
 } from 'react-native'
 import { AuthStore } from '@/store/AuthStore'
-import { User } from '@/store/user/User'
-import AccountCard from '@/components/Trace/AccountCard'
 import { PeopleStore } from '@/store/Trace/People'
+import PeopleCard from '@/components/Trace/PeopleCard'
+import { BioUserSchoolInfo } from '@/store/user/BioUserSchoolInfo'
 
-const AnimatedFlatList = Animated.createAnimatedComponent(FlatList<User>)
+const AnimatedFlatList = Animated.createAnimatedComponent(
+  FlatList<BioUserSchoolInfo>
+)
 const Accounts = () => {
   const {
     loading,
@@ -46,11 +48,11 @@ const Accounts = () => {
   }, [people])
 
   const renderItem = useCallback(
-    ({ item }: { item: User }) => <AccountCard account={item} />,
+    ({ item }: { item: BioUserSchoolInfo }) => <PeopleCard user={item} />,
     []
   )
 
-  const keyExtractor = useCallback((item: User) => item._id, [])
+  const keyExtractor = useCallback((item: BioUserSchoolInfo) => item._id, [])
 
   return (
     <View className="flex-1 bg-secondary dark:bg-dark-secondary relative">

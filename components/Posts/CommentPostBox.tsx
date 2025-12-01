@@ -17,11 +17,15 @@ import EachComment from '../Sheets/EachComment'
 import { PostStore } from '@/store/post/Post'
 
 interface CommentPostBoxProps {
-  translateY: SharedValue<number>
-  visibleHeight: SharedValue<number>
+  height?: number
+  visibleHeight?: SharedValue<number>
+  translateY?: SharedValue<number>
 }
 
-const CommentPostBox: React.FC<CommentPostBoxProps> = ({ visibleHeight }) => {
+const CommentPostBox: React.FC<CommentPostBoxProps> = ({
+  height,
+  visibleHeight,
+}) => {
   const {
     mainPost,
     postedComment,
@@ -41,7 +45,7 @@ const CommentPostBox: React.FC<CommentPostBoxProps> = ({ visibleHeight }) => {
   const isDark = colorScheme === 'dark'
   const animatedStyle = useAnimatedStyle(() => {
     return {
-      height: visibleHeight.value - 100,
+      height: height ? height : visibleHeight ? visibleHeight.value - 100 : 0,
     }
   })
 

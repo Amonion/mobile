@@ -1,20 +1,20 @@
 import { create } from 'zustand'
 import _debounce from 'lodash/debounce'
 import { customRequest } from '@/lib/api'
-import { User } from '../user/User'
 import { AuthStore } from '../AuthStore'
 import { clearTable, getAll, saveAll, upsert } from '@/lib/localStorage/db'
 import { isEqual } from 'lodash'
+import { BioUserSchoolInfo } from '../user/BioUserSchoolInfo'
 
 interface PeopleState {
-  people: User[]
+  people: BioUserSchoolInfo[]
   count: number
   loading: boolean
   page: number
   page_size: number
-  searchedPeople: User[]
-  searchedPeopleResults: User[]
-  getSavedPeople: (user: User) => Promise<void>
+  searchedPeople: BioUserSchoolInfo[]
+  searchedPeopleResults: BioUserSchoolInfo[]
+  getSavedPeople: (user: BioUserSchoolInfo) => Promise<void>
   getPeople: (url: string) => Promise<void>
   searchPeople: (url: string) => void
 }
@@ -30,12 +30,17 @@ export const PeopleStore = create<PeopleState>((set) => ({
   getSavedPeople: async (user) => {
     try {
       set({ loading: true })
-      const people = await getAll<User>('people', { page: 1, pageSize: 20 })
+      const people = await getAll<BioUserSchoolInfo>('people', {
+        page: 1,
+        pageSize: 20,
+      })
       if (people.length > 0) {
         set({ people })
       }
       clearTable('people')
-      PeopleStore.getState().getPeople(`/users/people/?page_size=40&page=1`)
+      PeopleStore.getState().getPeople(
+        `/users/biouser-school/?page_size=40&page=1&isVerified=true`
+      )
     } catch (error: unknown) {
       console.log(error)
     } finally {
@@ -51,9 +56,8 @@ export const PeopleStore = create<PeopleState>((set) => ({
         const fetchedPeople = data.results
         const savedPeople = PeopleStore.getState().people
         const first20Fetched = fetchedPeople.slice(0, 20)
-
         const missingPeople = first20Fetched.filter(
-          (apiUser: User) =>
+          (apiUser: BioUserSchoolInfo) =>
             !savedPeople.some((local) => local._id === apiUser._id)
         )
 
@@ -68,12 +72,14 @@ export const PeopleStore = create<PeopleState>((set) => ({
         }
 
         if (savedPeople.length > 0) {
-          const toUpsert = fetchedPeople.filter((apiItem: User) => {
-            const existing = savedPeople.find(
-              (localItem) => localItem._id === apiItem._id
-            )
-            return !existing || !isEqual(existing, apiItem)
-          })
+          const toUpsert = fetchedPeople.filter(
+            (apiItem: BioUserSchoolInfo) => {
+              const existing = savedPeople.find(
+                (localItem) => localItem._id === apiItem._id
+              )
+              return !existing || !isEqual(existing, apiItem)
+            }
+          )
 
           if (toUpsert.length > 0) {
             for (const item of toUpsert) {
@@ -97,7 +103,7 @@ export const PeopleStore = create<PeopleState>((set) => ({
       const response = await customRequest({ url })
       if (response) {
         const { results } = response?.data
-        const updatedResults = results.map((item: User) => ({
+        const updatedResults = results.map((item: BioUserSchoolInfo) => ({
           ...item,
           isChecked: false,
           isActive: false,
