@@ -101,8 +101,12 @@ const ChatMedia = ({ e }: ChatContentProps) => {
                 />
               </TouchableOpacity>
             </View>
-          ) : e.media[0].type === 'audio' ? (
+          ) : e.media[0].type.includes('audio') ? (
             <AudioMessage
+              item={e.media[0]}
+              media={e.media}
+              index={0}
+              chatId={e.timeNumber}
               src={String(e.media[0].url)}
               isSender={isSender}
               name={e.media[0].name}

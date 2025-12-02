@@ -1,20 +1,25 @@
 import React, { useEffect, useState } from 'react'
-import {
-  View,
-  Text,
-  Pressable,
-  useColorScheme,
-  ActivityIndicator,
-} from 'react-native'
+import { View, Text, Pressable, useColorScheme } from 'react-native'
 import { Audio } from 'expo-av'
 import { Feather } from '@expo/vector-icons'
 import * as FileSystem from 'expo-file-system'
 import { AVPlaybackStatus } from 'expo-av/build/AV'
-import { getDeviceWidth } from '@/lib/helpers'
+import {
+  getDeviceWidth,
+  handlePendingFileUpload,
+  truncateString,
+} from '@/lib/helpers'
 import { MessageStore } from '@/store/notification/Message'
 import * as MediaLibrary from 'expo-media-library'
+import { ChatStore, PreviewFile } from '@/store/chat/Chat'
+import Svg, { Circle } from 'react-native-svg'
+import { CircleQuestionMark } from 'lucide-react-native'
 
 type AudioMessageProps = {
+  item: PreviewFile
+  media: PreviewFile[]
+  index: number
+  chatId: number
   src: string
   isSender: boolean
   name?: string
@@ -28,25 +33,99 @@ const formatTime = (secs: number) => {
   return `${minutes}:${seconds}`
 }
 
-const AudioMessage: React.FC<AudioMessageProps> = ({ src, name, isSender }) => {
+const size = 48
+const strokeWidth = 4
+const radius = (size - strokeWidth) / 2
+const circumference = 2 * Math.PI * radius
+
+const AudioMessage: React.FC<AudioMessageProps> = ({
+  item,
+  media,
+  index,
+  chatId,
+  src,
+  name,
+  isSender,
+}) => {
   const [sound, setSound] = useState<Audio.Sound | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
   const [durationMillis, setDurationMillis] = useState<number>(0)
   const [positionMillis, setPositionMillis] = useState<number>(0)
   const colorScheme = useColorScheme()
   const isDark = colorScheme === 'dark' ? true : false
   const progress = durationMillis ? (positionMillis / durationMillis) * 100 : 0
   const width = getDeviceWidth()
-  const { setMessage } = MessageStore()
+  const { baseURL, setMessage } = MessageStore()
+  const { updateChatWithFile } = ChatStore()
+  const [progressPercent, setProgress] = useState(0)
+  const [isUploading, setIsUploading] = useState(false)
 
   useEffect(() => {
     loadSound()
-
+    // handleDownload()
     return () => {
       sound?.unloadAsync()
     }
   }, [src])
+
+  useEffect(() => {
+    if (item.status !== 'pending' || !item.uri || !isSender) return
+
+    const upload = async () => {
+      setIsUploading(true)
+
+      try {
+        const uploaded = await handlePendingFileUpload(
+          {
+            uri: String(item.uri),
+            name: item.name || 'file',
+            type: item.type === 'video' ? 'video/mp4' : 'image/jpeg',
+            previewUrl: item.type === 'video' ? String(item.previewUrl) : '',
+            size: item.size || 0,
+            pages: item.pages || 0,
+            duration: item.duration || 0,
+          },
+          baseURL,
+          (percent: number) => setProgress(percent),
+          item.pages ?? 0,
+          item.duration ?? 0
+        )
+        const updatedMedia = media.map((mediaItem, i) =>
+          i === index
+            ? {
+                ...mediaItem,
+                status: 'uploaded' as const,
+                source: uploaded.source,
+                url: uploaded.source,
+                previewUrl: mediaItem.previewUrl,
+                poster: uploaded.poster ?? mediaItem.poster,
+                uri: mediaItem.uri,
+              }
+            : mediaItem
+        )
+
+        updateChatWithFile('/chats', {
+          timeNumber: chatId,
+          media: updatedMedia,
+        })
+      } catch (err) {
+        console.error('Upload failed:', err)
+
+        const updatedMedia = media.map((mediaItem, i) =>
+          i === index ? { ...mediaItem, status: 'failed' as const } : mediaItem
+        )
+
+        updateChatWithFile('/chats', {
+          timeNumber: chatId,
+          media: updatedMedia,
+        })
+      } finally {
+        setIsUploading(false)
+      }
+    }
+
+    upload()
+  }, [item.status, item.uri, isSender, chatId])
 
   const loadSound = async () => {
     try {
@@ -86,7 +165,6 @@ const AudioMessage: React.FC<AudioMessageProps> = ({ src, name, isSender }) => {
   }
 
   const handleDownload = async () => {
-    setIsLoading(true)
     try {
       const filename = name?.endsWith('.mp3')
         ? name
@@ -115,30 +193,77 @@ const AudioMessage: React.FC<AudioMessageProps> = ({ src, name, isSender }) => {
       console.log(err)
       setMessage('Failed to download audio.', false)
     } finally {
-      setIsLoading(false)
     }
   }
 
   return (
     <View className="flex flex-col w-full mb-2">
-      <View className="flex-row items-end">
-        <Pressable
-          onPress={togglePlay}
-          className={`rounded-full text-dark-primary border justify-center items-center mr-2 ${
-            isSender ? 'border-border dark:border-dark-border' : 'border-white'
-          }`}
-          style={{
-            width: width * 0.1,
-            height: width * 0.1,
-          }}
-        >
-          <Feather
-            name={isPlaying ? 'pause' : 'play'}
-            size={20}
-            color={isSender ? (isDark ? '#BABABA' : '#6E6E6E') : '#fff'}
-            className={`${isPlaying ? 'ml-0' : 'ml-1'}`}
-          />
-        </Pressable>
+      <View className="flex-row items-end w-full">
+        {(isUploading || progressPercent > 0) && item.status !== 'uploaded' ? (
+          <View
+            style={{ width: 55, height: 55 }}
+            className=" items-center justify-center mr-2"
+          >
+            {isSender ? (
+              <>
+                <Svg
+                  width={size}
+                  height={size}
+                  style={{ transform: [{ rotate: '-90deg' }] }}
+                >
+                  <Circle
+                    cx={size / 2}
+                    cy={size / 2}
+                    r={radius}
+                    stroke="#374151"
+                    strokeWidth={strokeWidth}
+                    fill="transparent"
+                  />
+                  <Circle
+                    cx={size / 2}
+                    cy={size / 2}
+                    r={radius}
+                    stroke="#4B7FFF"
+                    strokeWidth={strokeWidth}
+                    fill="transparent"
+                    strokeDasharray={circumference}
+                    strokeDashoffset={circumference * (1 - progress / 100)}
+                    strokeLinecap="round"
+                  />
+                </Svg>
+                <Text className="absolute text-white text-xs font-medium">
+                  {progressPercent}%
+                </Text>
+              </>
+            ) : (
+              <CircleQuestionMark
+                size={25}
+                color={isSender ? (isDark ? '#BABABA' : '#6E6E6E') : '#fff'}
+                className="absolute"
+              />
+            )}
+          </View>
+        ) : (
+          <Pressable
+            onPress={togglePlay}
+            className={`rounded-full text-dark-primary border justify-center items-center mr-2 ${
+              isSender
+                ? 'border-border dark:border-dark-border'
+                : 'border-white'
+            }`}
+            style={{
+              width: width * 0.1,
+              height: width * 0.1,
+            }}
+          >
+            <Feather
+              name={isPlaying ? 'pause' : 'play'}
+              size={20}
+              color={isSender ? (isDark ? '#BABABA' : '#6E6E6E') : '#fff'}
+              className={`${isPlaying ? 'ml-0' : 'ml-1'}`}
+            />
+          </Pressable>
+        )}
 
         <View className="flex-1 mr-2">
           <View
@@ -155,40 +280,37 @@ const AudioMessage: React.FC<AudioMessageProps> = ({ src, name, isSender }) => {
           </View>
 
           <View className="flex-row justify-between mt-1">
-            <Text className="text-xs mr-2 text-primary dark:text-dark-primary">
-              {formatTime(positionMillis / 1000)} /{' '}
-              {formatTime(durationMillis / 1000)}
-            </Text>
-            <Text className="text-xs text-primary dark:text-dark-primary line-clamp-1 overflow-ellipsis">
-              {name}
+            {item.status !== 'pending' ? (
+              <Text
+                className={`text-xs mr-2 ${
+                  !isSender
+                    ? 'text-white'
+                    : 'text-primary dark:text-dark-primary'
+                }`}
+              >
+                {formatTime(positionMillis / 1000)} /{' '}
+                {formatTime(durationMillis / 1000)}
+              </Text>
+            ) : (
+              <Text
+                className={`text-xs mr-2 ${
+                  !isSender
+                    ? 'text-white'
+                    : 'text-primary dark:text-dark-primary'
+                }`}
+              >
+                Uploading
+              </Text>
+            )}
+            <Text
+              className={`text-xs ${
+                !isSender ? 'text-white' : 'text-primary dark:text-dark-primary'
+              } line-clamp-1 overflow-ellipsis`}
+            >
+              {truncateString(String(name), 25)}
             </Text>
           </View>
         </View>
-
-        <Pressable
-          style={{
-            width: width * 0.1,
-            height: width * 0.1,
-          }}
-          onPress={handleDownload}
-          className={`rounded-full border justify-center items-center bg-primary dark:bg-dark-primary ${
-            isSender ? 'border-border dark:border-dark-border' : 'border-white'
-          }`}
-        >
-          {isLoading ? (
-            <ActivityIndicator
-              className=""
-              size={20}
-              color={isSender ? (isDark ? '#BABABA' : '#6E6E6E') : '#fff'}
-            />
-          ) : (
-            <Feather
-              name="download"
-              size={20}
-              color={isSender ? (isDark ? '#BABABA' : '#6E6E6E') : '#fff'}
-            />
-          )}
-        </Pressable>
       </View>
     </View>
   )

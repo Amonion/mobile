@@ -6,6 +6,10 @@
     @apply border border-border dark:border-dark-border h-[50px] flex-row justify-center items-center rounded-full
 }
 
+.chatMediaBtn{
+    @apply py-2 my-2 w-1/3 items-center
+}
+
 .customBtn{
     @apply border w-full bg-custom border-custom h-[50px] flex-row justify-center items-center rounded-full
 }

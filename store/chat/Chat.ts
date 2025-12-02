@@ -1,7 +1,13 @@
 import { create } from 'zustand'
 import _debounce from 'lodash/debounce'
 import { customRequest } from '@/lib/api'
-import { clearTable, getAll, upsert, upsertChats } from '@/lib/localStorage/db'
+import {
+  clearTable,
+  deleteChat,
+  getAll,
+  upsert,
+  upsertChats,
+} from '@/lib/localStorage/db'
 import { AuthStore } from '../AuthStore'
 
 export interface PreviewFile {
@@ -17,6 +23,7 @@ export interface PreviewFile {
 
   url?: string // remote URL after upload
   previewUrl?: string // same as url most of the time
+  poster?: string // same as url most of the time
 
   pages?: number // PDF pages
   duration?: number // video/audio duration
@@ -75,11 +82,7 @@ interface ChatState {
   processedAndAddResults: (data: ChatContent[]) => void
   processMoreResults: (data: ChatContent[]) => void
   setLoading?: (loading: boolean) => void
-  massDelete: (
-    url: string,
-    selectedItems: ChatContent[],
-    setMessage: (message: string, isError: boolean) => void
-  ) => Promise<void>
+  massDelete: (username: string) => Promise<void>
   deleteItem: (data: socketResponse) => Promise<void>
   postChat: (
     url: string,
@@ -536,16 +539,30 @@ export const ChatStore = create<ChatState>((set) => ({
     }
   }, 1000),
 
-  massDelete: async (url: string, selectedItems: ChatContent[]) => {
-    set({
-      loading: true,
+  massDelete: async (username) => {
+    const timeNumbers = ChatStore.getState().selectedItems.map(
+      (item) => item.timeNumber
+    )
+
+    set((prev) => {
+      return {
+        selectedItems: [],
+        chats: prev.chats.filter(
+          (item) => !timeNumbers.includes(item.timeNumber)
+        ),
+      }
     })
 
+    for (let i = 0; i < timeNumbers.length; i++) {
+      const el = timeNumbers[i]
+      deleteChat('chats', el)
+    }
+
     const response = await customRequest({
-      url,
+      url: `/chats/mass-delete`,
       method: 'POST',
       showMessage: true,
-      data: selectedItems,
+      data: { timeNumbers, username },
     })
     const data = response?.data
     if (data) {

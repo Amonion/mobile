@@ -16,7 +16,7 @@ const PreloadChatMedia: React.FC<PreloadChatMediaProps> = ({
   return (
     <View
       className="bg-primary border border-border dark:border-dark-border  dark:bg-dark-primary"
-      style={[styles.container, { width: files.length === 1 ? 300 : 400 }]}
+      style={[styles.container, { width: files.length === 1 ? 300 : '100%' }]}
     >
       {files.length === 1 ? (
         <View className="relative w-full h-auto">

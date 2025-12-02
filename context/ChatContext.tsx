@@ -97,6 +97,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
       socket.on(`updateChatWithFile${user.username}`, (data: response) => {
         if (data.chat) {
           // saveOrUpdateMessageInDB(data.chat)
+          console.log('The chat with file is: ', data.chat)
           ChatStore.setState((prev) => {
             return {
               chats: prev.chats.map((item) =>

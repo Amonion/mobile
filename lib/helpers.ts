@@ -8,6 +8,7 @@ export interface RNUploadFile {
   uri: string // required
   name: string // ⬅ you need this
   type: string // MIME type
+  previewUrl: string // MIME type
   size?: number // optional
   pages?: number
   duration?: number
@@ -117,64 +118,283 @@ export const moveToProfile = (user: UserProfile, username: string) => {
   })
 }
 
+const uploadBlobToS3 = (
+  blob: Blob,
+  uploadUrl: string,
+  mime: string,
+  onProgress?: (percent: number) => void
+): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
+    xhr.open('PUT', uploadUrl)
+    xhr.setRequestHeader('Content-Type', mime)
+
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable && onProgress) {
+        const percent = Math.round((event.loaded / event.total) * 100 * 0.5)
+        onProgress(percent)
+      }
+    }
+
+    xhr.onload = () => {
+      if (xhr.status === 200) resolve()
+      else reject(new Error('S3 Upload failed ' + xhr.status))
+    }
+
+    xhr.onerror = () => reject(new Error('Network error uploading to S3'))
+    xhr.send(blob)
+  })
+}
+
 export const handlePendingFileUpload = async (
   file: RNUploadFile,
   baseURL: string,
   onProgress?: (percent: number) => void,
-  filePages: number = 0,
-  duration: number = 0
-): Promise<{
-  type: MediaType // ← Use MediaType instead of string
-  name: string
-  duration: number
-  pages: number
-  size?: number
-  source: string
-}> => {
+  filePages = 0,
+  duration = 0
+) => {
   try {
-    const fileName = file.name || `file-${Date.now()}`
-    const fileType = file.type || 'application/octet-stream'
-    const fileSize = file.size || 0
+    const ext =
+      file.name?.match(/\.(\w+)$/)?.[1] ||
+      (file.type?.includes('video') ? 'mp4' : 'jpg')
 
-    const type = getFileType({
-      uri: file.uri,
-      fileName: file.name,
-      type: undefined,
-    } as Partial<ImagePickerAsset> as ImagePickerAsset)
+    const safeName = file.name?.includes('.')
+      ? file.name
+      : `${file.name}_${Date.now()}.${ext}`
 
-    // Request presigned URL
-    const { data } = await axios.post(`${baseURL}/s3-presigned-url`, {
-      fileName,
-      fileType,
+    const mime =
+      file.type ||
+      (ext === 'mp4'
+        ? 'video/mp4'
+        : ext === 'mov'
+        ? 'video/quicktime'
+        : ext === 'png'
+        ? 'image/png'
+        : 'image/jpeg')
+
+    const { data: mainData } = await axios.post(`${baseURL}/s3-presigned-url`, {
+      fileName: safeName,
+      fileType: mime,
     })
 
-    const { uploadUrl } = data
-
-    // Fetch URI → blob
+    const uploadUrl = mainData.uploadUrl
     const blob = await (await fetch(file.uri)).blob()
+    await uploadBlobToS3(blob, uploadUrl, mime, onProgress)
 
-    // Upload to S3
-    await fetch(uploadUrl, {
-      method: 'PUT',
-      headers: { 'Content-Type': fileType },
-      body: blob,
-    })
+    const fileUrl = uploadUrl.split('?')[0]
 
-    const cleanUrl = uploadUrl.split('?')[0]
+    let posterUrl: string | undefined = undefined
+
+    if (mime.startsWith('video') && file.previewUrl) {
+      const thumbBlob = await (await fetch(file.previewUrl)).blob()
+
+      const thumbName = `thumb_${safeName.replace(/\.\w+$/, '')}.jpg`
+
+      const { data: thumbData } = await axios.post(
+        `${baseURL}/s3-presigned-url`,
+        {
+          fileName: thumbName,
+          fileType: 'image/jpeg',
+        }
+      )
+
+      await uploadBlobToS3(
+        thumbBlob,
+        thumbData.uploadUrl,
+        'image/jpeg',
+        undefined
+      )
+
+      posterUrl = thumbData.uploadUrl.split('?')[0]
+    }
 
     return {
-      type, // now typed correctly
-      name: fileName,
+      type: mime.startsWith('video') ? 'video' : 'image',
+      name: safeName,
       duration,
       pages: filePages,
-      size: fileSize,
-      source: cleanUrl,
+      size: file.size,
+      source: fileUrl,
+      poster: posterUrl,
     }
   } catch (err) {
     console.error('❌ Upload failed:', err)
     throw err
   }
 }
+
+// export const handlePendingFileUpload = async (
+//   file: RNUploadFile,
+//   baseURL: string,
+//   onProgress?: (percent: number) => void,
+//   filePages = 0,
+//   duration = 0
+// ) => {
+//   try {
+//     // Get extension
+//     const getExt = (name?: string) =>
+//       name?.match(/\.(\w+)$/)?.[1] ??
+//       (file.type?.includes('video') ? 'mp4' : 'jpg')
+
+//     const ext = getExt(file.name)
+//     const safeName = file.name?.includes('.')
+//       ? file.name
+//       : `${file.name}_${Date.now()}.${ext}`
+
+//     // Determine MIME
+//     const mime =
+//       file.type ||
+//       (ext === 'mp4'
+//         ? 'video/mp4'
+//         : ext === 'mov'
+//         ? 'video/quicktime'
+//         : ext === 'png'
+//         ? 'image/png'
+//         : 'image/jpeg')
+
+//     // Request presigned URL for MAIN FILE
+//     const { data: mainData } = await axios.post(`${baseURL}/s3-presigned-url`, {
+//       fileName: safeName,
+//       fileType: mime,
+//     })
+
+//     const videoUploadUrl = mainData.uploadUrl
+
+//     // Upload MAIN FILE
+//     const blob = await (await fetch(file.uri)).blob()
+//     await uploadBlobToS3(blob, videoUploadUrl, mime, onProgress)
+
+//     const fileUrl = videoUploadUrl.split('?')[0]
+
+//     // === UPLOAD THUMBNAIL IF VIDEO ===
+//     let thumbUrl: string | undefined = undefined
+
+//     if (mime.startsWith('video') && file.previewUrl) {
+//       const thumbBlob = await (await fetch(file.previewUrl)).blob()
+
+//       const thumbName = `thumb_${safeName.replace(/\.\w+$/, '')}.jpg`
+
+//       const { data: thumbData } = await axios.post(
+//         `${baseURL}/s3-presigned-url`,
+//         {
+//           fileName: thumbName,
+//           fileType: 'image/jpeg',
+//         }
+//       )
+
+//       const thumbUploadUrl = thumbData.uploadUrl
+
+//       await uploadBlobToS3(thumbBlob, thumbUploadUrl, 'image/jpeg')
+
+//       thumbUrl = thumbUploadUrl.split('?')[0]
+//     }
+
+//     return {
+//       type: mime.startsWith('video') ? 'video' : 'image',
+//       name: safeName,
+//       duration,
+//       pages: filePages,
+//       size: file.size,
+//       source: fileUrl,
+//       poster: thumbUrl,
+//     }
+//   } catch (err) {
+//     console.error('❌ Upload failed:', err)
+//     throw err
+//   }
+// }
+
+// export const handlePendingFileUpload = async (
+//   file: RNUploadFile,
+//   baseURL: string,
+//   onProgress?: (percent: number) => void,
+//   filePages = 0,
+//   duration = 0
+// ) => {
+//   try {
+//     // ---- Extract extension safely ----
+//     const extractExt = (input?: string): string | null => {
+//       if (!input) return null
+//       const m = input.toLowerCase().match(/\.(\w+)(\?|$)/)
+//       return m ? m[1] : null
+//     }
+
+//     const uriExt = extractExt(file.uri)
+//     const nameExt = extractExt(file.name)
+//     const ext =
+//       uriExt || nameExt || (file.type?.includes('video') ? 'mp4' : 'jpg')
+
+//     // ---- Final filename with extension ----
+//     const safeName = file.name?.includes('.')
+//       ? file.name
+//       : `${file.name || 'upload'}_${Date.now()}.${ext}`
+
+//     // ---- Determine MIME ----
+//     const mime =
+//       file.type ||
+//       (ext === 'mp4'
+//         ? 'video/mp4'
+//         : ext === 'mov'
+//         ? 'video/quicktime'
+//         : ext === 'png'
+//         ? 'image/png'
+//         : 'image/jpeg')
+
+//     const size = file.size || 0
+
+//     // ---- Ask backend for presigned URL ----
+//     const { data } = await axios.post(`${baseURL}/s3-presigned-url`, {
+//       fileName: safeName,
+//       fileType: mime,
+//     })
+
+//     const { uploadUrl } = data
+
+//     // ---- Fetch file → blob ----
+//     const blob = await (await fetch(file.uri)).blob()
+
+//     // ---- S3 upload via XMLHttpRequest (supports progress!) ----
+//     await new Promise<void>((resolve, reject) => {
+//       const xhr = new XMLHttpRequest()
+//       xhr.open('PUT', uploadUrl)
+
+//       xhr.setRequestHeader('Content-Type', mime)
+
+//       xhr.upload.onprogress = (event) => {
+//         if (event.lengthComputable && onProgress) {
+//           const percent = Math.round((event.loaded / event.total) * 100)
+//           onProgress(percent)
+//         }
+//       }
+
+//       xhr.onload = () => {
+//         if (xhr.status === 200) resolve()
+//         else reject(new Error('S3 upload failed, status ' + xhr.status))
+//       }
+
+//       xhr.onerror = () => reject(new Error('S3 upload network error'))
+//       xhr.send(blob)
+//     })
+
+//     // ---- Clean S3 URL ----
+//     const cleanUrl = uploadUrl.split('?')[0]
+
+//     // ---- Determine final type (image or video) ----
+//     const type = mime.startsWith('video') ? 'video' : 'image'
+
+//     return {
+//       type,
+//       name: safeName,
+//       duration,
+//       pages: filePages,
+//       size,
+//       source: cleanUrl,
+//     }
+//   } catch (err) {
+//     console.error('❌ Upload failed:', err)
+//     throw err
+//   }
+// }
 
 export const appendForm = (inputs: Input[]): FormData => {
   const data = new FormData()

@@ -8,6 +8,7 @@ import { UserStore } from '@/store/user/User'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import Feather from '@expo/vector-icons/Feather'
 import { useLocalSearchParams, usePathname, useRouter } from 'expo-router'
+import { Trash } from 'lucide-react-native'
 import { useEffect } from 'react'
 import {
   TouchableOpacity,
@@ -25,7 +26,7 @@ export default function ChatHead() {
   const { user } = AuthStore()
   const { getPosts } = UserPostStore()
   const pathname = usePathname()
-  const { chatUserForm, getChatUser } = ChatStore()
+  const { chatUserForm, selectedItems, massDelete, getChatUser } = ChatStore()
   const { username } = useLocalSearchParams()
   const router = useRouter()
   const insets = useSafeAreaInsets()
@@ -161,6 +162,17 @@ export default function ChatHead() {
             </View>
           </View>
         </View>
+        {selectedItems.length > 0 && (
+          <View className="absolute px-3 z-30 flex-row -bottom-8">
+            <TouchableOpacity
+              hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+              style={{ width: 30, height: 30 }}
+              onPress={() => massDelete(String(user?.username))}
+            >
+              <Trash size={25} color={color} />
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
     </>
   )

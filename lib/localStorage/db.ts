@@ -179,6 +179,12 @@ export async function remove(table: TableName, id: string): Promise<void> {
   await saveAll(table, filtered)
 }
 
+export async function deleteChat(table: TableName, id: number): Promise<void> {
+  const all = await getAll<any>(table)
+  const filtered = all.filter((r) => r.timeNumber !== id)
+  await saveAll(table, filtered)
+}
+
 export async function clearTable(table: TableName): Promise<void> {
   await AsyncStorage.removeItem(tableKey(table))
 }

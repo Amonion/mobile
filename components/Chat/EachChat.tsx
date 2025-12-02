@@ -106,18 +106,6 @@ const EachChat = ({ e, isFirst, isGroupEnd }: ChatContentProps) => {
             color={!isSender ? '#FFF' : primaryColor}
             isSender={isSender}
           />
-
-          {/* <RenderHTML
-            contentWidth={width}
-            source={{ html: e.content }}
-            baseStyle={{
-              color: !isSender ? '#FFF' : primaryColor,
-              fontSize: 17,
-              fontWeight: 400,
-              lineHeight: 23,
-              textAlign: 'left',
-            }}
-          /> */}
         </View>
 
         <View

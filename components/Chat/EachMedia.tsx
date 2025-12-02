@@ -9,7 +9,7 @@ import {
 } from 'react-native'
 import { Video, ImageIcon } from 'lucide-react-native'
 import Svg, { Circle } from 'react-native-svg'
-import { handlePendingFileUpload, mapMimeToPickerType } from '@/lib/helpers'
+import { handlePendingFileUpload } from '@/lib/helpers'
 import { ChatStore, PreviewFile } from '@/store/chat/Chat'
 import { MessageStore } from '@/store/notification/Message'
 
@@ -46,12 +46,14 @@ const EachMedia: React.FC<EachMediaProps> = ({
 
     const upload = async () => {
       setIsUploading(true)
+
       try {
         const uploaded = await handlePendingFileUpload(
           {
             uri: String(item.uri),
             name: item.name || 'file',
-            type: mapMimeToPickerType(item.type),
+            type: item.type === 'video' ? 'video/mp4' : 'image/jpeg',
+            previewUrl: item.type === 'video' ? String(item.previewUrl) : '',
             size: item.size || 0,
             pages: item.pages || 0,
             duration: item.duration || 0,
@@ -61,16 +63,15 @@ const EachMedia: React.FC<EachMediaProps> = ({
           item.pages ?? 0,
           item.duration ?? 0
         )
-
         const updatedMedia = media.map((mediaItem, i) =>
           i === index
             ? {
                 ...mediaItem,
                 status: 'uploaded' as const,
-                url: uploaded.source,
                 source: uploaded.source,
-                previewUrl: uploaded.source,
-                // Keep uri for future reference (optional)
+                url: uploaded.source,
+                previewUrl: mediaItem.previewUrl,
+                poster: uploaded.poster ?? mediaItem.poster,
                 uri: mediaItem.uri,
               }
             : mediaItem
@@ -82,9 +83,11 @@ const EachMedia: React.FC<EachMediaProps> = ({
         })
       } catch (err) {
         console.error('Upload failed:', err)
+
         const updatedMedia = media.map((mediaItem, i) =>
           i === index ? { ...mediaItem, status: 'failed' as const } : mediaItem
         )
+
         updateChatWithFile('/chats', {
           timeNumber: chatId,
           media: updatedMedia,
@@ -155,16 +158,26 @@ const EachMedia: React.FC<EachMediaProps> = ({
           }}
         />
       ) : item.type.includes('video') ? (
-        <View className="h-full w-full items-center justify-center bg-black/20">
-          <Video size={40} color="white" />
+        <View className="h-full w-full relative items-center justify-center bg-black/20">
+          <Image
+            source={{ uri: item.poster || item.previewUrl }}
+            style={{
+              width: '100%',
+              height: '100%',
+              resizeMode: 'cover',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+            }}
+          />
         </View>
       ) : null}
 
-      <View className="absolute top-2 left-2 z-10 rounded-full bg-black/60 p-1.5">
+      <View className="absolute top-2 left-2 z-10 rounded-full bg-black/60 p-2">
         {item.type.includes('image') ? (
-          <ImageIcon size={14} color="white" />
+          <ImageIcon size={16} color="white" />
         ) : (
-          <Video size={14} color="white" />
+          <Video size={16} color="white" />
         )}
       </View>
     </TouchableOpacity>
