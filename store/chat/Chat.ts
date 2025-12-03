@@ -578,18 +578,14 @@ export const ChatStore = create<ChatState>((set) => ({
     }
   },
 
-  postChat: async (url, updatedItem, setMessage) => {
+  postChat: async (url, updatedItem) => {
     try {
-      const response = await customRequest({
+      await customRequest({
         url,
         method: 'POST',
         showMessage: true,
         data: updatedItem,
       })
-      const data = response?.data
-      if (data) {
-        console.log(data)
-      }
     } catch (error) {
       console.log(error)
     }

@@ -33,7 +33,7 @@ const formatTime = (secs: number) => {
   return `${minutes}:${seconds}`
 }
 
-const size = 48
+const size = 35
 const strokeWidth = 4
 const radius = (size - strokeWidth) / 2
 const circumference = 2 * Math.PI * radius
@@ -199,10 +199,10 @@ const AudioMessage: React.FC<AudioMessageProps> = ({
   return (
     <View className="flex flex-col w-full mb-2">
       <View className="flex-row items-end w-full">
-        {(isUploading || progressPercent > 0) && item.status !== 'uploaded' ? (
+        {isUploading ? (
           <View
             style={{ width: 55, height: 55 }}
-            className=" items-center justify-center mr-2"
+            className=" items-center relative justify-center mr-2"
           >
             {isSender ? (
               <>
@@ -227,7 +227,9 @@ const AudioMessage: React.FC<AudioMessageProps> = ({
                     strokeWidth={strokeWidth}
                     fill="transparent"
                     strokeDasharray={circumference}
-                    strokeDashoffset={circumference * (1 - progress / 100)}
+                    strokeDashoffset={
+                      circumference * (1 - progressPercent / 100)
+                    }
                     strokeLinecap="round"
                   />
                 </Svg>

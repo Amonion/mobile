@@ -9,6 +9,7 @@ import FriendStore, { Friend } from '@/store/chat/Friend'
 import { AuthStore } from '@/store/AuthStore'
 import SocketService from '@/store/socket'
 import { ChatContent, ChatStore } from '@/store/chat/Chat'
+import { upsert } from '@/lib/localStorage/db'
 
 interface ChatContextType {
   friendsResults: Friend[]
@@ -96,7 +97,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
 
       socket.on(`updateChatWithFile${user.username}`, (data: response) => {
         if (data.chat) {
-          // saveOrUpdateMessageInDB(data.chat)
+          upsert('chats', data.chat)
           console.log('The chat with file is: ', data.chat)
           ChatStore.setState((prev) => {
             return {

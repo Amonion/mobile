@@ -27,6 +27,7 @@ import { Directory, File, Paths } from 'expo-file-system'
 import PreloadChatMedia from '@/components/Chat/PreloadChatMedia'
 import ChatOptions from '@/components/Chat/ChatOptions'
 import * as VideoThumbnails from 'expo-video-thumbnails'
+import * as FileSystem from 'expo-file-system'
 
 const Chats = () => {
   const { updateFriendsChat, friendForm } = FriendStore()
@@ -299,6 +300,64 @@ const Chats = () => {
       console.error('Audio picker error:', err)
     }
   }
+
+  //   const pickAudio = async () => {
+  //   try {
+  //     const result = await DocumentPicker.getDocumentAsync({
+  //       type: ['audio/*'],
+  //       multiple: true,
+  //       copyToCacheDirectory: true,
+  //     })
+
+  //     if (result.canceled || !result.assets) return
+
+  //     const audioFiles = await Promise.all(
+  //       result.assets.map(async (asset, i) => {
+  //         const originalUri = asset.uri
+  //         const name = asset.name || `audio_${Date.now()}.mp3`
+  //         const mime = asset.mimeType || 'audio/mpeg'
+  //         const size = asset.size ?? 0
+
+  //         const extMatch = name.match(/\.(\w+)$/)
+  //         const ext = extMatch ? extMatch[1] : 'mp3'
+
+  //         const newPath =
+  //           FileSystem.documentDirectory +
+  //           `audio_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
+
+  //         await FileSystem.copyAsync({
+  //           from: originalUri,
+  //           to: newPath,
+  //         })
+
+  //         return {
+  //           index: i,
+  //           uri: newPath,
+  //           previewUrl: newPath,
+  //           name,
+  //           type: 'audio',
+  //           size,
+  //           duration: 0,
+  //           status: 'pending' as const,
+  //         }
+  //       })
+  //     )
+
+  //     setOptions(false)
+
+  //     setFiles(prev => {
+  //       const base = prev.length
+  //       return [
+  //         ...prev,
+  //         ...audioFiles.map((f, i) => ({ ...f, index: base + i })),
+  //       ]
+  //     })
+
+  //     return audioFiles
+  //   } catch (err) {
+  //     console.error('Audio picker error:', err)
+  //   }
+  // }
 
   const postAudio = async () => {
     for (let i = 0; i < files.length; i++) {

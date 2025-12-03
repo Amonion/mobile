@@ -86,13 +86,6 @@ const ChatBody = () => {
         if (username === data.receiverUsername) {
           for (let i = 0; i < data.chats.length; i++) {
             const el = data.chats[i]
-            console.log(
-              'Read chat sender is: ',
-              el.senderUsername,
-              ' receiver is: ',
-              el.receiverUsername
-            )
-
             updatePendingChat(el)
           }
           // updatePendingFriendsChat(data.friend)

@@ -3,7 +3,6 @@ import { AuthStore } from '@/store/AuthStore'
 import { ChatStore } from '@/store/chat/Chat'
 import FriendStore, { FriendEmpty } from '@/store/chat/Friend'
 import { MessageStore } from '@/store/notification/Message'
-import UserPostStore from '@/store/post/UserPost'
 import { UserStore } from '@/store/user/User'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import Feather from '@expo/vector-icons/Feather'
@@ -22,9 +21,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 export default function ChatHead() {
   const { setMessage } = MessageStore()
   const { friendsResults } = FriendStore()
-  const { userForm, getUser } = UserStore()
+  const { userForm } = UserStore()
   const { user } = AuthStore()
-  const { getPosts } = UserPostStore()
   const pathname = usePathname()
   const { chatUserForm, selectedItems, massDelete, getChatUser } = ChatStore()
   const { username } = useLocalSearchParams()
@@ -143,22 +141,6 @@ export default function ChatHead() {
                   @{chatUserForm.username}
                 </Text>
               </TouchableOpacity>
-
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  marginLeft: 'auto',
-                }}
-              >
-                <TouchableOpacity
-                  hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-                  onPress={() => router.push('/friends')}
-                  style={{ marginLeft: 8 }}
-                >
-                  <Feather color={color} name="users" size={25} />
-                </TouchableOpacity>
-              </View>
             </View>
           </View>
         </View>
