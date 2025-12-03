@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { View, Text, Pressable, useColorScheme } from 'react-native'
 import { Audio } from 'expo-av'
 import { Feather } from '@expo/vector-icons'
-import * as FileSystem from 'expo-file-system'
+// import * as FileSystem from 'expo-file-system'
 import { AVPlaybackStatus } from 'expo-av/build/AV'
 import {
   getDeviceWidth,
@@ -10,7 +10,7 @@ import {
   truncateString,
 } from '@/lib/helpers'
 import { MessageStore } from '@/store/notification/Message'
-import * as MediaLibrary from 'expo-media-library'
+// import * as MediaLibrary from 'expo-media-library'
 import { ChatStore, PreviewFile } from '@/store/chat/Chat'
 import Svg, { Circle } from 'react-native-svg'
 import { CircleQuestionMark } from 'lucide-react-native'
@@ -55,13 +55,15 @@ const AudioMessage: React.FC<AudioMessageProps> = ({
   const isDark = colorScheme === 'dark' ? true : false
   const progress = durationMillis ? (positionMillis / durationMillis) * 100 : 0
   const width = getDeviceWidth()
-  const { baseURL, setMessage } = MessageStore()
+  const { baseURL } = MessageStore()
   const { updateChatWithFile } = ChatStore()
   const [progressPercent, setProgress] = useState(0)
   const [isUploading, setIsUploading] = useState(false)
 
   useEffect(() => {
-    loadSound()
+    if (src && src !== undefined && src !== 'undefined') {
+      loadSound()
+    }
     // handleDownload()
     return () => {
       sound?.unloadAsync()
@@ -164,37 +166,37 @@ const AudioMessage: React.FC<AudioMessageProps> = ({
     setIsPlaying(!isPlaying)
   }
 
-  const handleDownload = async () => {
-    try {
-      const filename = name?.endsWith('.mp3')
-        ? name
-        : (name ?? 'audio') + '.mp3'
+  // const handleDownload = async () => {
+  //   try {
+  //     const filename = name?.endsWith('.mp3')
+  //       ? name
+  //       : (name ?? 'audio') + '.mp3'
 
-      const downloadUri = (FileSystem as any).documentDirectory + filename
+  //     const downloadUri = (FileSystem as any).documentDirectory + filename
 
-      const downloadResumable = FileSystem.createDownloadResumable(
-        src,
-        downloadUri
-      )
+  //     const downloadResumable = FileSystem.createDownloadResumable(
+  //       src,
+  //       downloadUri
+  //     )
 
-      const { uri } = await downloadResumable.downloadAsync()
+  //     const { uri } = await downloadResumable.downloadAsync()
 
-      const { status } = await MediaLibrary.requestPermissionsAsync()
-      if (status !== 'granted') {
-        alert('Permission to access media library is required!')
-        return
-      }
+  //     const { status } = await MediaLibrary.requestPermissionsAsync()
+  //     if (status !== 'granted') {
+  //       alert('Permission to access media library is required!')
+  //       return
+  //     }
 
-      const asset = await MediaLibrary.createAssetAsync(uri)
-      await MediaLibrary.createAlbumAsync('Downloads', asset, false)
+  //     const asset = await MediaLibrary.createAssetAsync(uri)
+  //     await MediaLibrary.createAlbumAsync('Downloads', asset, false)
 
-      setMessage('Audio saved to Downloads folder.', true)
-    } catch (err) {
-      console.log(err)
-      setMessage('Failed to download audio.', false)
-    } finally {
-    }
-  }
+  //     setMessage('Audio saved to Downloads folder.', true)
+  //   } catch (err) {
+  //     console.log(err)
+  //     setMessage('Failed to download audio.', false)
+  //   } finally {
+  //   }
+  // }
 
   return (
     <View className="flex flex-col w-full mb-2">

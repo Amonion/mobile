@@ -238,24 +238,107 @@ const Chats = () => {
     }
   }
 
-  const pickDocuments = async () => {
-    const result = await DocumentPicker.getDocumentAsync({
-      type: [
-        'application/pdf',
-        'application/msword',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'application/vnd.ms-powerpoint',
-        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-        'application/vnd.ms-excel',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'text/plain',
-        'audio/*',
-      ],
-      multiple: true,
-    })
+  // const pickDocuments = async () => {
+  //   const result = await DocumentPicker.getDocumentAsync({
+  //     type: [
+  //       'application/pdf',
+  //       'application/msword',
+  //       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  //       'application/vnd.ms-powerpoint',
+  //       'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  //       'application/vnd.ms-excel',
+  //       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  //       'text/plain',
+  //       'audio/*',
+  //     ],
+  //     multiple: true,
+  //   })
 
-    if (result.assets) {
-      // onSelect(result.assets);
+  //   if (result.assets) {
+  //     // onSelect(result.assets);
+  //   }
+  // }
+
+  const pickDocuments = async () => {
+    const getExtension = (
+      asset: DocumentPicker.DocumentPickerAsset
+    ): string => {
+      if (asset.name && asset.name.includes('.')) {
+        return asset.name.split('.').pop()!.toLowerCase()
+      }
+
+      if (asset.mimeType?.includes('/')) {
+        const guess = asset.mimeType.split('/').pop()
+        return guess || 'bin'
+      }
+
+      return 'bin'
+    }
+
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: [
+          'application/pdf',
+          'application/msword',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          'application/vnd.ms-powerpoint',
+          'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+          'application/vnd.ms-excel',
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'text/plain',
+          'audio/*',
+        ],
+        multiple: true,
+        copyToCacheDirectory: true,
+      })
+
+      if (result.canceled || !result.assets || result.assets.length === 0)
+        return
+
+      const chatMediaDir = new Directory(Paths.cache, 'chat_media')
+      if (!chatMediaDir.exists) chatMediaDir.create({ intermediates: true })
+
+      const newFiles: PreviewFile[] = await Promise.all(
+        result.assets.map(async (asset, i) => {
+          const ext = getExtension(asset)
+
+          const name = `file_${Date.now()}_${Math.random()
+            .toString(36)
+            .slice(2)}.${ext}`
+
+          const dest = new File(chatMediaDir, name)
+          if (dest.exists) await dest.delete()
+
+          // copy selected doc → local cache folder
+          await new File(asset.uri).copy(dest)
+
+          // Determine type
+          let type: PreviewFile['type'] = 'file'
+          if (asset.mimeType?.startsWith('audio')) type = 'audio'
+
+          return {
+            index: i,
+            uri: dest.uri,
+            previewUrl: dest.uri,
+            name,
+            type,
+            originalName: asset.name || name,
+            size: asset.size ?? 0,
+            duration: undefined,
+            poster: undefined,
+            status: 'pending',
+          }
+        })
+      )
+
+      setOptions(false)
+
+      setFiles((prev) => {
+        const base = prev.length
+        return [...prev, ...newFiles.map((f, i) => ({ ...f, index: base + i }))]
+      })
+    } catch (err) {
+      console.error('Document picker error:', err)
     }
   }
 
@@ -301,7 +384,7 @@ const Chats = () => {
     }
   }
 
-  //   const pickAudio = async () => {
+  // const pickAudio = async () => {
   //   try {
   //     const result = await DocumentPicker.getDocumentAsync({
   //       type: ['audio/*'],
@@ -311,30 +394,36 @@ const Chats = () => {
 
   //     if (result.canceled || !result.assets) return
 
+  //     // Create chat_media folder if missing
+  //     const chatMediaDir = new Directory(Paths.cache, 'chat_media')
+  //     if (!chatMediaDir.exists) {
+  //       chatMediaDir.create({ intermediates: true })
+  //     }
+
   //     const audioFiles = await Promise.all(
   //       result.assets.map(async (asset, i) => {
   //         const originalUri = asset.uri
-  //         const name = asset.name || `audio_${Date.now()}.mp3`
-  //         const mime = asset.mimeType || 'audio/mpeg'
   //         const size = asset.size ?? 0
+  //         const name = asset.name || `audio_${Date.now()}.mp3`
 
   //         const extMatch = name.match(/\.(\w+)$/)
   //         const ext = extMatch ? extMatch[1] : 'mp3'
 
-  //         const newPath =
-  //           FileSystem.documentDirectory +
-  //           `audio_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
+  //         const finalName = `audio_${Date.now()}_${Math.random()
+  //           .toString(36)
+  //           .slice(2)}.${ext}`
 
-  //         await FileSystem.copyAsync({
-  //           from: originalUri,
-  //           to: newPath,
-  //         })
+  //         const dest = new File(chatMediaDir, finalName)
+  //         if (dest.exists) await dest.delete()
+
+  //         // Copy file using react-native-file-access
+  //         new File(originalUri).copy(dest)
 
   //         return {
   //           index: i,
-  //           uri: newPath,
-  //           previewUrl: newPath,
-  //           name,
+  //           uri: dest.uri,
+  //           previewUrl: dest.uri,
+  //           name: finalName,
   //           type: 'audio',
   //           size,
   //           duration: 0,
@@ -343,22 +432,13 @@ const Chats = () => {
   //       })
   //     )
 
-  //     setOptions(false)
-
-  //     setFiles(prev => {
-  //       const base = prev.length
-  //       return [
-  //         ...prev,
-  //         ...audioFiles.map((f, i) => ({ ...f, index: base + i })),
-  //       ]
-  //     })
+  //     setFiles((prev) => [...prev, ...audioFiles])
 
   //     return audioFiles
   //   } catch (err) {
   //     console.error('Audio picker error:', err)
   //   }
   // }
-
   const postAudio = async () => {
     for (let i = 0; i < files.length; i++) {
       const el = files[i]
