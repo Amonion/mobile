@@ -14,6 +14,7 @@ import CustomBtn from '@/components/General/CustomBtn'
 import PopupCalendar from '@/components/General/PopupCalendar'
 import dayjs from 'dayjs'
 import { Calendar } from 'lucide-react-native'
+import { FileLike } from '@/store/place/Document'
 
 export default function VerificationBioSettings() {
   const { bioUserForm, setForm, setBioUser, updateMyBioUser, loading } =
@@ -40,108 +41,113 @@ export default function VerificationBioSettings() {
   }, [bioUserState])
 
   useEffect(() => {
-    if (isBioEdit && bioUser) {
+    if (selectedDate) {
+      setForm('dateOfBirth', selectedDate)
+    }
+  }, [selectedDate])
+
+  useEffect(() => {
+    if (bioUser) {
       setBioUser(bioUser)
     }
-  }, [isBioEdit, bioUser])
+  }, [bioUser])
 
   const handleSubmit = async () => {
-    // const passport: FileLike = {
-    //   uri: String(passportImage),
-    //   name: 'passport.jpg',
-    //   type: 'image/jpeg',
-    // }
-    // const inputsToValidate = [
-    //   {
-    //     name: 'ID',
-    //     value: String(user?._id),
-    //     rules: { blank: true, maxLength: 100 },
-    //     field: 'User Id',
-    //   },
-    //   {
-    //     name: 'firstName',
-    //     value: userInfoForm.firstName.trim(),
-    //     rules: { blank: false, maxLength: 120 },
-    //     field: 'First Name',
-    //   },
-    //   {
-    //     name: 'middleName',
-    //     value: userInfoForm.middleName.trim(),
-    //     rules: { blank: false, maxLength: 60 },
-    //     field: 'Middle Name',
-    //   },
-    //   {
-    //     name: 'lastName',
-    //     value: userInfoForm.lastName.trim(),
-    //     rules: { blank: false, maxLength: 60 },
-    //     field: 'Last Name',
-    //   },
-    //   {
-    //     name: 'gender',
-    //     value: userInfoForm.gender.trim(),
-    //     rules: { blank: false, maxLength: 60 },
-    //     field: 'Gender',
-    //   },
-    //   {
-    //     name: 'maritalStatus',
-    //     value: userInfoForm.maritalStatus,
-    //     rules: { blank: false, maxLength: 60 },
-    //     field: 'Marital Status',
-    //   },
-    //   {
-    //     name: 'dob',
-    //     value: String(userInfoForm.dob),
-    //     rules: { blank: true, maxLength: 100 },
-    //     field: 'Date of Birth',
-    //   },
-    //   {
-    //     name: 'passport',
-    //     value: passportImage === null ? null : passport,
-    //     rules: { blank: false, maxSize: 10 },
-    //     field: 'Passport Picture',
-    //   },
-    //   {
-    //     name: 'isBio',
-    //     value: true,
-    //     rules: { blank: true },
-    //     field: 'Is Bio',
-    //   },
-    // ]
-    // const { messages, valid } = validateInputs(inputsToValidate)
-    // if (!valid) {
-    //   const getFirstNonEmptyMessage = (
-    //     messages: Record<string, string>
-    //   ): string | null => {
-    //     for (const key in messages) {
-    //       if (messages[key].trim() !== '') {
-    //         return messages[key]
-    //       }
-    //     }
-    //     return null
-    //   }
-    //   const firstNonEmptyMessage = getFirstNonEmptyMessage(messages)
-    //   if (firstNonEmptyMessage) {
-    //     setMessage(firstNonEmptyMessage, false)
-    //     return
-    //   }
-    // }
-    // const data = appendForm(inputsToValidate)
-    // setAlert(
-    //   'Warning',
-    //   'You will need to contact support to edit this information after verification!',
-    //   true,
-    //   () => submitData(data)
-    // )
-  }
+    const passport: FileLike = {
+      uri: String(bioUserForm.passport),
+      name: 'passport.jpg',
+      type: 'image/jpeg',
+    }
 
-  const handleInputChange = (name: string, value: string) => {
-    setForm(name as keyof typeof bioUserForm, value)
+    const inputsToValidate = [
+      {
+        name: 'ID',
+        value: String(user?._id),
+        rules: { blank: true, maxLength: 100 },
+        field: 'User Id',
+      },
+      {
+        name: 'firstName',
+        value: bioUserForm.firstName.trim(),
+        rules: { blank: true, maxLength: 120 },
+        field: 'First Name',
+      },
+      {
+        name: 'middleName',
+        value: bioUserForm.middleName.trim(),
+        rules: { blank: true, maxLength: 60 },
+        field: 'Middle Name',
+      },
+      {
+        name: 'lastName',
+        value: bioUserForm.lastName.trim(),
+        rules: { blank: true, maxLength: 60 },
+        field: 'Last Name',
+      },
+      {
+        name: 'gender',
+        value: bioUserForm.gender.trim(),
+        rules: { blank: true, maxLength: 60 },
+        field: 'Gender',
+      },
+      {
+        name: 'maritalStatus',
+        value: bioUserForm.maritalStatus,
+        rules: { blank: true, maxLength: 60 },
+        field: 'Marital Status',
+      },
+      {
+        name: 'dateOfBirth',
+        value: String(bioUserForm.dateOfBirth),
+        rules: { blank: true, maxLength: 100 },
+        field: 'Date of Birth',
+      },
+      {
+        name: 'passport',
+        value: bioUserForm.passport ? passport : '',
+        rules: { blank: true, maxSize: 10 },
+        field: 'Passport Picture',
+      },
+      {
+        name: 'isBio',
+        value: true,
+        rules: { blank: true },
+        field: 'Is Bio',
+      },
+    ]
+    const { messages, valid } = validateInputs(inputsToValidate)
+    console.log('passed')
+
+    if (!valid) {
+      const getFirstNonEmptyMessage = (
+        messages: Record<string, string>
+      ): string | null => {
+        for (const key in messages) {
+          if (messages[key].trim() !== '') {
+            return messages[key]
+          }
+        }
+        return null
+      }
+      const firstNonEmptyMessage = getFirstNonEmptyMessage(messages)
+      if (firstNonEmptyMessage) {
+        setMessage(firstNonEmptyMessage, false)
+        return
+      }
+    }
+    const data = appendForm(inputsToValidate)
+    setAlert(
+      'Warning',
+      'You will need to contact support to edit this information after verification!',
+      true,
+      () => submitData(data)
+    )
   }
 
   const submitData = async (data: FormData) => {
-    // updateMyBioUser(`${url}${bioUser?._id}`, data, setMessage, () =>
-    //   router.push(`/home/verification/origin`)
-    // )
+    updateMyBioUser(`${url}${bioUser?._id}`, data, () =>
+      router.push(`/home/verification/origin`)
+    )
   }
 
   return (
@@ -154,7 +160,7 @@ export default function VerificationBioSettings() {
             placeholder="Enter first name"
             error={error?.emailMessage}
             autoCapitalize="words"
-            onChangeText={(e) => handleInputChange(e, 'firstName')}
+            onChangeText={(e) => setForm('firstName', e)}
           />
           <InputField
             label="Middle Name"
@@ -162,7 +168,7 @@ export default function VerificationBioSettings() {
             placeholder="Enter middle name"
             error={error?.emailMessage}
             autoCapitalize="words"
-            onChangeText={(e) => handleInputChange(e, 'middleName')}
+            onChangeText={(e) => setForm('middleName', e)}
           />
           <InputField
             label="Last Name"
@@ -170,7 +176,7 @@ export default function VerificationBioSettings() {
             placeholder="Enter last name"
             error={error?.emailMessage}
             autoCapitalize="words"
-            onChangeText={(e) => handleInputChange(e, 'lastName')}
+            onChangeText={(e) => setForm('lastName', e)}
           />
 
           <View className="mb-8 mt-2">
@@ -254,8 +260,8 @@ export default function VerificationBioSettings() {
           )}
         </View>
       ) : (
-        <View className="px-3 flex-1 mb-5">
-          <View className="px-3 z-30 w-full overflow-auto border border-border dark:border-dark-border rounded-[10px]">
+        <View className="px-3 flex-1 mb-3">
+          <View className="px-3 pb-3 z-30 w-full overflow-auto border border-border dark:border-dark-border rounded-[10px]">
             <View className="py-2 border-b border-b-border dark:border-b-dark-border mb-5">
               <Text className="text-lg text-primary dark:text-dark-primary mb-1">
                 First Name
@@ -316,7 +322,7 @@ export default function VerificationBioSettings() {
               </View>
             </View>
 
-            {/* <FaceCaptureBox onPhotoTaken={setPhotoUri} /> */}
+            <FaceCaptureBox />
 
             <CustomBtn
               label="Edit Bio"

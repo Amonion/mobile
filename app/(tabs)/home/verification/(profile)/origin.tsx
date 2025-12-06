@@ -53,7 +53,7 @@ export default function VerificationOriginSettings() {
         setMessage
       )
     }
-  }, [bioUser])
+  }, [bioUser?.residentCountry])
 
   useEffect(() => {
     if (bioUser?.residentState) {
@@ -61,7 +61,7 @@ export default function VerificationOriginSettings() {
         `/places/area/?state=${bioUser.residentState}&page_size=350&field=area&sort=area`
       )
     }
-  }, [bioUser])
+  }, [bioUser?.residentState])
 
   const selectCountry = (country: Area) => {
     setForm('homeContinent', country.continent)
@@ -85,10 +85,6 @@ export default function VerificationOriginSettings() {
   const selectArea = (area: Area) => {
     setForm('homeArea', area.area)
     setForm('homePlaceId', area.id)
-  }
-
-  const handleInputChange = (name: string, value: string) => {
-    setForm(name as keyof typeof bioUserForm, value)
   }
 
   const submitData = async (data: FormData) => {
@@ -131,19 +127,19 @@ export default function VerificationOriginSettings() {
       {
         name: 'homeState',
         value: bioUserForm.homeState,
-        rules: { blank: true, minLength: 2, maxLength: 100 },
+        rules: { blank: false, minLength: 2, maxLength: 100 },
         field: 'Home state name',
       },
       {
         name: 'homeArea',
         value: bioUserForm.homeArea,
-        rules: { blank: true, minLength: 2, maxLength: 100 },
+        rules: { blank: false, minLength: 2, maxLength: 100 },
         field: 'Home area name',
       },
       {
         name: 'homeAddress',
         value: bioUserForm.homeAddress,
-        rules: { blank: true, minLength: 3, maxLength: 500 },
+        rules: { blank: false, minLength: 3, maxLength: 500 },
         field: 'Home address',
       },
       {
@@ -203,12 +199,20 @@ export default function VerificationOriginSettings() {
         <View className={`flex-1 px-3 min-h-[400px]`}>
           <CustomDropdown
             data={countries}
-            placeholder="Select Country"
+            label="Select Country"
+            placeholder={
+              bioUserForm.homeCountry
+                ? bioUserForm.homeCountry
+                : 'Select Country'
+            }
             onSelect={selectCountry}
           />
           <CustomDropdown
             data={states}
-            placeholder="Select State"
+            label="Select State"
+            placeholder={
+              bioUserForm.homeState ? bioUserForm.homeState : 'Select State'
+            }
             disabled={!bioUserForm.homeCountry}
             type="state"
             errorMessage={
@@ -220,7 +224,10 @@ export default function VerificationOriginSettings() {
           />
           <CustomDropdown
             data={area}
-            placeholder="Select Area"
+            label="Select Area"
+            placeholder={
+              bioUserForm.homeArea ? bioUserForm.homeArea : 'Select Area'
+            }
             disabled={!bioUserForm.homeState}
             type="area"
             errorMessage={
@@ -235,7 +242,7 @@ export default function VerificationOriginSettings() {
             value={bioUserForm.homeAddress}
             placeholder="Enter last name"
             autoCapitalize="words"
-            onChangeText={(e) => handleInputChange(e, 'homeAddress')}
+            onChangeText={(e) => setForm('homeAddress', e)}
           />
 
           <CustomBtn
@@ -248,7 +255,7 @@ export default function VerificationOriginSettings() {
           {isOEdit && bioUserState?.isOrigin && (
             <CustomBtn
               label="Cancle Edit"
-              loading={loading}
+              loading={false}
               handleSubmit={handleSubmit}
               style="outline"
             />
@@ -256,7 +263,7 @@ export default function VerificationOriginSettings() {
         </View>
       ) : (
         <View className="px-3 flex-1 mb-5">
-          <View className="px-3 z-30 w-full overflow-auto border border-border dark:border-dark-border rounded-[10px]">
+          <View className="px-3 pb-3 z-30 w-full overflow-auto border border-border dark:border-dark-border rounded-[10px]">
             <View className="py-2 border-b border-b-border dark:border-b-dark-border mb-5">
               <Text className="text-lg text-primary dark:text-dark-primary mb-1">
                 Address of Origin
@@ -299,7 +306,7 @@ export default function VerificationOriginSettings() {
             </View>
             <CustomBtn
               label="Edit Bio"
-              loading={loading}
+              loading={false}
               handleSubmit={() => {
                 setOEdit(true)
               }}

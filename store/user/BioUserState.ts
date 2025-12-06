@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { customRequest } from '@/lib/api'
-import { AuthStore } from './AuthStore'
 import { User } from './User'
+import { AuthStore } from '../AuthStore'
 
 interface FetchResponse {
   count: number

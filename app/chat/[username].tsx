@@ -17,6 +17,7 @@ import {
   Keyboard,
   Platform,
   FlatList,
+  Alert,
 } from 'react-native'
 import { Plus, Send } from 'lucide-react-native'
 import * as ImagePicker from 'expo-image-picker'
@@ -27,7 +28,7 @@ import { Directory, File, Paths } from 'expo-file-system'
 import PreloadChatMedia from '@/components/Chat/PreloadChatMedia'
 import ChatOptions from '@/components/Chat/ChatOptions'
 import * as VideoThumbnails from 'expo-video-thumbnails'
-import * as FileSystem from 'expo-file-system'
+import * as Contacts from 'expo-contacts'
 
 const Chats = () => {
   const { updateFriendsChat, friendForm } = FriendStore()
@@ -58,6 +59,7 @@ const Chats = () => {
   const insets = useSafeAreaInsets()
   const flatListRef = useRef<FlatList>(null)
   const pathname = usePathname()
+  const [hasPermission, setHasPermission] = useState<boolean | null>(null)
 
   useEffect(() => {
     if (files.length > 0) {
@@ -71,6 +73,7 @@ const Chats = () => {
         setFileType('Media')
       } else {
         setFileType('Document')
+        postAudio()
       }
     }
   }, [files])
@@ -145,6 +148,28 @@ const Chats = () => {
       newList.splice(index, 1)
       return newList
     })
+  }
+
+  const handlePickContacts = async () => {
+    let permission = hasPermission
+
+    if (permission === null) {
+      const { status } = await Contacts.requestPermissionsAsync()
+      permission = status === 'granted'
+      setHasPermission(permission)
+    }
+
+    if (!permission) {
+      Alert.alert('Permission denied', 'Cannot access contacts')
+      return
+    }
+
+    const { data } = await Contacts.getContactsAsync({
+      fields: [Contacts.Fields.PhoneNumbers, Contacts.Fields.Emails],
+    })
+
+    console.log('Contacts:', data)
+    // You can now let the user select a contact to share in chat
   }
 
   const pickImagesVideos = async () => {
@@ -238,27 +263,6 @@ const Chats = () => {
     }
   }
 
-  // const pickDocuments = async () => {
-  //   const result = await DocumentPicker.getDocumentAsync({
-  //     type: [
-  //       'application/pdf',
-  //       'application/msword',
-  //       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  //       'application/vnd.ms-powerpoint',
-  //       'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-  //       'application/vnd.ms-excel',
-  //       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  //       'text/plain',
-  //       'audio/*',
-  //     ],
-  //     multiple: true,
-  //   })
-
-  //   if (result.assets) {
-  //     // onSelect(result.assets);
-  //   }
-  // }
-
   const pickDocuments = async () => {
     const getExtension = (
       asset: DocumentPicker.DocumentPickerAsset
@@ -286,7 +290,6 @@ const Chats = () => {
           'application/vnd.ms-excel',
           'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
           'text/plain',
-          'audio/*',
         ],
         multiple: true,
         copyToCacheDirectory: true,
@@ -439,6 +442,7 @@ const Chats = () => {
   //     console.error('Audio picker error:', err)
   //   }
   // }
+
   const postAudio = async () => {
     for (let i = 0; i < files.length; i++) {
       const el = files[i]
@@ -583,6 +587,7 @@ const Chats = () => {
                 pickImagesVideos={pickImagesVideos}
                 pickDocuments={pickDocuments}
                 pickAudio={pickAudio}
+                handlePickContacts={handlePickContacts}
               />
 
               <TouchableOpacity

@@ -1,0 +1,6 @@
+.git
+*.psd
+node_modules
+*.zip
+*.mp4
+assets/videos/*

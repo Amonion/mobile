@@ -12,8 +12,7 @@ import {
 import { MessageStore } from '@/store/notification/Message'
 // import * as MediaLibrary from 'expo-media-library'
 import { ChatStore, PreviewFile } from '@/store/chat/Chat'
-import Svg, { Circle } from 'react-native-svg'
-import { CircleQuestionMark } from 'lucide-react-native'
+import MediaCircularProgress from './MediaCircularProgress'
 
 type AudioMessageProps = {
   item: PreviewFile
@@ -36,7 +35,6 @@ const formatTime = (secs: number) => {
 const size = 35
 const strokeWidth = 4
 const radius = (size - strokeWidth) / 2
-const circumference = 2 * Math.PI * radius
 
 const AudioMessage: React.FC<AudioMessageProps> = ({
   item,
@@ -202,51 +200,12 @@ const AudioMessage: React.FC<AudioMessageProps> = ({
     <View className="flex flex-col w-full mb-2">
       <View className="flex-row items-end w-full">
         {isUploading ? (
-          <View
-            style={{ width: 55, height: 55 }}
-            className=" items-center relative justify-center mr-2"
-          >
-            {isSender ? (
-              <>
-                <Svg
-                  width={size}
-                  height={size}
-                  style={{ transform: [{ rotate: '-90deg' }] }}
-                >
-                  <Circle
-                    cx={size / 2}
-                    cy={size / 2}
-                    r={radius}
-                    stroke="#374151"
-                    strokeWidth={strokeWidth}
-                    fill="transparent"
-                  />
-                  <Circle
-                    cx={size / 2}
-                    cy={size / 2}
-                    r={radius}
-                    stroke="#4B7FFF"
-                    strokeWidth={strokeWidth}
-                    fill="transparent"
-                    strokeDasharray={circumference}
-                    strokeDashoffset={
-                      circumference * (1 - progressPercent / 100)
-                    }
-                    strokeLinecap="round"
-                  />
-                </Svg>
-                <Text className="absolute text-white text-xs font-medium">
-                  {progressPercent}%
-                </Text>
-              </>
-            ) : (
-              <CircleQuestionMark
-                size={25}
-                color={isSender ? (isDark ? '#BABABA' : '#6E6E6E') : '#fff'}
-                className="absolute"
-              />
-            )}
-          </View>
+          <MediaCircularProgress
+            progressPercent={progressPercent}
+            size={size}
+            strokeWidth={strokeWidth}
+            radius={radius}
+          />
         ) : (
           <Pressable
             onPress={togglePlay}

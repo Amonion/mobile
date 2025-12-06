@@ -14,6 +14,7 @@ import {
 interface DropdownProps {
   data: Area[]
   placeholder?: string
+  label?: string
   onSelect: (value: Area) => void
   disabled?: boolean
   errorMessage?: string
@@ -23,6 +24,7 @@ interface DropdownProps {
 const CustomDropdown: React.FC<DropdownProps> = ({
   data,
   placeholder = 'Select...',
+  label = '',
   onSelect,
   disabled = false,
   errorMessage,
@@ -31,7 +33,6 @@ const CustomDropdown: React.FC<DropdownProps> = ({
   const [isOpen, setIsOpen] = useState(false)
   const [showError, setShowError] = useState(false)
   const [selected, setSelected] = useState<string>(placeholder)
-
   const fadeAnim = useRef(new Animated.Value(0)).current
   const heightAnim = useRef(new Animated.Value(0)).current
 
@@ -99,7 +100,7 @@ const CustomDropdown: React.FC<DropdownProps> = ({
 
       <View className="w-full mb-5 relative">
         <Text className="text-primary dark:text-dark-primaryLight mb-1">
-          {placeholder}
+          {label}
         </Text>
 
         <TouchableOpacity

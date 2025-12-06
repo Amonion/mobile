@@ -28,7 +28,7 @@ export default function VerificationOriginSettings() {
 
   useEffect(() => {
     if (!bioUserState) return
-    if (!bioUserState.isOrigin) {
+    if (!bioUserState.isContact) {
       setCEdit(true)
     } else {
       setCEdit(false)
@@ -85,10 +85,6 @@ export default function VerificationOriginSettings() {
   const selectArea = (area: Area) => {
     setForm('residentArea', area.area)
     setForm('residentPlaceId', area.id)
-  }
-
-  const handleInputChange = (name: string, value: string) => {
-    setForm(name as keyof typeof bioUserForm, value)
   }
 
   const submitData = async (data: FormData) => {
@@ -209,12 +205,22 @@ export default function VerificationOriginSettings() {
         <View className={`flex-1 px-3 min-h-[400px]`}>
           <CustomDropdown
             data={countries}
-            placeholder="Select Country"
+            label="Select Country"
+            placeholder={
+              bioUserForm.residentCountry
+                ? bioUserForm.residentCountry
+                : 'Select Country'
+            }
             onSelect={selectCountry}
           />
           <CustomDropdown
             data={states}
-            placeholder="Select State"
+            label="Select State"
+            placeholder={
+              bioUserForm.residentState
+                ? bioUserForm.residentState
+                : 'Select State'
+            }
             disabled={!bioUserForm.residentCountry}
             type="state"
             errorMessage={
@@ -226,7 +232,12 @@ export default function VerificationOriginSettings() {
           />
           <CustomDropdown
             data={area}
-            placeholder="Select Area"
+            label="Select Area"
+            placeholder={
+              bioUserForm.residentArea
+                ? bioUserForm.residentArea
+                : 'Select Area'
+            }
             disabled={!bioUserForm.residentState}
             type="area"
             errorMessage={
@@ -241,14 +252,14 @@ export default function VerificationOriginSettings() {
             value={bioUserForm.residentAddress}
             placeholder="Enter residential address"
             autoCapitalize="words"
-            onChangeText={(e) => handleInputChange(e, 'residentAddress')}
+            onChangeText={(e) => setForm('residentAddress', e)}
           />
           <InputField
             label="Phone Number"
             value={bioUserForm.phone}
             placeholder="Enter your phone number"
             autoCapitalize="words"
-            onChangeText={(e) => handleInputChange(e, 'phone')}
+            onChangeText={(e) => setForm('phone', e)}
           />
 
           <CustomBtn
@@ -258,7 +269,7 @@ export default function VerificationOriginSettings() {
           />
 
           <View className="my-2" />
-          {isCEdit && bioUserState?.isOrigin && (
+          {isCEdit && bioUserState?.isContact && (
             <CustomBtn
               label="Cancle Edit"
               loading={loading}
@@ -269,7 +280,7 @@ export default function VerificationOriginSettings() {
         </View>
       ) : (
         <View className="px-3 flex-1 mb-5">
-          <View className="px-3 z-30 w-full overflow-auto border border-border dark:border-dark-border rounded-[10px]">
+          <View className="px-3 pb-3 z-30 w-full overflow-auto border border-border dark:border-dark-border rounded-[10px]">
             <View className="py-2 border-b border-b-border dark:border-b-dark-border mb-5">
               <Text className="text-lg text-primary dark:text-dark-primary mb-1">
                 Address of Residence

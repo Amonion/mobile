@@ -21,7 +21,7 @@ export default function VerificationDocumentSettings() {
   const url = '/users/bio-user/'
 
   useEffect(() => {
-    getDocuments('/places/documents/')
+    getDocuments(`/documents/?country=${bioUser?.homeCountry}`)
   }, [])
 
   useEffect(() => {
@@ -226,7 +226,7 @@ export default function VerificationDocumentSettings() {
       ) : (
         <View className="relative min-h-[400px] h-full flex-1 justify-start">
           <Text className="text-center w-full uppercase text-2xl text-secondary dark:text-dark-secondary mb-5">
-            No Schools Found
+            No Documents Found
           </Text>
           <Image
             source={require('@/assets/images/not-found.png')}

@@ -11,6 +11,9 @@ export type TableName =
   | 'chats'
   | 'accounts'
   | 'people'
+  | 'biouser'
+  | 'biouserstate'
+  | 'biouserschoolinfo'
 
 const PREFIX = '@localdb:'
 

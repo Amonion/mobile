@@ -1,10 +1,11 @@
 import { create } from 'zustand'
-import { AuthStore } from './AuthStore'
 import { User } from './User'
 import { customRequest } from '@/lib/api'
 import { BioUserState } from './BioUserState'
 import { Post } from '../post/Post'
 import { News } from '../news/News'
+import { upsertAll } from '@/lib/localStorage/db'
+import { AuthStore } from '../AuthStore'
 
 export interface IDDocs {
   name: string
@@ -180,6 +181,7 @@ export const BioUserStore = create<BioUsersState>((set) => ({
       const response = await customRequest({ url })
       const data = response?.data
       if (data) {
+        upsertAll('biouser', data.data)
         set({
           bioUserForm: data.data,
           loading: false,
@@ -309,21 +311,28 @@ export const BioUserStore = create<BioUsersState>((set) => ({
     updatedItem: FormData | Record<string, unknown>,
     redirect?: () => void
   ) => {
-    set({ loading: true })
-    const response = await customRequest({
-      url,
-      method: 'PATCH',
-      showMessage: true,
-      data: updatedItem,
-    })
-    const data = response?.data
-    if (data) {
-      AuthStore.getState().setAllUser(data.bioUserState, data?.bioUser)
-      set({
-        bioUserForm: data.bioUser,
-        loading: false,
+    try {
+      set({ loading: true })
+      const response = await customRequest({
+        url,
+        method: 'PATCH',
+        showMessage: true,
+        data: updatedItem,
       })
-      if (redirect) redirect()
+      const data = response?.data
+      if (data) {
+        AuthStore.getState().setBioUser(data?.bioUser)
+        AuthStore.getState().setBioUserState(data.bioUserState)
+        set({
+          bioUserForm: data.bioUser,
+          loading: false,
+        })
+        if (redirect) redirect()
+      }
+    } catch (error) {
+      console.log(error)
+    } finally {
+      set({ loading: false })
     }
   },
 }))

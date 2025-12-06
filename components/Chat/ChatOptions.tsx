@@ -9,6 +9,7 @@ type ChatOptionsProps = {
   pickImagesVideos: () => void
   pickDocuments: () => void
   pickAudio: () => void
+  handlePickContacts: () => void
 }
 
 const ChatOptions = ({
@@ -17,6 +18,7 @@ const ChatOptions = ({
   pickImagesVideos,
   pickDocuments,
   pickAudio,
+  handlePickContacts,
 }: ChatOptionsProps) => {
   const colorScheme = useColorScheme()
   const isDark = colorScheme === 'dark'
@@ -28,7 +30,7 @@ const ChatOptions = ({
         <TouchableOpacity
           onPress={() => setOptions(false)}
           activeOpacity={1}
-          className="flex-row px-3 w-full h-[600px] items-end"
+          className="flex-row px-3 w-full h-[600px] items-end text-primaryLight dark:text-dark-primaryLight"
           style={{
             position: 'absolute',
             left: 0,
@@ -52,10 +54,10 @@ const ChatOptions = ({
               <Feather
                 name="image"
                 size={25}
-                color={isDark ? '#EFEFEF' : '#3A3A3A'}
+                color={isDark ? '#848484' : '#A4A2A2'}
                 style={{ marginBottom: 5 }}
               />
-              <Text style={{ color: isDark ? '#EFEFEF' : '#3A3A3A' }}>
+              <Text style={{ color: isDark ? '#848484' : '#A4A2A2' }}>
                 Media
               </Text>
             </TouchableOpacity>
@@ -64,10 +66,10 @@ const ChatOptions = ({
               <Feather
                 name="music"
                 size={25}
-                color={isDark ? '#EFEFEF' : '#3A3A3A'}
+                color={isDark ? '#848484' : '#A4A2A2'}
                 style={{ marginBottom: 5 }}
               />
-              <Text style={{ color: isDark ? '#EFEFEF' : '#3A3A3A' }}>
+              <Text style={{ color: isDark ? '#848484' : '#A4A2A2' }}>
                 Sound
               </Text>
             </TouchableOpacity>
@@ -76,24 +78,24 @@ const ChatOptions = ({
               <Feather
                 name="file"
                 size={25}
-                color={isDark ? '#EFEFEF' : '#3A3A3A'}
+                color={isDark ? '#848484' : '#A4A2A2'}
                 style={{ marginBottom: 5 }}
               />
-              <Text style={{ color: isDark ? '#EFEFEF' : '#3A3A3A' }}>
+              <Text style={{ color: isDark ? '#848484' : '#A4A2A2' }}>
                 Documents
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              onPress={pickImagesVideos}
+              onPress={handlePickContacts}
               className="chatMediaBtn"
             >
               <Contact
                 size={25}
-                color={isDark ? '#EFEFEF' : '#3A3A3A'}
+                color={isDark ? '#848484' : '#A4A2A2'}
                 style={{ marginBottom: 5 }}
               />
-              <Text style={{ color: isDark ? '#EFEFEF' : '#3A3A3A' }}>
+              <Text style={{ color: isDark ? '#848484' : '#A4A2A2' }}>
                 Contact
               </Text>
             </TouchableOpacity>
@@ -104,10 +106,10 @@ const ChatOptions = ({
             >
               <List
                 size={25}
-                color={isDark ? '#EFEFEF' : '#3A3A3A'}
+                color={isDark ? '#848484' : '#A4A2A2'}
                 style={{ marginBottom: 5 }}
               />
-              <Text style={{ color: isDark ? '#EFEFEF' : '#3A3A3A' }}>
+              <Text style={{ color: isDark ? '#848484' : '#A4A2A2' }}>
                 Poll
               </Text>
             </TouchableOpacity>

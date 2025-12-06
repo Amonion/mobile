@@ -69,6 +69,7 @@ export const customRequest = async (
 ) => {
   try {
     const response = await api.request(config)
+    console.log('Show message: ', showMessage)
 
     if (showMessage && response.data?.message) {
       MessageStore.getState().setMessage(response.data.message, true)

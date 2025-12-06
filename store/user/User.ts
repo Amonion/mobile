@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import _debounce from 'lodash/debounce'
 import { customRequest } from '@/lib/api'
-import { AuthStore } from './AuthStore'
+import { AuthStore } from '../AuthStore'
 
 interface FetchUserResponse {
   count: number

@@ -1,11 +1,11 @@
 import { create } from 'zustand'
 import _debounce from 'lodash/debounce'
-import apiRequest from '@/lib/axios'
 import { AcademicLevel, AcademicLevelEmpty } from '../school/Academic'
-import { AuthStore } from '../user/AuthStore'
 import { User } from '../user/User'
 import { BioUser } from './BioUser'
 import { BioUserState } from './BioUserState'
+import { customRequest } from '@/lib/api'
+import { AuthStore } from '../AuthStore'
 
 export const BioUserSchoolInfoEmpty = {
   _id: '',
@@ -135,27 +135,19 @@ interface UsersState {
   resetForm: () => void
   clearSearchedItem: () => void
   setSearchedBioUserResult: () => void
-  getBioUsersSchoolInfo: (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void
-  ) => Promise<void>
+  getBioUsersSchoolInfo: (url: string) => Promise<void>
 
-  getBioUserSchoolInfo: (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void
-  ) => Promise<void>
+  getBioUserSchoolInfo: (url: string) => Promise<void>
   getQueryBioUsersSchool: (url: string) => Promise<void>
   addMoreSearchedBioUsersSchoolInfo: (url: string) => Promise<void>
   setProcessedResults: (data: FetchResponse) => void
   postBioUserSchoolInfo: (
     url: string,
-    updatedItem: FormData | Record<string, unknown>,
-    setMessage: (message: string, isError: boolean) => void
+    updatedItem: FormData | Record<string, unknown>
   ) => Promise<void>
   updateBioUserSchoolInfo: (
     url: string,
     updatedItem: FormData | Record<string, unknown>,
-    setMessage: (message: string, isError: boolean) => void,
     redirect?: () => void
   ) => Promise<void>
   setSearchCurrentPage: (index: number) => void
@@ -236,14 +228,9 @@ export const BioUserSchoolInfoStore = create<UsersState>((set) => ({
     set({ loading: loadState })
   },
 
-  getBioUsersSchoolInfo: async (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void
-  ) => {
+  getBioUsersSchoolInfo: async (url: string) => {
     try {
-      const response = await apiRequest<FetchResponse>(url, {
-        setMessage,
-      })
+      const response = await customRequest({ url })
       const data = response?.data
       if (data) {
         BioUserSchoolInfoStore.getState().setProcessedResults(data)
@@ -253,12 +240,9 @@ export const BioUserSchoolInfoStore = create<UsersState>((set) => ({
     }
   },
 
-  getBioUserSchoolInfo: async (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void
-  ) => {
+  getBioUserSchoolInfo: async (url: string) => {
     try {
-      const response = await apiRequest<FetchResponse>(url, { setMessage })
+      const response = await customRequest({ url })
       const data = response?.data
       if (data) {
         set({
@@ -273,7 +257,7 @@ export const BioUserSchoolInfoStore = create<UsersState>((set) => ({
 
   getQueryBioUsersSchool: async (url: string) => {
     try {
-      const response = await apiRequest<FetchResponse>(url)
+      const response = await customRequest({ url })
       const data = response?.data
       if (data) {
         set({
@@ -288,7 +272,7 @@ export const BioUserSchoolInfoStore = create<UsersState>((set) => ({
 
   addMoreSearchedBioUsersSchoolInfo: async (url: string) => {
     try {
-      const response = await apiRequest<FetchResponse>(url)
+      const response = await customRequest({ url })
       const { results } = response?.data
       if (results) {
         set((prev) => {
@@ -318,7 +302,7 @@ export const BioUserSchoolInfoStore = create<UsersState>((set) => ({
 
   searchPerson: _debounce(async (url: string) => {
     try {
-      const response = await apiRequest<FetchResponse>(url)
+      const response = await customRequest({ url })
       const { results } = response?.data
       if (results) {
         set({ searchedBioUserResult: results })
@@ -335,15 +319,15 @@ export const BioUserSchoolInfoStore = create<UsersState>((set) => ({
   updateBioUserSchoolInfo: async (
     url: string,
     updatedItem: FormData | Record<string, unknown>,
-    setMessage: (message: string, isError: boolean) => void,
     redirect
   ) => {
     try {
       set({ loading: true })
-      const response = await apiRequest<FetchResponse>(url, {
+      const response = await customRequest({
+        url,
         method: 'PATCH',
-        body: updatedItem,
-        setMessage,
+        showMessage: true,
+        data: updatedItem,
       })
       const data = response?.data
       if (data) {
@@ -364,14 +348,14 @@ export const BioUserSchoolInfoStore = create<UsersState>((set) => ({
 
   postItem: async (
     url: string,
-    updatedItem: FormData | Record<string, unknown>,
-    setMessage: (message: string, isError: boolean) => void
+    updatedItem: FormData | Record<string, unknown>
   ) => {
     set({ loading: true })
-    const response = await apiRequest<FetchResponse>(url, {
+    const response = await customRequest({
+      url,
       method: 'POST',
-      body: updatedItem,
-      setMessage,
+      showMessage: true,
+      data: updatedItem,
     })
 
     if (response?.data) {
@@ -386,14 +370,14 @@ export const BioUserSchoolInfoStore = create<UsersState>((set) => ({
 
   postBioUserSchoolInfo: async (
     url: string,
-    updatedItem: FormData | Record<string, unknown>,
-    setMessage: (message: string, isError: boolean) => void
+    updatedItem: FormData | Record<string, unknown>
   ) => {
     set({ loading: true })
-    const response = await apiRequest<FetchResponse>(url, {
+    const response = await customRequest({
+      url,
       method: 'POST',
-      body: updatedItem,
-      setMessage,
+      showMessage: true,
+      data: updatedItem,
     })
 
     if (response?.data) {

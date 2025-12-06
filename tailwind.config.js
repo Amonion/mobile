@@ -9,10 +9,12 @@ module.exports = {
         primaryLight: '#A4A2A2',
         secondary: '#3A3A3A',
         custom: '#DA3986',
+        success: '#0cc042',
         darkCustom: '#5B0A31',
         dark: {
           primary: '#BABABA',
           primaryLight: '#848484',
+          success: '#0fce48',
           secondary: '#EFEFEF',
           custom: '#DA3986',
         },

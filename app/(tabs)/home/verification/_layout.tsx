@@ -70,7 +70,7 @@ export default function VerificationLayout() {
             <TouchableOpacity
               onPress={() => {
                 if (pathname !== '/home/verification') {
-                  router.push('/home/verification/profile')
+                  router.push('/home/verification')
                 }
               }}
               className={`${
@@ -113,10 +113,8 @@ export default function VerificationLayout() {
                   }
                 }}
                 className={`${
-                  pathname.includes('public')
-                    ? 'border-custom bg-custom'
-                    : 'border-border dark:border-dark-border '
-                } py-2 px-2 mx-2 border rounded-[5px] flex-row items-center`}
+                  pathname.includes('public') ? 'pill' : 'pillInActive'
+                } mx-2`}
               >
                 <Text
                   className={`${
@@ -190,7 +188,9 @@ export default function VerificationLayout() {
                     router.push('/home/verification/education')
                   }
                 }}
-                className={`${pathname.includes('education') ? '' : ''} `}
+                className={`${
+                  pathname.includes('education') ? 'pill' : 'pillInActive'
+                } `}
               >
                 <Text
                   className={`${

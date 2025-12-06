@@ -30,6 +30,7 @@ interface AuthState {
     bioUserSchoolInfo?: BioUserSchoolInfo,
     bioUserSettings?: BioUserSettings
   ) => void
+  setBioUser: (bioUserState: BioUser) => void
   setBioUserState: (bioUserState: BioUserState) => void
   setBioUserSchoolInfo: (user: BioUserSchoolInfo) => void
   logout: () => void
@@ -59,6 +60,8 @@ export const AuthStore = create<AuthState>()(
           bioUserSettings: bioUserSettings ?? prev.bioUserSettings,
         }))
       },
+
+      setBioUser: (bioUser) => set({ bioUser }),
 
       setBioUserState: (bioUserState) => set({ bioUserState }),
 

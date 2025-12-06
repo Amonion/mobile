@@ -165,7 +165,7 @@ export default function VerificationRelatedSettings() {
         </View>
       ) : (
         <View className="px-3 flex-1 mb-5">
-          <View className="px-3 z-30 w-full overflow-auto border border-border dark:border-dark-border rounded-[10px]">
+          <View className="px-3 pb-3 z-30 w-full overflow-auto border border-border dark:border-dark-border rounded-[10px]">
             <View className="py-2 border-b border-b-border dark:border-b-dark-border mb-5">
               <Text className="text-lg text-primary dark:text-dark-primary mb-1">
                 Occupation

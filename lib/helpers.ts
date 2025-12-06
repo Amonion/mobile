@@ -3,6 +3,7 @@ import { UserStore } from '@/store/user/User'
 import axios from 'axios'
 import { ImagePickerAsset } from 'expo-image-picker'
 import { Dimensions } from 'react-native'
+import * as Network from 'expo-network'
 
 export interface RNUploadFile {
   uri: string // required
@@ -593,8 +594,29 @@ export const formatTimeTo12Hour = (
   }
 }
 
+export const getDeviceIP = async () => {
+  try {
+    const ip = await Network.getIpAddressAsync()
+    console.log('Device IP:', ip)
+    return ip
+  } catch (err) {
+    console.error('Failed to get IP:', err)
+    return null
+  }
+}
+
+export const ICONS: Record<string, any> = {
+  pdf: require('@/assets/images/files/pdf.png'),
+  docx: require('@/assets/images/files/doc.png'),
+  xlsx: require('@/assets/images/files/xls.png'),
+  pptx: require('@/assets/images/files/ppt.png'),
+  txt: require('@/assets/images/files/file.png'),
+}
+
 export const getExtension = (type: string): string => {
   const extension = type.substring(type.lastIndexOf('.')).toLowerCase()
+
+  console.log(extension, type)
 
   if (extension.includes('doc')) {
     return '/files/doc.png'
