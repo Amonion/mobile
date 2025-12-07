@@ -720,7 +720,7 @@ export const truncateStringNormal = (
 
 interface Input {
   name: string
-  value: string | number | boolean | FileLike | null
+  value: string | number | boolean | FileLike | null | Date
 }
 
 type CountdownState = {

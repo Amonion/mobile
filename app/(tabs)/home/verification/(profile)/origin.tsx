@@ -39,8 +39,7 @@ export default function VerificationOriginSettings() {
     if (!bioUser) return
     if (countries.length === 0) {
       getCountries(
-        `/places/countries/?country=&page_size=350&field=country&sort=country`,
-        setMessage
+        `/places/countries/?country=&page_size=350&field=country&sort=country`
       )
     }
     BioUserStore.setState({ bioUserForm: bioUser })
@@ -77,6 +76,7 @@ export default function VerificationOriginSettings() {
 
   const selectState = (state: State) => {
     setForm('homeState', state.state)
+    setForm('homeArea', '')
     getArea(
       `/places/area/?state=${state.state}&page_size=350&field=area&sort=area`
     )

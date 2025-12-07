@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { customRequest } from '@/lib/api'
+import _debounce from 'lodash/debounce'
 
 export interface Department {
   _id: string
@@ -84,6 +85,7 @@ interface DepartmentState {
     setMessage: (message: string, isError: boolean) => void
   ) => Promise<void>
   getStaffPositions: (url: string) => Promise<void>
+  searchDepartment: (url: string) => void
   getDepartment: (url: string) => Promise<void>
   processPosition: (data: FetchPositionResponse) => void
   setProcessedResults: (data: FetchResponse) => void
@@ -196,6 +198,26 @@ const DepartmentStore = create<DepartmentState>((set, get) => ({
       console.log(error)
     }
   },
+
+  searchDepartment: _debounce(async (url: string) => {
+    try {
+      const response = await customRequest({ url })
+      set({ loading: true })
+      const results = response?.data.results
+      if (results) {
+        const updatedResults = results.map((item: Department) => ({
+          ...item,
+          isChecked: false,
+          isActive: false,
+        }))
+        set({ searchedDepartments: updatedResults })
+      }
+    } catch (error) {
+      console.log(error)
+    } finally {
+      set({ loading: false })
+    }
+  }, 1000),
 
   reshuffleResults: async () => {
     set((state) => ({

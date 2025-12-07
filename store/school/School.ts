@@ -113,7 +113,7 @@ interface SchoolState {
   count: number
   page_size: number
   schoolResults: School[]
-  loading: boolean
+  loadingSchool: boolean
   selectedSchools: School[]
   searchedSchools: School[]
   searchedSchoolResult: School[]
@@ -148,7 +148,7 @@ const SchoolStore = create<SchoolState>((set) => ({
   selectedLevelName: '',
   selectedClassLevel: null,
   schoolResults: [],
-  loading: false,
+  loadingSchool: false,
   hasMoreSearch: true,
   selectedSchools: [],
   searchedSchools: [],
@@ -169,7 +169,7 @@ const SchoolStore = create<SchoolState>((set) => ({
     }),
 
   setLoading: (loadState: boolean) => {
-    set({ loading: loadState })
+    set({ loadingSchool: loadState })
   },
 
   setSchoolForm: (username: string) => {
@@ -218,7 +218,7 @@ const SchoolStore = create<SchoolState>((set) => ({
       }))
 
       set({
-        loading: false,
+        loadingSchool: false,
         count,
         page_size,
         schoolResults: updatedResults,
@@ -241,16 +241,21 @@ const SchoolStore = create<SchoolState>((set) => ({
   getSchool: async (url: string) => {
     try {
       const response = await customRequest({ url })
-
+      set({
+        loadingSchool: true,
+      })
       const data = response?.data
       if (data) {
         set({
           schoolData: data.data,
-          loading: false,
         })
       }
     } catch (error: unknown) {
       console.log(error)
+    } finally {
+      set({
+        loadingSchool: false,
+      })
     }
   },
 
@@ -262,7 +267,7 @@ const SchoolStore = create<SchoolState>((set) => ({
         set((prev) => {
           return {
             searchedSchools: [...prev.searchedSchools, ...data.results],
-            loading: false,
+            loadingSchool: false,
             hasMoreSearch: data.results.length === prev.page_size,
           }
         })
@@ -280,7 +285,7 @@ const SchoolStore = create<SchoolState>((set) => ({
         set((prev) => {
           return {
             searchedSchools: data.results,
-            loading: false,
+            loadingSchool: false,
             hasMoreSearch: data.results.length === prev.page_size,
           }
         })
@@ -301,16 +306,22 @@ const SchoolStore = create<SchoolState>((set) => ({
   },
 
   searchSchool: _debounce(async (url: string) => {
-    const response = await customRequest({ url })
-
-    const results = response?.data.results
-    if (results) {
-      const updatedResults = results.map((item: School) => ({
-        ...item,
-        isChecked: false,
-        isActive: false,
-      }))
-      set({ searchedSchoolResult: updatedResults })
+    try {
+      const response = await customRequest({ url })
+      set({ loadingSchool: true })
+      const results = response?.data.results
+      if (results) {
+        const updatedResults = results.map((item: School) => ({
+          ...item,
+          isChecked: false,
+          isActive: false,
+        }))
+        set({ searchedSchoolResult: updatedResults })
+      }
+    } catch (error) {
+      console.log(error)
+    } finally {
+      set({ loadingSchool: false })
     }
   }, 1000),
 

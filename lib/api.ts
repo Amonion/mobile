@@ -63,15 +63,10 @@ type RequestOptions = {
   showMessage?: boolean
 } & Parameters<typeof api.request>[0]
 
-export const customRequest = async (
-  config: RequestOptions,
-  showMessage = false
-) => {
+export const customRequest = async (config: RequestOptions) => {
   try {
     const response = await api.request(config)
-    console.log('Show message: ', showMessage)
-
-    if (showMessage && response.data?.message) {
+    if (config.showMessage && response.data?.message) {
       MessageStore.getState().setMessage(response.data.message, true)
     }
 
@@ -94,7 +89,7 @@ export const customRequest = async (
     const message =
       error.response?.data?.message || error.message || 'Something went wrong'
 
-    if (showMessage) {
+    if (config.showMessage) {
       MessageStore.getState().setMessage(message, false)
     }
 

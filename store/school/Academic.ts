@@ -21,6 +21,8 @@ export const AcademicLevelEmpty = {
   certificate: '',
   inSchool: false,
   isCurriculum: false,
+  isChecked: false,
+  isActive: false,
 }
 
 export interface School {
@@ -68,8 +70,8 @@ export interface AcademicLevel {
   certificate: string | File | null
   isCurriculum: boolean
   inSchool: boolean
-  isChecked?: boolean
-  isActive?: boolean
+  isChecked: boolean
+  isActive: boolean
 }
 
 interface FetchResponse {

@@ -52,10 +52,7 @@ interface CountryState {
   setItemForm: (key: keyof Area, value: Area[keyof Area]) => void
   resetForm: () => void
   setAllCountries: () => void
-  getCountries: (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void
-  ) => Promise<void>
+  getCountries: (url: string) => Promise<void>
   getCountry: (
     url: string,
     setMessage: (message: string, isError: boolean) => void
@@ -138,10 +135,7 @@ const CountryStore = create<CountryState>((set) => ({
     set({ loadingCountries: loadState })
   },
 
-  getCountries: async (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void
-  ) => {
+  getCountries: async (url: string) => {
     try {
       const response = await customRequest({ url })
       const data = response?.data
@@ -149,7 +143,7 @@ const CountryStore = create<CountryState>((set) => ({
         CountryStore.getState().setProcessedResults(data)
       }
     } catch (error: unknown) {
-      console.log(error, setMessage)
+      console.log(error)
     }
   },
 

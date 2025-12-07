@@ -42,30 +42,30 @@ export default function VerificationLayout() {
         >
           <TouchableOpacity
             onPress={() => {
-              if (pathname !== '/home/verification') {
-                router.push('/home/verification')
+              if (pathname !== '/home/verification/education') {
+                router.push('/home/verification/education')
               }
             }}
             className={` py-1 px-3 flex-row items-center`}
           >
             <Text
               className={`${
-                pathname === '/home/verification'
+                pathname === '/home/verification/education'
                   ? 'text-custom'
-                  : bioUserState?.isBio
+                  : bioUserState?.isEducation
                   ? 'text-success dark:text-dark-success'
                   : 'text-primary dark:text-dark-primary'
               } text-xl text-center`}
             >
-              Profile
+              Current
             </Text>
-            {!bioUserState?.isBio && (
+            {!bioUserState?.isEducation && (
               <Feather
                 name="help-circle"
                 size={14}
                 className="ml-1"
                 color={
-                  pathname === '/home/verification'
+                  pathname === '/home/verification/education'
                     ? '#DA3986'
                     : isDark
                     ? '#BABABA'
@@ -77,31 +77,31 @@ export default function VerificationLayout() {
 
           <TouchableOpacity
             onPress={() => {
-              if (!bioUserState?.isBio) {
+              if (!bioUserState?.isEducation) {
                 setMessage(
-                  'Please complete your profile verification section to continue',
+                  'Please complete your current education verification section to continue',
                   false
                 )
                 return
               }
-              if (pathname !== '/home/verification/origin') {
-                router.push('/home/verification/origin')
+              if (pathname !== '/home/verification/education/history') {
+                router.push('/home/verification/education/history')
               }
             }}
             className={` py-1 px-3 flex-row items-center`}
           >
             <Text
               className={`${
-                pathname === '/home/verification/origin'
+                pathname === '/home/verification/education/history'
                   ? 'text-custom'
-                  : bioUserState?.isOrigin
+                  : bioUserState?.isEducationHistory
                   ? 'text-success dark:text-dark-success'
                   : 'text-primary dark:text-dark-primary'
               } text-xl text-center`}
             >
-              Origin
+              History
             </Text>
-            {!bioUserState?.isOrigin && (
+            {!bioUserState?.isEducationHistory && (
               <Feather
                 name="help-circle"
                 size={14}
@@ -113,112 +113,31 @@ export default function VerificationLayout() {
 
           <TouchableOpacity
             onPress={() => {
-              if (!bioUserState?.isBio || !bioUserState?.isOrigin) {
+              if (!bioUserState?.isEducationHistory) {
                 setMessage(
-                  'Please complete your origin verification section to continue',
+                  'Please complete your past education verification section to continue',
                   false
                 )
                 return
               }
-              if (pathname !== '/home/verification/contact') {
-                router.push('/home/verification/contact')
+              if (pathname !== '/home/verification/education/document') {
+                router.push('/home/verification/education/document')
               }
             }}
             className={`py-1 px-3 flex-row items-center`}
           >
             <Text
               className={`${
-                pathname === '/home/verification/contact'
+                pathname === '/home/verification/education/document'
                   ? 'text-custom'
-                  : bioUserState?.isContact
-                  ? 'text-success dark:text-dark-success'
-                  : 'text-primary dark:text-dark-primary'
-              } text-xl text-center`}
-            >
-              Contact
-            </Text>
-            {!bioUserState?.isContact && (
-              <Feather
-                name="help-circle"
-                size={14}
-                className="ml-1"
-                color={isDark ? '#BABABA' : '#6E6E6E'}
-              />
-            )}
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => {
-              if (
-                !bioUserState?.isBio ||
-                !bioUserState?.isOrigin ||
-                !bioUserState.isContact
-              ) {
-                setMessage(
-                  'Please complete your contact verification section to continue',
-                  false
-                )
-                return
-              }
-              if (pathname !== '/home/verification/related') {
-                router.push('/home/verification/related')
-              }
-            }}
-            className={`py-1 px-4 flex-row items-center`}
-          >
-            <Text
-              className={`${
-                pathname === '/home/verification/related'
-                  ? 'text-custom'
-                  : bioUserState?.isRelated
-                  ? 'text-success dark:text-dark-success'
-                  : 'text-primary dark:text-dark-primary'
-              } text-xl text-center`}
-            >
-              Related
-            </Text>
-            {!bioUserState?.isRelated && (
-              <Feather
-                name="help-circle"
-                size={14}
-                className="ml-1"
-                color={isDark ? '#BABABA' : '#6E6E6E'}
-              />
-            )}
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => {
-              if (
-                !bioUserState?.isBio ||
-                !bioUserState?.isOrigin ||
-                !bioUserState.isContact ||
-                !bioUserState.isRelated
-              ) {
-                setMessage(
-                  'Please complete your related verification section to continue',
-                  false
-                )
-                return
-              }
-              if (pathname !== '/home/verification/document') {
-                router.push('/home/verification/document')
-              }
-            }}
-            className={`py-1 px-4 flex-row items-center`}
-          >
-            <Text
-              className={`${
-                pathname === '/home/verification/document'
-                  ? 'text-custom'
-                  : bioUserState?.isDocument
+                  : bioUserState?.isEducationDocument
                   ? 'text-success dark:text-dark-success'
                   : 'text-primary dark:text-dark-primary'
               } text-xl text-center`}
             >
               Document
             </Text>
-            {!bioUserState?.isDocument && (
+            {!bioUserState?.isEducationDocument && (
               <Feather
                 name="help-circle"
                 size={14}
@@ -229,11 +148,6 @@ export default function VerificationLayout() {
           </TouchableOpacity>
         </Animated.View>
       </ScrollView>
-      {/* <View className="relative">
-        <Text className=" text-[12px] right-3 absolute bottom-[15px] text-custom">
-          {`Swipe Right`}
-        </Text>
-      </View> */}
 
       <Slot />
     </>
