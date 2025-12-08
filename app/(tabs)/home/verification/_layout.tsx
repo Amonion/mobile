@@ -201,20 +201,7 @@ export default function VerificationLayout() {
                 >
                   Education
                 </Text>
-                {isEducation ? (
-                  <MaterialCommunityIcons
-                    name="check-circle-outline"
-                    size={14}
-                    color={
-                      pathname.includes('education')
-                        ? '#00EB0C'
-                        : isDark
-                        ? '#00B809'
-                        : '#05AD0D'
-                    }
-                    className="ml-1"
-                  />
-                ) : (
+                {!isEducation && (
                   <Feather
                     name="help-circle"
                     size={14}
@@ -244,20 +231,7 @@ export default function VerificationLayout() {
                 >
                   Education
                 </Text>
-                {isEducation ? (
-                  <MaterialCommunityIcons
-                    name="check-circle-outline"
-                    size={14}
-                    color={
-                      pathname.includes('education')
-                        ? '#00EB0C'
-                        : isDark
-                        ? '#00B809'
-                        : '#05AD0D'
-                    }
-                    className="ml-1"
-                  />
-                ) : (
+                {!isEducation && (
                   <Feather
                     name="help-circle"
                     size={14}

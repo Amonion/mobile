@@ -6,6 +6,7 @@ import { BioUser } from './BioUser'
 import { BioUserState } from './BioUserState'
 import { customRequest } from '@/lib/api'
 import { AuthStore } from '../AuthStore'
+import { FileLike } from '../place/Document'
 
 export const BioUserSchoolInfoEmpty = {
   _id: '',
@@ -15,12 +16,13 @@ export const BioUserSchoolInfoEmpty = {
   bioUserMedia: '',
   bioUserPicture: '',
   bioUserUsername: '',
-  bioUserUserId: '',
+  bioUserId: '',
   createdAt: new Date(),
   graduatedAt: null,
   hasPastSchool: null,
   inSchool: false,
   isAdvanced: false,
+  isNew: false,
   isSchoolVerified: false,
   isVerified: false,
   schoolAcademicLevel: AcademicLevelEmpty,
@@ -59,12 +61,13 @@ export interface BioUserSchoolInfo {
   bioUserMedia: string
   bioUserPicture: string
   bioUserUsername: string
-  bioUserUserId: string
+  bioUserId: string
   createdAt: Date
   graduatedAt: Date | null
   hasPastSchool: boolean | null
   inSchool: boolean
   isAdvanced: boolean
+  isNew: boolean
   isSchoolVerified: boolean
   isVerified: boolean
   pastSchools: BioUserSchoolInfo[]
@@ -89,12 +92,82 @@ export interface BioUserSchoolInfo {
   schoolPicture: string
   schoolPlaceId: string
   schoolState: string
-  schoolCertificate: string
+  schoolCertificate: string | FileLike
   schoolTempCertificate: string
   schoolUsername: string
   schoolYear: string
   isActive?: boolean
   isChecked?: boolean
+}
+
+export const PastSchoolEmpty = {
+  admittedAt: null,
+  bioUserId: '',
+  bioUserPassport: '',
+  bioUserUsername: '',
+  bioUserDisplayName: '',
+  graduatedAt: null,
+  isAdvanced: false,
+  isNew: false,
+  isSchoolVerified: false,
+  schoolArea: '',
+  schoolArm: '',
+  schoolLevel: 0,
+  schoolLevelName: '',
+  schoolContinent: '',
+  schoolCountry: '',
+  schoolCountryFlag: '',
+  schoolCountrySymbol: '',
+  schoolDepartment: '',
+  schoolDepartmentId: '',
+  schoolDepartmentUsername: '',
+  schoolFaculty: '',
+  schoolFacultyId: '',
+  schoolFacultyUsername: '',
+  schoolId: '',
+  schoolLogo: '',
+  schoolName: '',
+  schoolPicture: '',
+  schoolPlaceId: '',
+  schoolState: '',
+  schoolCertificate: '',
+  schoolTempCertificate: '',
+  schoolUsername: '',
+}
+
+export interface PastSchool {
+  admittedAt: Date | null
+  bioUserId: string
+  bioUserPassport: string
+  bioUserUsername: string
+  bioUserDisplayName: string
+  graduatedAt: Date | null
+  isAdvanced: boolean
+  isNew: boolean
+  isSchoolVerified: boolean
+  schoolArea: string
+  schoolArm: string
+  schoolLevel: number
+  schoolLevelName: string
+  schoolContinent: string
+  schoolCountry: string
+  schoolCountryFlag: string
+  schoolCountrySymbol: string
+  schoolDepartment: string
+  schoolDepartmentId: string
+  schoolDepartmentUsername: string
+  schoolFaculty: string
+  schoolFacultyId: string
+  schoolFacultyUsername: string
+  schoolId: string
+  schoolLogo: string
+  schoolName: string
+  schoolPicture: string
+  schoolPlaceId: string
+  schoolState: string
+  schoolCertificate: string | FileLike
+  schoolTempCertificate: string
+  schoolUsername: string
 }
 
 interface FetchResponse {
@@ -115,7 +188,7 @@ interface UsersState {
   searchPageSize: number
   searchCurrentPage: number
   results: BioUserSchoolInfo[]
-  pastSchools: BioUserSchoolInfo[]
+  pastSchools: PastSchool[]
   loading: boolean
   hasMoreSearch: boolean
   selectedBioUsers: BioUserSchoolInfo[]
@@ -123,10 +196,10 @@ interface UsersState {
   searchedBioUsersSchoolInfo: BioUserSchoolInfo[]
   isAllChecked: boolean
   bioUserSchoolForm: BioUserSchoolInfo
-  bioUserPastSchoolForm: BioUserSchoolInfo
+  bioUserPastSchoolForm: PastSchool
   setBioUserPastSchoolForm: (
-    key: keyof BioUserSchoolInfo,
-    value: BioUserSchoolInfo[keyof BioUserSchoolInfo]
+    key: keyof PastSchool,
+    value: PastSchool[keyof PastSchool]
   ) => void
   setBioUserSchoolInfoForm: (
     key: keyof BioUserSchoolInfo,
@@ -138,6 +211,7 @@ interface UsersState {
   getBioUsersSchoolInfo: (url: string) => Promise<void>
 
   getBioUserSchoolInfo: (url: string) => Promise<void>
+  getPastSchools: (url: string) => Promise<void>
   getQueryBioUsersSchool: (url: string) => Promise<void>
   addMoreSearchedBioUsersSchoolInfo: (url: string) => Promise<void>
   setProcessedResults: (data: FetchResponse) => void
@@ -173,7 +247,7 @@ export const BioUserSchoolInfoStore = create<UsersState>((set) => ({
   searchedBioUserResult: [],
   isAllChecked: false,
   bioUserSchoolForm: BioUserSchoolInfoEmpty,
-  bioUserPastSchoolForm: BioUserSchoolInfoEmpty,
+  bioUserPastSchoolForm: PastSchoolEmpty,
   setBioUserPastSchoolForm: (key, value) =>
     set((state) => ({
       bioUserPastSchoolForm: {
@@ -240,6 +314,20 @@ export const BioUserSchoolInfoStore = create<UsersState>((set) => ({
     }
   },
 
+  getPastSchools: async (url: string) => {
+    try {
+      const response = await customRequest({ url })
+      const data = response?.data
+      if (data) {
+        set({
+          pastSchools: data.pastSchools,
+          loading: false,
+        })
+      }
+    } catch (error: unknown) {
+      console.log(error)
+    }
+  },
   getBioUserSchoolInfo: async (url: string) => {
     try {
       const response = await customRequest({ url })
@@ -331,6 +419,9 @@ export const BioUserSchoolInfoStore = create<UsersState>((set) => ({
       })
       const data = response?.data
       if (data) {
+        if (data.pastSchools) {
+          set({ pastSchools: data.pastSchools })
+        }
         if (data.bioUserSchoolInfo) {
           AuthStore.getState().setBioUserSchoolInfo(data.bioUserSchoolInfo)
         }

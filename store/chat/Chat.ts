@@ -330,7 +330,7 @@ export const ChatStore = create<ChatState>((set) => ({
   getSavedChats: async (connection) => {
     try {
       set({ loading: true })
-      clearTable('chats')
+      // clearTable('chats')
       const chats = await getAll<ChatContent>('chats', {
         page: 1,
         pageSize: 20,

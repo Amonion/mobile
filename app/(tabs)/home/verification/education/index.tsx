@@ -23,7 +23,7 @@ import { RadioButton } from '@/components/General/RadioButton'
 import SchoolStore, { School } from '@/store/school/School'
 import InputField from '@/components/General/InputField'
 import DepartmentStore, { Department } from '@/store/school/Department'
-import { router } from 'expo-router'
+import { router, usePathname } from 'expo-router'
 import { Calendar } from 'lucide-react-native'
 import PopupCalendar from '@/components/General/PopupCalendar'
 import dayjs from 'dayjs'
@@ -57,155 +57,9 @@ export default function VerificationEducationSettings() {
   const isDark = colorScheme === 'dark' ? true : false
   const [maxLevels, setMaxLevel] = useState<MaxLevels[]>([])
   const url = '/users/bio-user/school/'
+  const pathname = usePathname()
   const { toggleActive, getAcademics, academicResults, activeLevel } =
     AcademicStore()
-
-  // useEffect(() => {
-  //   if (!user) return
-  //   // if (!schoolForm.currentSchoolArea) {
-  //   //   getSchoolInfo(`/users/userinfo/${user.userId}?school=true`)
-  //   // }
-  //   if (!user.isEducation) {
-  //     setCurrentEdit(true)
-  //     setShowInSchool(false)
-  //   } else {
-  //     setCurrentEdit(false)
-  //   }
-  // }, [user])
-
-  // useEffect(() => {
-  //   if (school._id === '') {
-  //     setIsNew(false)
-  //   } else {
-  //     setIsNew(true)
-  //   }
-  // }, [school])
-
-  // useEffect(() => {
-  //   const words = schoolForm.currentSchoolLevel.split(' ')
-  //   const level = Number(words[words.length - 1])
-  //   if (maxLevels.length > 0) {
-  //     for (let i = 0; i < maxLevels.length; i++) {
-  //       const el = maxLevels[i]
-  //       if (el.level + 1 === level) {
-  //         selectMaxLevel(i)
-  //       }
-  //     }
-  //   }
-  // }, [maxLevels.length, isCurrentEdit])
-
-  // useEffect(() => {
-  //   setCountry({
-  //     continent: schoolForm.currentSchoolContinent,
-  //     country: schoolForm.currentSchoolCountry,
-  //     state: schoolForm.currentSchoolState,
-  //     countrySymbol: schoolForm.currentSchoolCountrySymbol,
-  //     area: schoolForm.currentSchoolArea,
-  //     countryFlag: schoolForm.currentSchoolCountryFlag,
-  //     id: schoolForm.currentSchoolId,
-  //   })
-
-  //   setInSchool(schoolForm.inSchool ? 'Yes' : 'No')
-
-  //   if (isCurrentEdit && academicResults.length === 0 && country.country) {
-  //     getAcademics(
-  //       `/places/academic-levels/?inSchool=${schoolForm.inSchool}&country=${country.country}`
-  //     )
-  //   }
-  // }, [isCurrentEdit])
-
-  // useEffect(() => {
-  //   if (schoolForm.currentSchoolArea) {
-  //     for (let i = 0; i < academicResults.length; i++) {
-  //       const el = academicResults[i]
-  //       if (el.levelName === schoolForm.currentAcademicLevelName) {
-  //         selectLevel(i, el, false)
-  //       }
-  //     }
-  //   }
-  //   setSchool({
-  //     name: schoolForm.currentSchoolName,
-  //     section: '',
-  //     subsection: '',
-  //     username: schoolForm.currentSchoolUsername,
-  //     logo: schoolForm.currentSchoolLogo,
-  //     _id: schoolForm.currentSchoolId,
-  //   })
-
-  //   if (
-  //     !schoolForm.currentAcademicLevelName.includes('Primary') &&
-  //     !schoolForm.currentAcademicLevelName.includes('Secondary')
-  //   ) {
-  //     setFaculty({
-  //       school: schoolForm.currentSchoolName,
-  //       schoolId: schoolForm.currentSchoolId,
-  //       name: schoolForm.currentFaculty,
-  //       username: schoolForm.currentFacultyUsername,
-  //       _id: schoolForm.currentFacultyId,
-  //     })
-  //     setDepartment({
-  //       facultyName: schoolForm.currentFaculty,
-  //       facultyId: schoolForm.currentFacultyId,
-  //       schoolId: schoolForm.currentSchoolId,
-  //       name: schoolForm.currentDepartment,
-  //       username: schoolForm.currentDepartmentUsername,
-  //       _id: schoolForm.currentDepartmentId,
-  //     })
-  //   }
-  // }, [isCurrentEdit, inSchool, academicResults.length])
-
-  // const clearSchool = (item?: string) => {
-  //   if (item === 'school') {
-  //     setFaculty({
-  //       school: '',
-  //       schoolId: '',
-  //       name: '',
-  //       username: '',
-  //       _id: '',
-  //     })
-  //     setDepartment({
-  //       facultyName: '',
-  //       facultyId: '',
-  //       schoolId: '',
-  //       name: '',
-  //       username: '',
-  //       _id: '',
-  //     })
-  //   } else if (item === 'faculty') {
-  //     setDepartment({
-  //       facultyName: '',
-  //       facultyId: '',
-  //       schoolId: '',
-  //       name: '',
-  //       username: '',
-  //       _id: '',
-  //     })
-  //   } else {
-  //     setSchool({
-  //       section: '',
-  //       subsection: '',
-  //       username: '',
-  //       name: '',
-  //       logo: '',
-  //       _id: '',
-  //     })
-  //     setFaculty({
-  //       school: '',
-  //       schoolId: '',
-  //       name: '',
-  //       username: '',
-  //       _id: '',
-  //     })
-  //     setDepartment({
-  //       facultyName: '',
-  //       facultyId: '',
-  //       schoolId: '',
-  //       name: '',
-  //       username: '',
-  //       _id: '',
-  //     })
-  //   }
-  // }
 
   useEffect(() => {
     if (countries.length === 0) {
@@ -216,9 +70,34 @@ export default function VerificationEducationSettings() {
   }, [])
 
   useEffect(() => {
-    if (!bioUserSchoolInfo) return
-    BioUserSchoolInfoStore.setState({ bioUserSchoolForm: bioUserSchoolInfo })
-  }, [bioUserSchoolInfo])
+    if (bioUserSchoolForm.schoolCountry) {
+      getLevels(bioUserSchoolForm.schoolCountry)
+    }
+  }, [bioUserSchoolForm.inSchool])
+
+  useEffect(() => {
+    if (academicResults.length > 0 && bioUserSchoolInfo) {
+      const index = academicResults.findIndex(
+        (item) =>
+          item.levelName === bioUserSchoolInfo?.schoolAcademicLevel.levelName
+      )
+      if (index && index + 1 > 0) {
+        selectLevel(index, academicResults[index])
+      }
+    }
+  }, [academicResults.length, bioUserSchoolInfo, pathname])
+
+  useEffect(() => {
+    const arr = bioUserSchoolInfo?.schoolYear.split(' ')
+    if (maxLevels.length > 0 && arr) {
+      const index = maxLevels.findIndex(
+        (item) => item.level + 1 === Number(arr[arr.length - 1])
+      )
+      if (index && index + 1 > 0) {
+        selectMaxLevel(index)
+      }
+    }
+  }, [maxLevels.length, bioUserSchoolInfo])
 
   const handleSearchSchool = (value: string) => {
     if (!value) {
@@ -304,6 +183,7 @@ export default function VerificationEducationSettings() {
   }
 
   const setSchool = () => {
+    if (schoolName.trim().length === 0) return
     setIsNew(true)
     setBioUserSchoolInfoForm('schoolName', schoolName)
     setSchoolName('')
@@ -311,6 +191,7 @@ export default function VerificationEducationSettings() {
   }
 
   const setDepartment = () => {
+    if (schoolDepartment.trim().length === 0) return
     setSchoolDepartment('')
     setBioUserSchoolInfoForm('schoolDepartment', schoolDepartment)
     DepartmentStore.setState({ searchedDepartments: [] })
@@ -414,9 +295,51 @@ export default function VerificationEducationSettings() {
         field: 'Area',
       },
       {
+        name: 'schoolName',
+        value: bioUserSchoolForm.schoolName,
+        rules: { blank: true, minLength: 2, maxLength: 100 },
+        field: 'School name',
+      },
+      {
+        name: 'schoolPicture',
+        value: bioUserSchoolForm.schoolPicture,
+        rules: { blank: true, minLength: 2, maxLength: 100 },
+        field: 'School picture',
+      },
+      {
+        name: 'schoolLogo',
+        value: bioUserSchoolForm.schoolLogo,
+        rules: { blank: true, minLength: 2, maxLength: 100 },
+        field: 'School logo',
+      },
+      {
+        name: 'schoolId',
+        value: bioUserSchoolForm.schoolId,
+        rules: { blank: true, minLength: 2, maxLength: 100 },
+        field: 'School id',
+      },
+      {
+        name: 'schoolDepartment',
+        value: bioUserSchoolForm.schoolDepartment,
+        rules: { blank: true, minLength: 2, maxLength: 100 },
+        field: 'School department',
+      },
+      {
+        name: 'schoolDepartmentUsername',
+        value: bioUserSchoolForm.schoolDepartmentUsername,
+        rules: { blank: true, minLength: 2, maxLength: 100 },
+        field: 'School department username',
+      },
+      {
+        name: 'schoolDepartmentId',
+        value: bioUserSchoolForm.schoolDepartmentId,
+        rules: { blank: true, minLength: 2, maxLength: 100 },
+        field: 'School department id',
+      },
+      {
         name: 'admittedAt',
         value: bioUserSchoolForm.admittedAt,
-        rules: { blank: true, minLength: 2, maxLength: 1000 },
+        rules: { blank: false, minLength: 2, maxLength: 1000 },
         field: 'Entry Date',
       },
       {

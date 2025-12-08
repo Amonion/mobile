@@ -14,15 +14,22 @@ const MinorAppBar = ({ onMenuPress }: { onMenuPress: () => void }) => {
       style={{
         paddingTop: insets.top,
       }}
-      className="text px-4 pb-2 pt-4 bg-primary dark:bg-dark-primary border-b border-b-border dark:border-b-dark-border"
+      className="pt-3 bg-primary dark:bg-dark-primary border-b border-b-border dark:border-b-dark-border"
     >
-      <View className="flex flex-row w-full relative items-center justify-between">
+      <View className="flex flex-row w-full relative items-center">
         <TouchableOpacity
-          hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-          className="p-3"
+          hitSlop={{ top: 25, bottom: 25, left: 25, right: 25 }}
+          className="p-4 mr-1 justify-center items-start"
           onPress={() => router.back()}
         >
           <ArrowLeft size={26} color={isDark ? '#BABABA' : '#6E6E6E'} />
+        </TouchableOpacity>
+        <TouchableOpacity
+          hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+          className="p-4 mr-auto"
+          onPress={onMenuPress}
+        >
+          <Menu size={26} color={isDark ? '#BABABA' : '#6E6E6E'} />
         </TouchableOpacity>
         <TouchableOpacity className="absolute left-[50%] py-3 translate-x-[-50%]">
           <Image
@@ -35,11 +42,11 @@ const MinorAppBar = ({ onMenuPress }: { onMenuPress: () => void }) => {
           />
         </TouchableOpacity>
         <TouchableOpacity
+          onPress={() => router.push('/home/notifications')}
           hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-          className="p-3"
-          onPress={onMenuPress}
+          className="p-4"
         >
-          <Menu size={26} color={isDark ? '#BABABA' : '#6E6E6E'} />
+          <Bell size={26} color={isDark ? '#BABABA' : '#6E6E6E'} />
         </TouchableOpacity>
       </View>
     </View>
