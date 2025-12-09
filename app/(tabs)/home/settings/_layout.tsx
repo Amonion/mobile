@@ -47,26 +47,6 @@ export default function SettingsLayout() {
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => {
-              if (pathname !== '/home/settings/social') {
-                router.push('/home/settings/social')
-              }
-            }}
-            className={`${
-              pathname === '/home/settings/social' ? 'pill' : 'pillInActive'
-            } mx-1`}
-          >
-            <Text
-              className={`${
-                pathname === '/home/settings/social'
-                  ? 'text-white'
-                  : 'text-primary dark:text-dark-primary'
-              } text-lg`}
-            >
-              Social
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => {
               if (pathname !== '/home/settings/notification') {
                 router.push('/home/settings/notification')
               }

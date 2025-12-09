@@ -1,14 +1,5 @@
 import { create } from 'zustand'
-import apiRequest from '@/lib/axios'
-import { User } from './User'
-
-interface FetchResponse {
-  count: number
-  message: string
-  page_size: number
-  data: UserSettings
-  user: User
-}
+import { customRequest } from '@/lib/api'
 
 export const UserSettingsEmpty = {
   username: '',
@@ -37,16 +28,12 @@ export interface UserSettings {
 interface UserSettingsState {
   userSettingsForm: UserSettings
   loading: boolean
-  getUserSettings: (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void
-  ) => Promise<void>
-  resetForm: () => void
+  getUserSettings: (url: string) => Promise<void>
+  setSettingsForm: (form: UserSettings) => void
   toggleNotification: (key: UserSettingsBooleanKeys) => void
   updateUserSettings: (
     url: string,
-    updatedItem: FormData | Record<string, unknown>,
-    setMessage: (message: string, isError: boolean) => void
+    updatedItem: FormData | Record<string, unknown>
   ) => Promise<void>
 }
 
@@ -60,14 +47,9 @@ export const UserSettingsStore = create<UserSettingsState>((set) => ({
   userSettingsForm: UserSettingsEmpty,
   loading: false,
 
-  getUserSettings: async (
-    url: string,
-    setMessage: (message: string, isError: boolean) => void
-  ) => {
+  getUserSettings: async (url: string) => {
     try {
-      const response = await apiRequest<FetchResponse>(url, {
-        setMessage,
-      })
+      const response = await customRequest({ url })
       const data = response?.data
       if (data) {
         set({
@@ -80,21 +62,21 @@ export const UserSettingsStore = create<UserSettingsState>((set) => ({
     }
   },
 
-  resetForm: () =>
+  setSettingsForm: (form) =>
     set({
-      userSettingsForm: UserSettingsEmpty,
+      userSettingsForm: form,
     }),
 
   updateUserSettings: async (
     url: string,
-    updatedItem: FormData | Record<string, unknown>,
-    setMessage: (message: string, isError: boolean) => void
+    updatedItem: FormData | Record<string, unknown>
   ) => {
     set({ loading: true })
-    const response = await apiRequest<FetchResponse>(url, {
+    const response = await customRequest({
+      url,
       method: 'PATCH',
-      body: updatedItem,
-      setMessage,
+      showMessage: true,
+      data: updatedItem,
     })
     const data = response?.data
     if (data) {

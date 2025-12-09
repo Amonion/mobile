@@ -267,16 +267,22 @@ export const UserStore = create<UserState>((set) => ({
     redirect?: () => void
   ) => {
     set({ loading: true })
-    const response = await customRequest({
-      url,
-      method: 'PATCH',
-      showMessage: true,
-      data: updatedItem,
-    })
-    const data = response?.data
-    if (data) {
-      AuthStore.getState().setUser(data.data)
-      if (redirect) redirect()
+    try {
+      const response = await customRequest({
+        url,
+        method: 'PATCH',
+        showMessage: true,
+        data: updatedItem,
+      })
+      const data = response?.data
+      if (data) {
+        AuthStore.getState().setUser(data.data)
+        if (redirect) redirect()
+      }
+    } catch (error) {
+      console.log(error)
+    } finally {
+      set({ loading: false })
     }
   },
 

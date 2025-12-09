@@ -95,7 +95,7 @@ export const NotificationStore = create<NotificationState>((set) => ({
       NotificationStore.getState().setCurrentPage(2)
       const user = AuthStore.getState().user
       NotificationStore.getState().getNotifications(
-        `/user-notifications/?page_size=${40}&page=${1}&ordering=-createdAt&receiverUsername=${
+        `/notifications/social/?page_size=${40}&page=${1}&ordering=-createdAt&receiverUsername=${
           user?.username
         }`
       )
@@ -116,8 +116,13 @@ export const NotificationStore = create<NotificationState>((set) => ({
         const first20 = fetchedNotifications.slice(0, 20)
 
         NotificationStore.setState((prev) => {
+          const filtered = first20.filter(
+            (item: Notification) =>
+              !prev.notifications.some((n) => n._id === item._id)
+          )
+
           return {
-            notifications: [...first20, ...prev.notifications],
+            notifications: [...filtered, ...prev.notifications],
           }
         })
 

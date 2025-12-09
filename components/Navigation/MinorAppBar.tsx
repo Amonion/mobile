@@ -19,7 +19,7 @@ const MinorAppBar = ({ onMenuPress }: { onMenuPress: () => void }) => {
       <View className="flex flex-row w-full relative items-center">
         <TouchableOpacity
           hitSlop={{ top: 25, bottom: 25, left: 25, right: 25 }}
-          className="p-4 mr-1 justify-center items-start"
+          className="p-4 justify-center items-start"
           onPress={() => router.back()}
         >
           <ArrowLeft size={26} color={isDark ? '#BABABA' : '#6E6E6E'} />

@@ -43,15 +43,15 @@ const NotificationCard = ({ notification }: Props) => {
   return (
     <View className="bg-primary dark:bg-dark-primary px-4 py-2 mb-[3px]">
       <View className="flex-row">
-        <Text className="text-xl text-secondary dark:text-dark-secondary mb-3">
+        <Text className="text-lg text-secondary dark:text-dark-secondary mb-3">
           {notification.title}
         </Text>
       </View>
       <View className="flex-row mb-2 items-end">
-        <Text className="text-lg mr-2 text-secondary dark:text-dark-secondary">
+        <Text className="mr-2 text-secondary dark:text-dark-secondary">
           {notification.greetings}
         </Text>
-        <Text className="text-lg font-medium text-custom">
+        <Text className="font-medium text-custom">
           {notification.receiverName}
         </Text>
         <Text className="ml-auto text-primary dark:text-dark-primary text-sm">
@@ -65,9 +65,9 @@ const NotificationCard = ({ notification }: Props) => {
           renderers={renderers}
           baseStyle={{
             color: isDark ? '#848484' : '#A4A2A2',
-            fontSize: 16,
+            fontSize: 14,
             fontWeight: 400,
-            lineHeight: 22,
+            lineHeight: 20,
           }}
         />
       </View>

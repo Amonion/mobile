@@ -16,6 +16,7 @@ import { MessageStore } from '@/store/notification/Message'
 import CustomBtn from '@/components/General/CustomBtn'
 import InputField from '@/components/General/InputField'
 import { UserStore } from '@/store/user/User'
+import TextAreaField from '@/components/General/TextAreaField'
 
 export default function ProfileSettings() {
   const { user } = AuthStore()
@@ -134,7 +135,7 @@ export default function ProfileSettings() {
     }
 
     const data = appendForm(inputsToValidate)
-    updateUser(`${url}${user?._id}`, data)
+    updateUser(`${url}${user?.username}`, data)
   }
 
   return (
@@ -236,11 +237,10 @@ export default function ProfileSettings() {
           autoCapitalize="words"
           onChangeText={(e) => setForm('displayName', e)}
         />
-        <InputField
+        <TextAreaField
           label="Your Bio"
           value={userForm.intro}
           placeholder="Update your bio"
-          autoCapitalize="words"
           onChangeText={(e) => setForm('intro', e)}
         />
 

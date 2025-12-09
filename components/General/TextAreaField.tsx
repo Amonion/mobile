@@ -1,28 +1,22 @@
 import React from 'react'
 import { View, Text, TextInput, useColorScheme } from 'react-native'
 
-interface InputFieldProps {
+interface TextAreaFieldProps {
   label: string
   value: string
   placeholder?: string
   error?: string | null
   onChangeText: (text: string) => void
-  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters'
-  multiline?: boolean
   secureTextEntry?: boolean
-  keyboardType?: 'default' | 'numeric' | 'email-address' | 'phone-pad'
 }
 
-const InputField: React.FC<InputFieldProps> = ({
+const TextAreaField: React.FC<TextAreaFieldProps> = ({
   label,
   value,
   placeholder,
   error,
   onChangeText,
-  autoCapitalize = 'none',
-  multiline = false,
   secureTextEntry = false,
-  keyboardType = 'default',
 }) => {
   const colorScheme = useColorScheme()
   const isDark = colorScheme === 'dark'
@@ -34,21 +28,21 @@ const InputField: React.FC<InputFieldProps> = ({
       </Text>
 
       <TextInput
-        className={`${multiline ? 'multiline' : 'input'} ${
+        className={`p-3 rounded-[10px] text-primary dark:text-dark-primary bg-secondary dark:bg-dark-secondary ${
           error ? 'border-red-500 border' : ''
         }`}
-        placeholder={`${placeholder} ${multiline}`}
+        placeholder={placeholder}
         placeholderTextColor={isDark ? '#BABABA' : '#6E6E6E'}
         value={value}
         onChangeText={onChangeText}
-        autoCapitalize={autoCapitalize}
-        multiline={multiline}
-        numberOfLines={multiline ? 4 : 1}
+        autoCapitalize="sentences"
+        multiline={true}
+        numberOfLines={4}
         secureTextEntry={secureTextEntry}
-        keyboardType={keyboardType}
+        keyboardType="default"
         style={{
-          textAlignVertical: multiline ? 'top' : 'center',
-          minHeight: multiline ? 140 : 50,
+          textAlignVertical: 'top',
+          minHeight: 100,
         }}
         importantForAutofill="noExcludeDescendants"
       />
@@ -58,4 +52,4 @@ const InputField: React.FC<InputFieldProps> = ({
   )
 }
 
-export default InputField
+export default TextAreaField

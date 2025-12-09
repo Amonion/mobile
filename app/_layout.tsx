@@ -24,6 +24,7 @@ import { PostProvider } from '@/context/PostContext'
 import { TraceProvider } from '@/context/TraceContext'
 import UserAlert from '@/components/UserAlert'
 import { UserProvider } from '@/context/UserContext'
+import { NotificationProvider } from '@/context/NotificationContext'
 
 SplashScreen.preventAutoHideAsync()
 
@@ -71,30 +72,32 @@ export default function RootLayout() {
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <GeneralProvider>
         <UserProvider>
-          <TraceProvider>
-            <ChatProvider>
-              <PostProvider>
-                <NewsProvider>
-                  <MomentProvider>
-                    <ExamProvider>
-                      <UserAlert />
-                      {message !== null && <Message />}
-                      <GestureHandlerRootView style={{ flex: 1 }}>
-                        <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
-                          <Stack screenOptions={{ headerShown: false }}>
-                            <Stack.Screen name="index" />
-                            <Stack.Screen name="trace" />
-                          </Stack>
-                        </View>
-                      </GestureHandlerRootView>
+          <NotificationProvider>
+            <TraceProvider>
+              <ChatProvider>
+                <PostProvider>
+                  <NewsProvider>
+                    <MomentProvider>
+                      <ExamProvider>
+                        <UserAlert />
+                        {message !== null && <Message />}
+                        <GestureHandlerRootView style={{ flex: 1 }}>
+                          <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
+                            <Stack screenOptions={{ headerShown: false }}>
+                              <Stack.Screen name="index" />
+                              {/* <Stack.Screen name="trace" /> */}
+                            </Stack>
+                          </View>
+                        </GestureHandlerRootView>
 
-                      <StatusBar style="auto" />
-                    </ExamProvider>
-                  </MomentProvider>
-                </NewsProvider>
-              </PostProvider>
-            </ChatProvider>
-          </TraceProvider>
+                        <StatusBar style="auto" />
+                      </ExamProvider>
+                    </MomentProvider>
+                  </NewsProvider>
+                </PostProvider>
+              </ChatProvider>
+            </TraceProvider>
+          </NotificationProvider>
         </UserProvider>
       </GeneralProvider>
     </ThemeProvider>
