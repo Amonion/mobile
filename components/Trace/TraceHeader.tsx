@@ -1,6 +1,7 @@
 import { NavStore } from '@/store/notification/Navigation'
 import { Feather } from '@expo/vector-icons'
-import { usePathname } from 'expo-router'
+import { router, usePathname } from 'expo-router'
+import { ArrowLeft } from 'lucide-react-native'
 import React, { useEffect, useState } from 'react'
 import { TextInput, TouchableOpacity, View, useColorScheme } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -37,6 +38,16 @@ const TraceHeader = () => {
         className="bg-primary dark:bg-dark-primary"
       >
         <View className="px-2 flex-row w-full items-center justify-between">
+          <TouchableOpacity
+            style={{
+              width: 40,
+              height: 40,
+            }}
+            onPress={() => router.back()}
+            className="bg-secondary items-center block justify-center dark:bg-dark-secondary rounded-full"
+          >
+            <ArrowLeft size={18} color={isDark ? '#BABABA' : '#6E6E6E'} />
+          </TouchableOpacity>
           <View
             style={{
               height: 40,

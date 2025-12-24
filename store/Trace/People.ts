@@ -39,7 +39,7 @@ export const PeopleStore = create<PeopleState>((set) => ({
       }
       clearTable('people')
       PeopleStore.getState().getPeople(
-        `/users/biouser-school/?page_size=40&page=1&isVerified=true`
+        `/biousers-school/?page_size=40&page=1&isVerified=true`
       )
     } catch (error: unknown) {
       console.log(error)

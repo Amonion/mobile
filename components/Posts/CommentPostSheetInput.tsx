@@ -55,7 +55,6 @@ const CommentPostSheetInput: React.FC = () => {
           : activeComment.level >= 4
           ? 3
           : activeComment.level,
-      postType: 'comment',
       commentSource: 'post',
       replyTo: activeComment.displayName,
       user: activeComment.displayName,

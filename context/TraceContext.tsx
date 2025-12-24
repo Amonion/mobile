@@ -29,15 +29,15 @@ export const TraceProvider: React.FC<TraceProviderProps> = ({ children }) => {
   const { postResults, getSavedPosts } = PostStore()
   const { getSavedAccounts } = AccountStore()
   const { getSavedPeople } = PeopleStore()
-  const { user } = AuthStore()
+  const { user, bioUserSchoolInfo } = AuthStore()
 
   useEffect(() => {
-    if (postResults.length === 0 && user) {
+    if (postResults.length === 0 && user && bioUserSchoolInfo) {
       getSavedPosts(user)
       getSavedAccounts(user)
-      getSavedPeople(user)
+      getSavedPeople(bioUserSchoolInfo)
     }
-  }, [user])
+  }, [user, bioUserSchoolInfo])
 
   return (
     <TracePostContext.Provider

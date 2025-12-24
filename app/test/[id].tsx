@@ -24,7 +24,7 @@ import FirstTimeMessage from '@/components/Question/FirstTimeMessage'
 import QuestionTestHead from '@/components/Question/QuestionTestHead'
 import QuestionsList from '@/components/Question/QuestionList'
 import Spinner from '@/components/Response/Spinner'
-import MinorAppBar from '@/components/Navigation/MinorAppBar'
+import ExamTextAppBar from '@/components/Question/ExamTestAppBar'
 
 interface Test {
   bioUserState: BioUserState
@@ -151,14 +151,11 @@ const ExamStart = () => {
 
       try {
         setLoading(true)
-        const response = await customRequest(
-          {
-            url: `/user-competitions/exams?bioUserId=${bioUser?._id}&paperId=${id}&page=${currentPage}&page_size=${page_size}`,
-            method: 'POST',
-            data: form,
-          },
-          true
-        )
+        const response = await customRequest({
+          url: `/user-competitions/exams?bioUserId=${bioUser?._id}&paperId=${id}&page=${currentPage}&page_size=${page_size}`,
+          method: 'POST',
+          data: form,
+        })
 
         const res = response?.data as unknown as Test
         if (res.exam) {
@@ -406,7 +403,7 @@ const ExamStart = () => {
         style="auto"
       />
 
-      <MinorAppBar />
+      <ExamTextAppBar />
 
       {bioUserState?.examAttempts === 0 && !isActive ? (
         <FirstTimeMessage />

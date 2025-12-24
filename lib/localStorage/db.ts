@@ -12,6 +12,7 @@ export type TableName =
   | 'accounts'
   | 'people'
   | 'notifications'
+  | 'personal_notifications'
 
 const PREFIX = '@localdb:'
 

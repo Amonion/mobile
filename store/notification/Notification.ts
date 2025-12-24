@@ -57,6 +57,7 @@ interface NotificationState {
   getSavedNotifications: () => Promise<void>
   getMoreSavedNotifications: () => Promise<void>
   getNotifications: (url: string) => Promise<void>
+  getMoreNotifications: (url: string) => Promise<void>
   reshuffleResults: () => void
   setCurrentPage: (page: number) => void
   setProcessedResults: (data: FetchResponse) => void
@@ -153,7 +154,7 @@ export const NotificationStore = create<NotificationState>((set) => ({
       }
       NotificationStore.getState().setCurrentPage(page + 1)
       const user = AuthStore.getState().user
-      NotificationStore.getState().getNotifications(
+      NotificationStore.getState().getMoreNotifications(
         `/user-notifications/?page_size=${20}&page=${
           page + 1
         }&ordering=-createdAt&receiverUsername=${user?.username}`

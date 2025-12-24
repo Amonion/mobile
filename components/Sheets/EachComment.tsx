@@ -1,11 +1,10 @@
-import React, { useRef, useState, useCallback } from 'react'
+import React, { useState, useCallback } from 'react'
 import {
   View,
   Text,
   TouchableOpacity,
   Image,
   FlatList,
-  ActivityIndicator,
   LayoutChangeEvent,
   StyleSheet,
   useWindowDimensions,
@@ -20,13 +19,6 @@ import RenderHtml from 'react-native-render-html'
 import { router } from 'expo-router'
 import UserPostStore from '@/store/post/UserPost'
 import { UserStore } from '@/store/user/User'
-
-interface FetchCommentResponse {
-  count: number
-  message: string
-  page_size: number
-  results: Comment[]
-}
 
 interface EachCommentProps {
   comment: Comment
@@ -54,7 +46,6 @@ const EachComment: React.FC<EachCommentProps> = ({
   const [replies, setReplies] = useState<Comment[]>([])
   const colorScheme = useColorScheme()
   const isDark = colorScheme === 'dark' ? true : false
-  const ref = useRef<View>(null)
 
   const fetchReplies = useCallback(async () => {
     try {

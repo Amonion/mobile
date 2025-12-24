@@ -128,8 +128,8 @@ export default function VerificationEducationSettings() {
     setBioUserSchoolInfoForm('schoolCountrySymbol', country.countrySymbol)
     setBioUserSchoolInfoForm('schoolState', '')
     setBioUserSchoolInfoForm('schoolArea', '')
-    AcademicStore.setState({ academicResults: [] })
     getLevels(country.country)
+    AcademicStore.setState({ academicResults: [] })
     StateStore.setState({ states: [] })
     AreaStore.setState({ area: [] })
     getStates(
