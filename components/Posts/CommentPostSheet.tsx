@@ -1,17 +1,10 @@
-import React, {
-  forwardRef,
-  useImperativeHandle,
-  useEffect,
-  useRef,
-} from 'react'
+import React, { forwardRef, useImperativeHandle } from 'react'
 import {
   Dimensions,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  BackHandler,
-  Keyboard,
 } from 'react-native'
 import { Gesture, GestureDetector } from 'react-native-gesture-handler'
 import Animated, {
@@ -29,10 +22,13 @@ import { Comment } from '@/store/post/Comment'
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window')
 
-const SNAP_TOP = SCREEN_HEIGHT * 0.1
-const SNAP_MID_HIGH = SCREEN_HEIGHT * 0.3
-const SNAP_MIDDLE = SCREEN_HEIGHT * 0.5
-const SNAP_BOTTOM = SCREEN_HEIGHT
+// const SNAP_TOP = SCREEN_HEIGHT * 0.1
+// const SNAP_MID_HIGH = SCREEN_HEIGHT * 0.3
+// const SNAP_MIDDLE = SCREEN_HEIGHT * 0.5
+// const SNAP_BOTTOM = SCREEN_HEIGHT
+
+const SNAP_OPEN = SCREEN_HEIGHT * 0.15
+const SNAP_CLOSED = SCREEN_HEIGHT
 
 const AnimatedView = Animated.createAnimatedComponent(View)
 
@@ -50,64 +46,31 @@ interface Props {
 
 export const CommentPostSheet = forwardRef<CommentPostSheetRef, Props>(
   ({ onSubmitComment, initialComments = [], onOpen, onClose }, ref) => {
-    const translateY = useSharedValue(SNAP_BOTTOM)
+    const translateY = useSharedValue(SNAP_CLOSED)
     const visibleHeight = useDerivedValue(
       () => SCREEN_HEIGHT - translateY.value
     )
     const isVisible = useSharedValue(0)
-    const previousSnap = useRef(SNAP_MIDDLE)
     useImperativeHandle(ref, () => ({
       open: () => openSheet(),
       close: () => closeSheet(),
     }))
 
-    useEffect(() => {
-      const onBackPress = () => {
-        if (translateY.value < SNAP_BOTTOM) {
-          closeSheet()
-          return true
-        }
-        return false
-      }
-      const subscription = BackHandler.addEventListener(
-        'hardwareBackPress',
-        onBackPress
-      )
-      return () => subscription.remove()
-    }, [])
-
-    useEffect(() => {
-      const showSub = Keyboard.addListener('keyboardDidShow', () => {
-        previousSnap.current = translateY.value
-        translateY.value = withSpring(SNAP_MID_HIGH, {
-          damping: 20,
-          stiffness: 120,
-        })
-      })
-      const hideSub = Keyboard.addListener('keyboardDidHide', () => {
-        translateY.value = withSpring(previousSnap.current, {
-          damping: 20,
-          stiffness: 120,
-        })
-      })
-      return () => {
-        showSub.remove()
-        hideSub.remove()
-      }
-    }, [])
-
-    const openSheet = (to = SNAP_MID_HIGH) => {
+    const openSheet = () => {
       isVisible.value = 1
-      translateY.value = withSpring(to, { damping: 20, stiffness: 120 })
-      onOpen?.() // ← Notify parent
-    }
-
-    const closeSheet = () => {
-      translateY.value = withSpring(SNAP_BOTTOM, {
+      translateY.value = withSpring(SNAP_OPEN, {
         damping: 20,
         stiffness: 120,
       })
-      onClose?.() // ← Notify parent
+      onOpen?.()
+    }
+
+    const closeSheet = () => {
+      translateY.value = withSpring(SNAP_CLOSED, {
+        damping: 20,
+        stiffness: 120,
+      })
+      onClose?.()
       setTimeout(() => {
         isVisible.value = 0
       }, 300)
@@ -118,12 +81,11 @@ export const CommentPostSheet = forwardRef<CommentPostSheetRef, Props>(
         translateY.value = Math.max(0, translateY.value + e.changeY)
       })
       .onEnd((e) => {
-        const endY = translateY.value
-        const velocity = e.velocityY
-        const shouldClose = velocity > 1200 || translateY.value > SNAP_MIDDLE
+        const shouldClose =
+          e.velocityY > 1000 || translateY.value > SNAP_OPEN + 150
 
         if (shouldClose) {
-          translateY.value = withSpring(SNAP_BOTTOM, {
+          translateY.value = withSpring(SNAP_CLOSED, {
             damping: 20,
             stiffness: 120,
           })
@@ -132,19 +94,7 @@ export const CommentPostSheet = forwardRef<CommentPostSheetRef, Props>(
             isVisible.value = 0
           }, 300)
         } else {
-          let snapPoint = SNAP_MID_HIGH
-
-          if (endY <= SNAP_TOP + 80) {
-            snapPoint = SNAP_TOP
-          } else {
-            snapPoint = SNAP_MID_HIGH
-          }
-
-          if (velocity > 1200) {
-            snapPoint = SNAP_BOTTOM
-          }
-
-          translateY.value = withSpring(snapPoint, {
+          translateY.value = withSpring(SNAP_OPEN, {
             damping: 20,
             stiffness: 120,
           })
@@ -158,7 +108,7 @@ export const CommentPostSheet = forwardRef<CommentPostSheetRef, Props>(
     const backdropStyle = useAnimatedStyle(() => ({
       opacity: interpolate(
         translateY.value,
-        [SNAP_MIDDLE, SNAP_BOTTOM],
+        [SNAP_OPEN, SNAP_CLOSED],
         [0.5, 0],
         Extrapolate.CLAMP
       ),

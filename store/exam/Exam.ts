@@ -89,6 +89,7 @@ interface ExamState {
   searchResult: Exam[]
   searchedExamResults: Exam[]
   hasMore: boolean
+  isFirstTime: boolean
   hasMoreSearch: boolean
   isAllChecked: boolean
   examForm: Exam
@@ -132,6 +133,7 @@ const ExamStore = create<ExamState>((set) => ({
   searchResult: [],
   searchedExamResults: [],
   isAllChecked: false,
+  isFirstTime: false,
   examForm: ExamEmpty,
 
   setForm: (key, value) =>

@@ -6,6 +6,7 @@ import { Post, PostStore } from '@/store/post/Post'
 import SocialStore from '@/store/post/Social'
 import BottomSheetPostOptions from '../Sheets/BottomSheetPostOptions'
 import { remove } from '@/lib/localStorage/db'
+import { router } from 'expo-router'
 
 interface PostOptionsProps {
   post: Post
@@ -103,6 +104,12 @@ const PostBottomSheetOptions: React.FC<PostOptionsProps> = ({
     remove('posts', post._id)
   }
 
+  const gotoReport = (t: string) => {
+    PostStore.setState({ reportedUser: post, reporting: t })
+    setVisible(false)
+    router.push('/report')
+  }
+
   return (
     <BottomSheetPostOptions visible={visible} onClose={() => setVisible(false)}>
       <View className="">
@@ -177,6 +184,35 @@ const PostBottomSheetOptions: React.FC<PostOptionsProps> = ({
               />
               <Text className="text-xl text-primary dark:text-dark-primary">
                 {storePost.blocked ? 'Unblock User' : 'Block User'}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => gotoReport('post')}
+              className="py-4 flex-row px-2 items-center border-b border-b-border dark:border-b-dark-border"
+            >
+              <MaterialIcons
+                name="flag"
+                size={25}
+                color={isDark ? '#BABABA' : '#6E6E6E'}
+                style={{ marginRight: 15 }}
+              />
+              <Text className="text-xl text-primary dark:text-dark-primary">
+                Report Post
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => gotoReport('user')}
+              className="py-4 flex-row px-2 items-center border-b border-b-border dark:border-b-dark-border"
+            >
+              <MaterialIcons
+                name="report"
+                size={25}
+                color={isDark ? '#BABABA' : '#6E6E6E'}
+                style={{ marginRight: 15 }}
+              />
+              <Text className="text-xl text-primary dark:text-dark-primary">
+                Report Account
               </Text>
             </TouchableOpacity>
           </>

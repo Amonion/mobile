@@ -13,6 +13,8 @@ export type TableName =
   | 'people'
   | 'notifications'
   | 'personal_notifications'
+  | 'questions'
+  | 'last_questions'
 
 const PREFIX = '@localdb:'
 
@@ -90,10 +92,8 @@ export async function upsertAll<T extends { _id: string }>(
     const existingRaw = await AsyncStorage.getItem(tableKey(table))
     const existing: T[] = existingRaw ? JSON.parse(existingRaw) : []
 
-    // Create a map of existing items
     const map = new Map(existing.map((item) => [item._id, item]))
 
-    // Merge new items (overwrite if _id exists)
     for (const item of data) {
       map.set(item._id, item)
     }

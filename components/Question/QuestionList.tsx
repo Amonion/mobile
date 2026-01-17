@@ -1,7 +1,10 @@
-import { IOption, Objective } from '@/store/exam/Objective'
+import ObjectiveStore, { Objective } from '@/store/exam/Objective'
 import React from 'react'
 import { View, Text, TouchableOpacity } from 'react-native'
-import RenderHtml from 'react-native-render-html'
+import RenderHtml, {
+  HTMLContentModel,
+  HTMLElementModel,
+} from 'react-native-render-html'
 
 interface Props {
   data: Objective[]
@@ -11,7 +14,6 @@ interface Props {
   width: number
   isDark: boolean
   optionsLabel: string[]
-  selectAnswer?: (item: IOption, id: string) => void
 }
 
 const QuestionsList: React.FC<Props> = ({
@@ -22,8 +24,15 @@ const QuestionsList: React.FC<Props> = ({
   width,
   isDark,
   optionsLabel,
-  selectAnswer,
 }) => {
+  const { selectAnswer } = ObjectiveStore()
+  const customHTMLElementModels = {
+    colgroup: HTMLElementModel.fromCustomModel({
+      tagName: 'colgroup',
+      contentModel: HTMLContentModel.block,
+    }),
+  }
+
   return (
     <>
       {data.map((question, index) => (
@@ -50,20 +59,11 @@ const QuestionsList: React.FC<Props> = ({
               <RenderHtml
                 contentWidth={width}
                 source={{ html: question.question }}
+                customHTMLElementModels={customHTMLElementModels}
                 baseStyle={{
                   color: isDark ? '#EFEFEF' : '#3A3A3A',
                   fontSize: 14,
-                  fontWeight: '400',
                   lineHeight: 23,
-                  flexGrow: 1,
-                }}
-                tagsStyles={{
-                  p: {
-                    marginBottom: 4,
-                    color: isDark ? '#EFEFEF' : '#3A3A3A',
-                    fontSize: 14,
-                    lineHeight: 23,
-                  },
                 }}
               />
 

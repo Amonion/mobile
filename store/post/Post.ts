@@ -3,7 +3,6 @@ import _debounce from 'lodash/debounce'
 import { customRequest } from '@/lib/api'
 import { clearTable, getAll, saveAll, upsert } from '@/lib/localStorage/db'
 import { User } from '../user/User'
-import { isEqual } from 'lodash'
 import { SocialUser } from './Social'
 
 interface FetchPostResponse {
@@ -51,6 +50,7 @@ export interface Post {
   users: string[]
   picture: string
   country: string
+  bioUserId: string
   isSelected: boolean
   isVerified: boolean
   hated: boolean
@@ -102,6 +102,7 @@ export const PostEmpty = {
   likes: 0,
   reposts: 0,
   createdAt: '',
+  bioUserId: '',
   message: '',
   followed: false,
   muted: false,
@@ -134,15 +135,19 @@ interface PostState {
   isPlaying: boolean
   isMobile: boolean
   fitMode: boolean
+  reporting: string
   hasMoreSearch: boolean
   hasMoreBookmarks: boolean
   hasMoreFollowing: boolean
   postForm: Post
+  reportedUser: Post
   setForm: (key: keyof Post, value: Post[keyof Post]) => void
   resetForm: () => void
   clearSearchedPosts: () => void
   getPosts: (url: string) => Promise<void>
+  getMorePosts: (url: string) => Promise<void>
   getSavedPosts: (user: User) => Promise<void>
+  getMoreSavedPosts: (user: User) => Promise<void>
   addMorePosts: (
     url: string,
     setMessage: (message: string, isError: boolean) => void
@@ -181,7 +186,13 @@ interface PostState {
     url: string,
     updatedItem: FormData | Record<string, unknown>
   ) => Promise<void>
+  reportUser: (
+    url: string,
+    updatedItem: FormData | Record<string, unknown>,
+    redirect?: () => void
+  ) => Promise<void>
   processPostMedia: (posts: Post[]) => void
+  processMorePostMedia: (posts: Post[]) => void
   togglePost: (index: number) => void
   toggleActive: (id: string) => void
   reshuffleResults: () => void
@@ -194,7 +205,7 @@ interface PostState {
   setCurrentIndex: (index: number) => void
 }
 
-export const PostStore = create<PostState>((set, get) => ({
+export const PostStore = create<PostState>((set) => ({
   links: null,
   count: 0,
   page_size: 20,
@@ -210,7 +221,7 @@ export const PostStore = create<PostState>((set, get) => ({
   selectedPosts: [],
   searchedPostResult: [],
   searchedPosts: [],
-  hasMore: false,
+  hasMore: true,
   hasMoreSearch: true,
   isPlaying: true,
   isMobile: false,
@@ -218,6 +229,8 @@ export const PostStore = create<PostState>((set, get) => ({
   hasMoreBookmarks: false,
   hasMoreFollowing: false,
   postForm: PostEmpty,
+  reportedUser: PostEmpty,
+  reporting: '',
   setForm: (key, value) =>
     set((state) => ({
       postForm: {
@@ -354,7 +367,6 @@ export const PostStore = create<PostState>((set, get) => ({
     const mediaResults: IMedia[] = []
     posts.forEach((post) => {
       if (Array.isArray(post.media) && post.media.length > 0) {
-        console.log('The post id is: ', post._id)
         {
           post.media.forEach((mediaItem) => {
             mediaResults.push({
@@ -370,7 +382,30 @@ export const PostStore = create<PostState>((set, get) => ({
         }
       }
     })
-    console.log('The media results are: ', mediaResults.length)
+    set({
+      mediaResults: mediaResults,
+    })
+  },
+
+  processMorePostMedia: (posts) => {
+    const mediaResults: IMedia[] = []
+    posts.forEach((post) => {
+      if (Array.isArray(post.media) && post.media.length > 0) {
+        {
+          post.media.forEach((mediaItem) => {
+            mediaResults.push({
+              postId: post._id,
+              src: mediaItem.source,
+              preview: mediaItem.preview,
+              type: post.backgroundColor ? 'poster' : mediaItem.type,
+              content: post.content,
+              replies: post.replies,
+              backgroundColor: post.backgroundColor,
+            })
+          })
+        }
+      }
+    })
     set({
       mediaResults: mediaResults,
     })
@@ -424,6 +459,24 @@ export const PostStore = create<PostState>((set, get) => ({
     set({ currentPage: page })
   },
 
+  reportUser: async (url, updatedItem, redirect) => {
+    try {
+      set({ loading: true })
+      await customRequest({
+        url,
+        method: 'POST',
+        showMessage: true,
+        data: updatedItem,
+      })
+
+      if (redirect) redirect()
+    } catch (error) {
+      console.log(error)
+    } finally {
+      set({ loading: false })
+    }
+  },
+
   setLoading: (loadState: boolean) => {
     set({ loading: loadState })
   },
@@ -454,6 +507,7 @@ export const PostStore = create<PostState>((set, get) => ({
       PostStore.getState().getPosts(
         `/posts/?myId=${user?._id}&page_size=40&page=1`
       )
+      PostStore.getState().processPostMedia(postResults)
     } catch (error: unknown) {
       console.log(error)
     } finally {
@@ -461,7 +515,7 @@ export const PostStore = create<PostState>((set, get) => ({
     }
   },
 
-  getPosts: async (url: string) => {
+  getPosts: async (url) => {
     try {
       const response = await customRequest({ url })
       const data = response?.data
@@ -470,47 +524,63 @@ export const PostStore = create<PostState>((set, get) => ({
         const savedPosts = PostStore.getState().postResults
         const first20Fetched = fetchedPosts.slice(0, 20)
 
-        const missingPosts = first20Fetched.filter(
-          (apiPost: Post) =>
-            !savedPosts.some((local) => local._id === apiPost._id)
-        )
+        const postMap = new Map<string, any>()
+        savedPosts.forEach((post) => {
+          postMap.set(post._id, post)
+        })
 
-        let updatedSavedPosts = savedPosts
+        first20Fetched.forEach((post: Post) => {
+          postMap.set(post._id, post)
+        })
 
-        if (missingPosts.length > 0) {
-          updatedSavedPosts = [...savedPosts, ...missingPosts]
-          set({ postResults: updatedSavedPosts })
-          console.log(
-            `📌 Added ${missingPosts.length} new post(s) from first 20 fetched posts.`
-          )
-        }
-
-        if (savedPosts.length > 0) {
-          const toUpsert = fetchedPosts.filter((apiItem: Post) => {
-            const existing = savedPosts.find(
-              (localItem) => localItem._id === apiItem._id
-            )
-            return !existing || !isEqual(existing, apiItem)
-          })
-
-          if (toUpsert.length > 0) {
-            for (const item of toUpsert) {
-              await upsert('posts', item)
-            }
-            console.log(
-              `✅ Upserted ${toUpsert.length} featured posts item(s).`
-            )
-          } else {
-            console.log('No new or updated featured posts to upsert.')
+        const mergedPosts = Array.from(postMap.values())
+        set((prev) => {
+          return {
+            postResults: mergedPosts,
+            currentPage: 2,
+            hasMore: fetchedPosts.length >= prev.page_size,
           }
+        })
+        saveAll('posts', fetchedPosts)
+        PostStore.getState().processPostMedia(mergedPosts)
+      }
+    } catch (error: unknown) {
+      console.log(error)
+    }
+  },
 
-          const results = PostStore.getState().postResults
-          PostStore.getState().processPostMedia(results)
-        } else {
-          saveAll('posts', fetchedPosts)
-          set({ postResults: fetchedPosts })
-          PostStore.getState().processPostMedia(fetchedPosts)
-        }
+  getMoreSavedPosts: async (user) => {
+    try {
+      set({ loading: true })
+      const page = PostStore.getState().currentPage
+      const postResults = await getAll<Post>('posts', { page, pageSize: 20 })
+      if (postResults.length > 0) {
+        set({ postResults: postResults })
+      }
+      PostStore.getState().getPosts(
+        `/posts/?myId=${user?._id}&page_size=20&page=${page + 1}`
+      )
+      PostStore.getState().processMorePostMedia(postResults)
+    } catch (error: unknown) {
+      console.log(error)
+    } finally {
+      set({ loading: false })
+    }
+  },
+
+  getMorePosts: async (url) => {
+    try {
+      const response = await customRequest({ url })
+      const data = response?.data
+      if (data) {
+        const fetchedPosts = data.results
+        set((prev) => {
+          return {
+            currentPage: prev.currentPage++,
+            hasMore: fetchedPosts.length >= prev.page_size,
+          }
+        })
+        saveAll('posts', fetchedPosts)
       }
     } catch (error: unknown) {
       console.log(error)

@@ -73,10 +73,10 @@ const PostCard: React.FC<PostCardProps> = ({ post, onCommentPress }) => {
           />
         </TouchableOpacity>
 
-        <View>
-          <View className="flex-row items-center">
+        <View className="flex-1">
+          <View className="flex-row  items-center">
             <TouchableOpacity className="mr-2" onPress={move}>
-              <Text className="font-semibold text-xl text-primary dark:text-dark-primary line-clamp-1 overflow-ellipsis">
+              <Text className="font-semibold flex-1 text-xl text-primary dark:text-dark-primary line-clamp-1 overflow-ellipsis">
                 {post.displayName}
               </Text>
             </TouchableOpacity>
@@ -93,7 +93,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, onCommentPress }) => {
             <Text className="text-custom">@{post.username}</Text>
           </TouchableOpacity>
         </View>
-        <View className="ml-auto justify-end flex-col items-end mb-auto">
+        <View className="ml-auto min-w-[50px] justify-end flex-col items-end mb-auto">
           <View
             style={{ height: 25 }}
             className="items-center flex-row text-primaryLight rounded-full mb-[5px] relative"
@@ -109,6 +109,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, onCommentPress }) => {
               </TouchableOpacity>
             )}
             <TouchableOpacity
+              hitSlop={{ top: 25, bottom: 25, left: 25, right: 25 }}
               onPress={() => {
                 setVisible(true)
               }}

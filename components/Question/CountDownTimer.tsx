@@ -16,7 +16,6 @@ type CountdownTimerProps = {
   isActive: boolean
   isLastResults: boolean
   setDisplayResult: (event: GestureResponderEvent) => void
-  isInteracting: boolean
   startCountdown: () => void
   isLoading: boolean
   submit: () => void
@@ -31,7 +30,6 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({
   isActive,
   isLastResults,
   setDisplayResult,
-  isInteracting,
   startCountdown,
   isLoading,
   submit,
@@ -119,18 +117,14 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({
                 {isActive ? (
                   <TouchableOpacity
                     onPress={submit}
-                    className={`h-10 w-10 bg-custom rounded-full items-center justify-center ${
-                      isInteracting ? 'opacity-100' : 'opacity-0'
-                    }`}
+                    className={`h-10 w-10 bg-custom rounded-full items-center justify-center`}
                   >
                     <Feather name="send" size={20} color="white" />
                   </TouchableOpacity>
                 ) : (
                   <TouchableOpacity
                     onPress={startCountdown}
-                    className={`h-10 w-10 bg-custom rounded-full items-center justify-center ${
-                      isInteracting ? 'opacity-100' : 'opacity-0'
-                    }`}
+                    className={`h-10 w-10 bg-custom rounded-full items-center justify-center`}
                   >
                     <MaterialIcons
                       name={isActive ? 'stop' : 'play-arrow'}
@@ -143,9 +137,7 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({
               {!isActive && totalAttempts === 0 && (
                 <TouchableOpacity
                   onPress={() => router.back()}
-                  className={`h-10 w-10 bg-custom rounded-full items-center justify-center ${
-                    isInteracting ? 'opacity-100' : 'opacity-0'
-                  }`}
+                  className={`h-10 w-10 bg-custom rounded-full items-center justify-center`}
                 >
                   <MaterialIcons
                     name="power-settings-new"

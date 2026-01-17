@@ -16,7 +16,7 @@ const ExamTextAppBar = () => {
       }}
       className="pt-3 bg-primary dark:bg-dark-primary border-b border-b-border dark:border-b-dark-border"
     >
-      <View className="flex flex-row w-full relative items-center">
+      <View className="flex flex-row w-full relative items-center justify-between">
         <TouchableOpacity
           hitSlop={{ top: 25, bottom: 25, left: 25, right: 25 }}
           className="p-4 justify-center items-start"

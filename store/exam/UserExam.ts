@@ -59,20 +59,27 @@ export const UserExamEmpty = {
 interface UserExamState {
   count: number
   page_size: number
+  duration: number
   userExamResults: UserExam[]
   loading: boolean
   isAllChecked: boolean
+  isActive: boolean
   userExamForm: UserExam
   setForm: (key: keyof UserExam, value: UserExam[keyof UserExam]) => void
   resetForm: () => void
   setUserExamForm: (form: UserExam) => void
+  getUserExam: (url: string) => Promise<void>
   getExamParticipants: (url: string) => Promise<void>
   fetchQuestions: (url: string) => Promise<void>
   setProcessedResults: (data: FetchResponse) => void
-  updateItem: (
+  updateItem: (url: string, updatedItem: FormData) => Promise<void>
+  updateUserExam: (
     url: string,
-    updatedItem: FormData,
-    setMessage: (message: string, isError: boolean) => void
+    updatedItem: FormData | Record<string, unknown>
+  ) => Promise<void>
+  createUserExam: (
+    url: string,
+    updatedItem: FormData | Record<string, unknown>
   ) => Promise<void>
   postItem: (
     url: string,
@@ -89,8 +96,10 @@ const UserExamStore = create<UserExamState>((set) => ({
   links: null,
   count: 0,
   page_size: 0,
+  duration: 0,
   userExamResults: [],
   loading: false,
+  isActive: false,
   isAllChecked: false,
   userExamForm: UserExamEmpty,
   setForm: (key, value) =>
@@ -126,6 +135,23 @@ const UserExamStore = create<UserExamState>((set) => ({
     }
   },
 
+  getUserExam: async (url) => {
+    try {
+      const response = await customRequest({ url })
+
+      const data = response?.data
+      if (data.exam) {
+        set({
+          userExamForm: data.exam,
+          duration: data.exam.started,
+          isActive: data.exam.isActive,
+        })
+      }
+    } catch (error: unknown) {
+      console.error('Failed to fetch staff:', error)
+    }
+  },
+
   getExamParticipants: async (url) => {
     try {
       const response = await customRequest({ url })
@@ -157,7 +183,44 @@ const UserExamStore = create<UserExamState>((set) => ({
     }))
   },
 
-  updateItem: async (url, updatedItem, setMessage) => {
+  updateUserExam: async (url, updatedItem) => {
+    const response = await customRequest({
+      url,
+      method: 'PATCH',
+      showMessage: true,
+      data: updatedItem,
+    })
+    const data = response.data
+    if (data.exam) {
+      set({
+        userExamForm: data.exam,
+        isActive: data.exam.isActive,
+        duration: Number(data.exam.duration),
+      })
+    } else {
+      set({ loading: false })
+    }
+  },
+
+  createUserExam: async (url, updatedItem) => {
+    const response = await customRequest({
+      url,
+      method: 'POST',
+      showMessage: true,
+      data: updatedItem,
+    })
+
+    const data = response?.data
+    if (data.exam) {
+      set({
+        userExamForm: data.exam,
+        isActive: data.exam.isActive,
+        duration: Number(data.exam.duration * 60),
+      })
+    }
+  },
+
+  updateItem: async (url, updatedItem) => {
     set({ loading: true })
     const response = await customRequest({
       url,

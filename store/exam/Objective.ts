@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { customRequest } from '@/lib/api'
+import { clearTable, getAll, upsertAll } from '@/lib/localStorage/db'
 
 interface FetchResponse {
   message: string
@@ -42,6 +43,9 @@ interface ObjectiveState {
   page_size: number
   currentPage: number
   objectiveResults: Objective[]
+  questions: Objective[]
+  lastQuestions: Objective[]
+  answeredQuestions: number
   loading: boolean
   selectedItems: Objective[]
   searchResult: Objective[]
@@ -51,11 +55,13 @@ interface ObjectiveState {
   setForm: (key: keyof Objective, value: Objective[keyof Objective]) => void
   resetForm: () => void
   getObjectives: (url: string) => Promise<void>
+  getQuestions: (p: number, l: number) => Promise<void>
+  getLastQuestions: (p: number, l: number) => Promise<void>
   fetchQuestions: (url: string) => Promise<void>
   setProcessedResults: (data: FetchResponse) => void
   setLoading?: (loading: boolean) => void
   setCurrentPage?: (page: number) => void
-
+  selectAnswer: (page: IOption, id: string) => void
   updateItem: (
     url: string,
     updatedItem: FormData,
@@ -73,8 +79,11 @@ const ObjectiveStore = create<ObjectiveState>((set, get) => ({
   page_size: 10,
   currentPage: 1,
   objectiveResults: [],
+  questions: [],
+  lastQuestions: [],
   loading: false,
   selectedItems: [],
+  answeredQuestions: 0,
   searchResult: [],
   searchedResults: [],
   isAllChecked: false,
@@ -115,12 +124,71 @@ const ObjectiveStore = create<ObjectiveState>((set, get) => ({
     }
   },
 
+  selectAnswer: async (item, id) => {
+    set((prev) => {
+      const updatedQuestions = prev.questions.map((question) =>
+        question._id === id
+          ? {
+              ...question,
+              isClicked: true,
+              options: question.options.map((option) => ({
+                ...option,
+                isClicked: option.index === item.index,
+              })),
+            }
+          : question
+      )
+      upsertAll('questions', updatedQuestions)
+      return {
+        questions: updatedQuestions,
+      }
+    })
+
+    const totalQuestions = await getAll<Objective>('questions', {
+      page: 1,
+      pageSize: 100,
+    })
+    const answeredQuestions = totalQuestions.filter((item) => item.isClicked)
+    set({ answeredQuestions: answeredQuestions.length })
+  },
+
   getObjectives: async (url) => {
     try {
       const response = await customRequest({ url })
       const data = response?.data
       if (data) {
-        ObjectiveStore.getState().setProcessedResults(data)
+        clearTable('questions')
+        clearTable('last_questions')
+        upsertAll('questions', data.results)
+        upsertAll('last_questions', data.lastQuestions)
+      }
+    } catch (error: unknown) {
+      console.error('Failed to fetch staff:', error)
+    }
+  },
+
+  getQuestions: async (page_size, limit) => {
+    try {
+      const response = await getAll<Objective>('questions', {
+        page: limit,
+        pageSize: page_size,
+      })
+      if (response) {
+        set({ questions: response })
+      }
+    } catch (error: unknown) {
+      console.error('Failed to fetch staff:', error)
+    }
+  },
+
+  getLastQuestions: async (page_size, limit) => {
+    try {
+      const response = await getAll<Objective>('last_questions', {
+        page: limit,
+        pageSize: page_size,
+      })
+      if (response) {
+        set({ lastQuestions: response })
       }
     } catch (error: unknown) {
       console.error('Failed to fetch staff:', error)

@@ -8,7 +8,7 @@ import Constants from 'expo-constants'
 // const baseURL = 'http://192.168.1.44:8080/api/v1'
 
 const { API_BASE_URL } = Constants.expoConfig?.extra || {}
-const baseURL = API_BASE_URL || 'http://192.168.1.44:8080/api/v1'
+const baseURL = API_BASE_URL || 'http://server1.kencoins.com/api/v1'
 
 const api = axios.create({
   baseURL,

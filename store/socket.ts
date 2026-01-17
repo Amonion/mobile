@@ -1,6 +1,7 @@
 import { io, Socket } from 'socket.io-client'
 
-const SOCKET_URL = 'http://192.168.1.44:8080'
+// const SOCKET_URL = 'http://192.168.1.44:8080'
+const SOCKET_URL = 'https://server1.kencoins.com'
 // const SOCKET_URL = 'https://schoolingsocial-api-v1.onrender.com'
 // const SOCKET_URL = process.env.EXPO_PUBLIC_API_BASE_URL
 

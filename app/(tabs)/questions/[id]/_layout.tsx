@@ -17,30 +17,45 @@ import {
 } from 'react-native'
 
 export default function ExamLayout() {
-  const { getExam, setIsStarting, isStarting, examForm, loading } = ExamStore()
+  const { getExam, setIsStarting, exams, isStarting, examForm, loading } =
+    ExamStore()
   const { getObjectives } = ObjectiveStore()
   const { id } = useLocalSearchParams()
   const pathname = usePathname()
   const [detailsLength, setDetailsLength] = useState(0)
-  const { bioUserState } = AuthStore()
+  const { bioUserState, bioUser } = AuthStore()
   const { setMessage } = MessageStore()
   const [isFullScreen, setIsFullScreen] = useState(false)
   const [imageSource, setImageSource] = useState('')
 
   useEffect(() => {
-    if (!examForm._id) {
+    if (exams.length === 0) {
       getExam(`/competitions/exams/${id}`)
     } else {
+      ExamStore.setState((prev) => {
+        const exam = prev.exams.find((item) => item._id === id)
+        return {
+          examForm: exam,
+        }
+      })
+    }
+
+    if (bioUser?._id) {
       getObjectives(
-        `/competitions/leagues/objectives/?paperId=${examForm._id}&ordering=createdAt&page=1&page_size=${examForm.questionsPerPage}`
+        `/competitions/leagues/objectives/?page_size=${100}&ordering=createdAt&paperId=${id}&bioUserId=${
+          bioUser?._id
+        }`
       )
     }
-  }, [id])
+  }, [id, bioUser])
 
   useEffect(() => {
-    const count = countFilledFields(examForm)
-    setDetailsLength(count)
-    return () => setIsStarting(false)
+    if (examForm._id) {
+      setDetailsLength(countFilledFields(examForm))
+    }
+    return () => {
+      setIsStarting(false)
+    }
   }, [examForm])
 
   const startPaper = () => {
