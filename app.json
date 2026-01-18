@@ -68,11 +68,18 @@
         {
           "action": "VIEW",
           "autoVerify": true,
-          "data": {
-            "scheme": "https",
-            "host": "*.schoolingsocial.com",
-            "pathPrefix": "/home"
-          },
+          "data": [
+            {
+              "scheme": "https",
+              "host": "schoolingsocial.com",
+              "pathPrefix": "/home"
+            },
+            {
+              "scheme": "https",
+              "host": "www.schoolingsocial.com",
+              "pathPrefix": "/home"
+            }
+          ],
           "category": ["BROWSABLE", "DEFAULT"]
         }
       ],
@@ -95,11 +102,6 @@
       },
       "softwareKeyboardLayoutMode": "pan",
       "windowSoftInputMode": "adjustResize"
-    },
-    "web": {
-      "bundler": "metro",
-      "output": "static",
-      "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
       "expo-router",
