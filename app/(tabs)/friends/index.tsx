@@ -1,4 +1,5 @@
 import EachFriend from '@/components/Friends/EachFriend'
+import NoFriends from '@/components/Friends/NoFriends'
 import FriendsSearchHeader from '@/components/Friends/QuestionHeader'
 import FriendStore from '@/store/chat/Friend'
 import React from 'react'
@@ -24,9 +25,9 @@ const Friends = () => {
           onEndReached={fetchMoreFriends}
           contentContainerStyle={{ flexGrow: 1 }}
           ListEmptyComponent={() => (
-            <Text className="text-center text-xl mt-10 flex-1 text-primary dark:text-dark-primary">
-              No Friends Available.
-            </Text>
+            <>
+              <NoFriends />
+            </>
           )}
         />
       </View>

@@ -249,7 +249,7 @@ export default function CreateMoment() {
   //       asset.mimeType ?? (type.includes('video') ? 'video/mp4' : 'image/jpeg')
 
   //     const { data: filePresign } = await axios.post(
-  //       `${baseURL}/s3-presigned-url`,
+  //       `https://server1.kencoins.com/api/v1/s3-presigned-url`,
   //       {
   //         fileName,
   //         fileType: mimeType,
@@ -284,7 +284,7 @@ export default function CreateMoment() {
   //       const thumbFileName = fileName.replace(/\.[^/.]+$/, '') + '-thumb.jpg'
 
   //       const { data: thumbPresign } = await axios.post(
-  //         `${baseURL}/s3-presigned-url`,
+  //         `https://server1.kencoins.com/api/v1/s3-presigned-url`,
   //         {
   //           fileName: thumbFileName,
   //           fileType: 'image/jpeg',
@@ -381,7 +381,7 @@ export default function CreateMoment() {
       const mimeType =
         asset.mimeType ?? (type.includes('video') ? 'video/mp4' : 'image/jpeg')
       const { data: filePresign } = await axios.post(
-        `${baseURL}/s3-presigned-url`,
+        `https://server1.kencoins.com/api/v1/s3-presigned-url`,
         {
           fileName,
           fileType: mimeType,
@@ -414,7 +414,7 @@ export default function CreateMoment() {
         const thumbFileName = fileName.replace(/\.[^/.]+$/, '') + '-thumb.jpg'
 
         const { data: thumbPresign } = await axios.post(
-          `${baseURL}/s3-presigned-url`,
+          `https://server1.kencoins.com/api/v1/s3-presigned-url`,
           {
             fileName: thumbFileName,
             fileType: 'image/jpeg',

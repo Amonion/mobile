@@ -1,14 +1,15 @@
 import { MessageStore } from '@/store/notification/Message'
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios'
 import * as SecureStore from 'expo-secure-store'
-import Constants from 'expo-constants'
+// import Constants from 'expo-constants'
 
 // const extra = Constants.expoConfig?.extra || {}
 // const baseURL = extra.API_BASE_URL
 // const baseURL = 'http://192.168.1.44:8080/api/v1'
 
-const { API_BASE_URL } = Constants.expoConfig?.extra || {}
-const baseURL = API_BASE_URL || 'http://server1.kencoins.com/api/v1'
+// const { API_BASE_URL } = Constants.expoConfig?.extra || {}
+const baseURL = 'https://server1.kencoins.com/api/v1'
+// const baseURL = 'http://192.168.1.44:8080/api/v1'
 
 const api = axios.create({
   baseURL,

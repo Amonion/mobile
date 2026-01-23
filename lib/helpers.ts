@@ -61,9 +61,7 @@ export async function getPdfPageCount(file: File): Promise<number> {
 
 export const getUserIP = async (): Promise<string> => {
   try {
-    const response = await fetch(
-      `${process.env.EXPO_PUBLIC_API_BASE_URL}/user-ip`
-    )
+    const response = await fetch(`https://server1.kencoins.com/api/v1/user-ip`)
     const data = await response.json()
     return data.ip || ''
   } catch (error) {
@@ -168,15 +166,18 @@ export const handlePendingFileUpload = async (
       (ext === 'mp4'
         ? 'video/mp4'
         : ext === 'mov'
-        ? 'video/quicktime'
-        : ext === 'png'
-        ? 'image/png'
-        : 'image/jpeg')
+          ? 'video/quicktime'
+          : ext === 'png'
+            ? 'image/png'
+            : 'image/jpeg')
 
-    const { data: mainData } = await axios.post(`${baseURL}/s3-presigned-url`, {
-      fileName: safeName,
-      fileType: mime,
-    })
+    const { data: mainData } = await axios.post(
+      `https://server1.kencoins.com/api/v1/s3-presigned-url`,
+      {
+        fileName: safeName,
+        fileType: mime,
+      }
+    )
 
     const uploadUrl = mainData.uploadUrl
     const blob = await (await fetch(file.uri)).blob()
@@ -192,7 +193,7 @@ export const handlePendingFileUpload = async (
       const thumbName = `thumb_${safeName.replace(/\.\w+$/, '')}.jpg`
 
       const { data: thumbData } = await axios.post(
-        `${baseURL}/s3-presigned-url`,
+        `https://server1.kencoins.com/api/v1/s3-presigned-url`,
         {
           fileName: thumbName,
           fileType: 'image/jpeg',
@@ -254,7 +255,7 @@ export const handlePendingFileUpload = async (
 //         : 'image/jpeg')
 
 //     // Request presigned URL for MAIN FILE
-//     const { data: mainData } = await axios.post(`${baseURL}/s3-presigned-url`, {
+//     const { data: mainData } = await axios.post(`https://server1.kencoins.com/api/v1/s3-presigned-url`, {
 //       fileName: safeName,
 //       fileType: mime,
 //     })
@@ -276,7 +277,7 @@ export const handlePendingFileUpload = async (
 //       const thumbName = `thumb_${safeName.replace(/\.\w+$/, '')}.jpg`
 
 //       const { data: thumbData } = await axios.post(
-//         `${baseURL}/s3-presigned-url`,
+//         `https://server1.kencoins.com/api/v1/s3-presigned-url`,
 //         {
 //           fileName: thumbName,
 //           fileType: 'image/jpeg',
@@ -344,7 +345,7 @@ export const handlePendingFileUpload = async (
 //     const size = file.size || 0
 
 //     // ---- Ask backend for presigned URL ----
-//     const { data } = await axios.post(`${baseURL}/s3-presigned-url`, {
+//     const { data } = await axios.post(`https://server1.kencoins.com/api/v1/s3-presigned-url`, {
 //       fileName: safeName,
 //       fileType: mime,
 //     })
@@ -691,7 +692,9 @@ export const handleRemoveFile = async (
 ) => {
   try {
     const fileKey = source.split('.com/')[1]
-    await axios.post(`${baseURL}s3-delete-file`, { fileKey })
+    await axios.post(`https://server1.kencoins.com/api/v1s3-delete-file`, {
+      fileKey,
+    })
     setFiles((prevFiles) => prevFiles.filter((_, i) => i !== index))
   } catch (error) {
     console.error('Failed to delete file from S3:', error)

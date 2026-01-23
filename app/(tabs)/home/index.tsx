@@ -146,7 +146,7 @@ const Home = () => {
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View className="flex-1 bg-secondary dark:bg-dark-secondary relative">
         <KeyboardAvoidingView
-          style={{ flex: 1, paddingBottom: 60 }}
+          style={{ flex: 1, paddingBottom: 0 }}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           keyboardVerticalOffset={50}
         >

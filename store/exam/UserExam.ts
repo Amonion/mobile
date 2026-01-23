@@ -141,6 +141,7 @@ const UserExamStore = create<UserExamState>((set) => ({
 
       const data = response?.data
       if (data.exam) {
+        // console.log(data.exam)
         set({
           userExamForm: data.exam,
           duration: data.exam.started,

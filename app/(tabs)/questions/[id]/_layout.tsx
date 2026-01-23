@@ -42,7 +42,7 @@ export default function ExamLayout() {
 
     if (bioUser?._id) {
       getObjectives(
-        `/competitions/leagues/objectives/?page_size=${100}&ordering=createdAt&paperId=${id}&bioUserId=${
+        `/user-competitions/exams/?page_size=${100}&ordering=createdAt&paperId=${id}&bioUserId=${
           bioUser?._id
         }`
       )
@@ -98,8 +98,8 @@ export default function ExamLayout() {
   const currentTab = pathname.endsWith('/comments')
     ? 'comments'
     : pathname.endsWith('/details')
-    ? 'details'
-    : 'users'
+      ? 'details'
+      : 'users'
 
   const navigateTo = (tab: 'users' | 'comments' | 'details') => {
     const pathMap = {

@@ -27,49 +27,55 @@ const ExamResult: React.FC<ExamResultProps> = ({ setDisplayResult, exam }) => {
   ]
 
   return (
-    <View className="absolute z-50 top-0 left-0 right-0 bottom-0 items-center justify-center ">
-      <ScrollView className="flex-1">
-        <View className="overflow-hidden flex-1 bg-primary dark:bg-dark-primary border border-border dark:border-dark-border mx-4  rounded-lg">
-          <View className="w-full flex-row justify-between p-3 bg-secondary dark:bg-dark-secondary">
-            <Text className="w-10 text-secondary dark:text-dark-secondary text-lg">
-              SN
+    <ScrollView
+      contentContainerStyle={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100%',
+      }}
+      className="absolute flex-1 h-full z-50 inset-0 bg-black/50"
+    >
+      <View className="overflow-hidden bg-primary dark:bg-dark-primary border border-border dark:border-dark-border mx-4 rounded-lg">
+        <View className="w-full flex-row justify-between p-3 bg-secondary dark:bg-dark-secondary">
+          <Text className="w-10 text-secondary dark:text-dark-secondary text-lg">
+            SN
+          </Text>
+          <Text className="flex-1 text-secondary dark:text-dark-secondary text-lg">
+            Property
+          </Text>
+          <Text className="flex-1 text-secondary dark:text-dark-secondary text-lg">
+            Value
+          </Text>
+        </View>
+
+        {rows.map(([sn, prop, val]) => (
+          <View
+            key={sn}
+            className="flex-row border-b border-b-border dark:border-b-dark-border px-3 py-3"
+          >
+            <Text className="w-10 text-left text-primary dark:text-dark-primary">
+              {sn}
             </Text>
-            <Text className="flex-1 text-secondary dark:text-dark-secondary text-lg">
-              Property
+            <Text className="flex-1 text-left text-primary dark:text-dark-primary">
+              {prop}
             </Text>
-            <Text className="flex-1 text-secondary dark:text-dark-secondary text-lg">
-              Value
+            <Text className="flex-1 text-wrap text-left text-primary dark:text-dark-primary">
+              {val}
             </Text>
           </View>
+        ))}
 
-          {rows.map(([sn, prop, val]) => (
-            <View
-              key={sn}
-              className="flex-row border-b border-b-border dark:border-b-dark-border px-3 py-3"
-            >
-              <Text className="w-10 text-left text-primary dark:text-dark-primary">
-                {sn}
-              </Text>
-              <Text className="flex-1 text-left text-primary dark:text-dark-primary">
-                {prop}
-              </Text>
-              <Text className="flex-1 text-wrap text-left text-primary dark:text-dark-primary">
-                {val}
-              </Text>
-            </View>
-          ))}
-
-          <TouchableOpacity
-            onPress={setDisplayResult}
-            className="mt-4 bg-custom py-3"
-          >
-            <Text className="text-center text-white font-semibold">
-              Close Table
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </View>
+        <TouchableOpacity
+          onPress={setDisplayResult}
+          className="mt-4 bg-custom py-3"
+        >
+          <Text className="text-center text-white font-semibold">
+            Close Table
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
   )
 }
 

@@ -234,10 +234,13 @@ const PostBox: React.FC = () => {
         return updated
       })
 
-      const { data } = await axios.post(`${baseURL}/s3-presigned-url`, {
-        fileName: file.name,
-        fileType: file.type,
-      })
+      const { data } = await axios.post(
+        `https://server1.kencoins.com/api/v1/s3-presigned-url`,
+        {
+          fileName: file.name,
+          fileType: file.type,
+        }
+      )
 
       const { uploadUrl } = data
 
@@ -306,7 +309,9 @@ const PostBox: React.FC = () => {
     try {
       setLoading(true)
       const fileKey = source.split('.com/')[1]
-      await axios.post(`${baseURL}/s3-delete-file`, { fileKey })
+      await axios.post(`https://server1.kencoins.com/api/v1/s3-delete-file`, {
+        fileKey,
+      })
     } catch (error) {
       console.error('Failed to delete file from S3:', error)
     } finally {
@@ -353,10 +358,13 @@ const PostBox: React.FC = () => {
         type: type ?? 'image/jpeg',
       }
 
-      const { data } = await axios.post(`${baseURL}/s3-presigned-url`, {
-        fileName: file.name,
-        fileType: file.type,
-      })
+      const { data } = await axios.post(
+        `https://server1.kencoins.com/api/v1/s3-presigned-url`,
+        {
+          fileName: file.name,
+          fileType: file.type,
+        }
+      )
 
       const { uploadUrl } = data
       const response = await fetch(file.uri)
@@ -389,7 +397,9 @@ const PostBox: React.FC = () => {
     try {
       setLoading(true)
       const fileKey = source.split('.com/')[1]
-      await axios.post(`${baseURL}/s3-delete-file`, { fileKey })
+      await axios.post(`https://server1.kencoins.com/api/v1/s3-delete-file`, {
+        fileKey,
+      })
       setFiles((prevFiles) => prevFiles.filter((_, i) => i !== index))
     } catch (error) {
       console.error('Failed to delete file from S3:', error)

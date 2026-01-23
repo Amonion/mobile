@@ -1,5 +1,9 @@
-import ObjectiveStore, { Objective } from '@/store/exam/Objective'
+import { AuthStore } from '@/store/AuthStore'
+import ObjectiveStore, { IOption, Objective } from '@/store/exam/Objective'
+import UserExamStore from '@/store/exam/UserExam'
+import { MessageStore } from '@/store/notification/Message'
 import React from 'react'
+import SocketService from '@/store/socket'
 import { View, Text, TouchableOpacity } from 'react-native'
 import RenderHtml, {
   HTMLContentModel,
@@ -26,11 +30,32 @@ const QuestionsList: React.FC<Props> = ({
   optionsLabel,
 }) => {
   const { selectAnswer } = ObjectiveStore()
+  const { bioUser } = AuthStore()
+  const { setMessage } = MessageStore()
+  const { isActive } = UserExamStore()
+  const socket = SocketService.getSocket()
+
   const customHTMLElementModels = {
     colgroup: HTMLElementModel.fromCustomModel({
       tagName: 'colgroup',
       contentModel: HTMLContentModel.block,
     }),
+  }
+
+  const chooseAnswer = (item: IOption, id: string) => {
+    if (!isActive) {
+      setMessage('Please click the play button to begin your test.', false)
+      return
+    }
+    selectAnswer?.(item, id)
+    if (socket && bioUser) {
+      socket.emit(`message`, {
+        to: 'test',
+        option: item,
+        questionId: id,
+        bioUserId: bioUser._id,
+      })
+    }
   }
 
   return (
@@ -72,11 +97,11 @@ const QuestionsList: React.FC<Props> = ({
                   <View key={int} className="flex-row flex-1 py-2 pr-2">
                     <Text
                       className={`${
-                        item.isSelected
+                        item.isSelected && question.isClicked
                           ? 'text-green-600'
                           : item.isClicked
-                          ? 'text-custom'
-                          : 'text-primary dark:text-dark-primary'
+                            ? 'text-custom'
+                            : 'text-primary dark:text-dark-primary'
                       } mr-1`}
                     >
                       {optionsLabel[int]})
@@ -84,11 +109,11 @@ const QuestionsList: React.FC<Props> = ({
 
                     <Text
                       className={`${
-                        item.isSelected
+                        item.isSelected && question.isClicked
                           ? 'text-green-600'
                           : item.isClicked
-                          ? 'text-custom'
-                          : 'text-primary dark:text-dark-primary'
+                            ? 'text-custom'
+                            : 'text-primary dark:text-dark-primary'
                       } flex-1 text-[14px]`}
                     >
                       {item.value}
@@ -97,7 +122,7 @@ const QuestionsList: React.FC<Props> = ({
                 ) : (
                   <TouchableOpacity
                     key={int}
-                    onPress={() => selectAnswer?.(item, question._id!)}
+                    onPress={() => chooseAnswer?.(item, question._id)}
                     className="flex-row flex-1 py-2 pr-2"
                   >
                     <Text

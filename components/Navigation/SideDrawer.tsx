@@ -227,7 +227,10 @@ const SideDrawer = ({
                     className="text-primary dark:text-dark-primary"
                   />
                 </TouchableOpacity>
-                <ThemeToggle />
+                <Text className="text-xl text-primary dark:text-dark-primary ml-3">
+                  Logout
+                </Text>
+                {/* <ThemeToggle /> */}
               </View>
             </View>
           </View>

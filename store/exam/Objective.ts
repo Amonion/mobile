@@ -40,6 +40,7 @@ export const ObjectiveEmpty = {
 interface ObjectiveState {
   links: { next: string | null; previous: string | null } | null
   count: number
+  resultsLength: number
   page_size: number
   currentPage: number
   objectiveResults: Objective[]
@@ -81,6 +82,7 @@ const ObjectiveStore = create<ObjectiveState>((set, get) => ({
   objectiveResults: [],
   questions: [],
   lastQuestions: [],
+  resultsLength: 0,
   loading: false,
   selectedItems: [],
   answeredQuestions: 0,
@@ -157,13 +159,14 @@ const ObjectiveStore = create<ObjectiveState>((set, get) => ({
       const response = await customRequest({ url })
       const data = response?.data
       if (data) {
+        set({ resultsLength: data.results.length })
         clearTable('questions')
         clearTable('last_questions')
         upsertAll('questions', data.results)
         upsertAll('last_questions', data.lastQuestions)
       }
     } catch (error: unknown) {
-      console.error('Failed to fetch staff:', error)
+      console.error('Failed to fetch objectives:', error)
     }
   },
 
@@ -181,10 +184,10 @@ const ObjectiveStore = create<ObjectiveState>((set, get) => ({
     }
   },
 
-  getLastQuestions: async (page_size, limit) => {
+  getLastQuestions: async (page_size, page) => {
     try {
       const response = await getAll<Objective>('last_questions', {
-        page: limit,
+        page: page,
         pageSize: page_size,
       })
       if (response) {
@@ -204,13 +207,37 @@ const ObjectiveStore = create<ObjectiveState>((set, get) => ({
   },
 
   reshuffleResults: async () => {
-    set((state) => ({
-      objectiveResults: state.objectiveResults.map((item: Objective) => ({
-        ...item,
-        isChecked: false,
-        isActive: false,
+    const response = await getAll<Objective>('questions', {
+      page: 1,
+      pageSize: 100,
+    })
+
+    const newQuestions = response.map((q) => ({
+      ...q,
+      isSelected: false,
+      isClicked: false,
+      options: q.options.map((o) => ({
+        ...o,
+        isSelected: false,
+        isClicked: false,
       })),
     }))
+
+    set((state) => ({
+      questions: state.questions.map((q) => ({
+        ...q,
+        isSelected: false,
+        isClicked: false,
+        options: q.options.map((o) => ({
+          ...o,
+          isSelected: false,
+          isClicked: false,
+        })),
+      })),
+    }))
+
+    clearTable('questions')
+    upsertAll('questions', newQuestions)
   },
 
   updateItem: async (url, updatedItem) => {

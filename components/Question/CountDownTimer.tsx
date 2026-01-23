@@ -10,10 +10,10 @@ import Svg, { Circle } from 'react-native-svg'
 import Feather from '@expo/vector-icons/Feather'
 import { MaterialIcons } from '@expo/vector-icons'
 import { router } from 'expo-router'
+import UserExamStore from '@/store/exam/UserExam'
 
 type CountdownTimerProps = {
   durationInSeconds?: number
-  isActive: boolean
   isLastResults: boolean
   setDisplayResult: (event: GestureResponderEvent) => void
   startCountdown: () => void
@@ -27,7 +27,6 @@ type CountdownTimerProps = {
 
 const CountdownTimer: React.FC<CountdownTimerProps> = ({
   durationInSeconds = 1,
-  isActive,
   isLastResults,
   setDisplayResult,
   startCountdown,
@@ -38,6 +37,7 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({
   timeLeft,
   totalAttempts,
 }) => {
+  const { isActive } = UserExamStore()
   const radius = 18
   const circumference = 2 * Math.PI * radius
   const progress = (timeLeft / durationInSeconds) * circumference
@@ -113,27 +113,29 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({
                 !isActive && totalAttempts === 0 ? 'flex-1' : ''
               } flex-row justify-between`}
             >
-              <View className="items-center">
-                {isActive ? (
-                  <TouchableOpacity
-                    onPress={submit}
-                    className={`h-10 w-10 bg-custom rounded-full items-center justify-center`}
-                  >
-                    <Feather name="send" size={20} color="white" />
-                  </TouchableOpacity>
-                ) : (
-                  <TouchableOpacity
-                    onPress={startCountdown}
-                    className={`h-10 w-10 bg-custom rounded-full items-center justify-center`}
-                  >
-                    <MaterialIcons
-                      name={isActive ? 'stop' : 'play-arrow'}
-                      size={20}
-                      color="white"
-                    />
-                  </TouchableOpacity>
-                )}
-              </View>
+              {!isLastResults && (
+                <View className="items-center">
+                  {isActive ? (
+                    <TouchableOpacity
+                      onPress={() => submit()}
+                      className={`h-10 w-10 bg-custom rounded-full items-center justify-center`}
+                    >
+                      <Feather name="send" size={20} color="white" />
+                    </TouchableOpacity>
+                  ) : (
+                    <TouchableOpacity
+                      onPress={() => startCountdown()}
+                      className={`h-10 w-10 bg-custom rounded-full items-center justify-center`}
+                    >
+                      <MaterialIcons
+                        name={isActive ? 'stop' : 'play-arrow'}
+                        size={20}
+                        color="white"
+                      />
+                    </TouchableOpacity>
+                  )}
+                </View>
+              )}
               {!isActive && totalAttempts === 0 && (
                 <TouchableOpacity
                   onPress={() => router.back()}

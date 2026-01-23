@@ -30,7 +30,8 @@ interface Test {
 
 const ExamStart = () => {
   const { examForm } = ExamStore()
-  const { userExamForm, updateUserExam, createUserExam } = UserExamStore()
+  const { userExamForm, isActive, updateUserExam, createUserExam } =
+    UserExamStore()
   const { bioUser, bioUserState } = AuthStore()
   const { setMessage } = MessageStore()
   const {
@@ -41,16 +42,15 @@ const ExamStart = () => {
     lastQuestions,
     getLastQuestions,
     getQuestions,
+    reshuffleResults,
   } = ObjectiveStore()
   const duration = examForm.duration * 60
   const { setAlert } = AlartStore()
   const { id } = useLocalSearchParams()
-  const [isActive, setIsActive] = useState(false)
   const [isLoading, setLoading] = useState(false)
   const [isResultDisplayed, displayResult] = useState(false)
   const [timeLeft, setTimeLeft] = useState(duration)
   const [isLastResults, showLastResults] = useState(false)
-
   const optionsLabel = ['A', 'B', 'C', 'D', 'E', 'F']
   const colorScheme = useColorScheme()
   const isDark = colorScheme === 'dark' ? true : false
@@ -69,6 +69,7 @@ const ExamStart = () => {
       )
     } else {
       showLastResults((e) => !e)
+      getLastQuestions(20, 1)
     }
   }
 
@@ -113,7 +114,7 @@ const ExamStart = () => {
   }
 
   const submitData = async () => {
-    if (isActive && bioUser?._id === 'ckdkd') {
+    if (isActive && bioUser?._id) {
       const form = {
         ended: String(new Date().getTime()),
         started: userExamForm.started,
@@ -131,13 +132,15 @@ const ExamStart = () => {
 
         const res = response?.data as unknown as Test
         if (res.exam) {
-          window.scrollTo({ top: 0, behavior: 'smooth' })
+          scrollRef.current?.scrollTo({ y: 0, animated: true })
           showLastResults(true)
           AuthStore.getState().setBioUserState(res.bioUserState)
           setMessage(
             'Congratulations! Your test was scored successfully, please click the table icon at your bottom left to see your progress.',
             true
           )
+          reshuffleResults()
+          UserExamStore.setState({ isActive: false, userExamForm: res.exam })
           ExamStore.setState({
             attempt: res.attempt,
           })
@@ -169,7 +172,12 @@ const ExamStart = () => {
         if (remaining && duration > remaining) {
           setTimeLeft(duration - remaining)
         } else if (isActive) {
-          submitData()
+          console.log(
+            'Duration is less than remaining time',
+            duration,
+            remaining
+          )
+          // submitData()
         }
       }
     }
@@ -190,13 +198,18 @@ const ExamStart = () => {
         setTimeLeft((prev) => prev - 1)
       }, 1000)
     } else if (isActive && timeLeft === 0) {
-      submitData()
+      // submitData()
+      console.log('Time left is 0')
     }
     return () => clearInterval(timer)
   }, [isActive, timeLeft])
 
   return (
     <>
+      {userExamForm && isResultDisplayed && (
+        <ExamResult exam={userExamForm} setDisplayResult={setDisplayResult} />
+      )}
+
       {bioUserState?.examAttempts === 0 && !isActive ? (
         <FirstTimeMessage />
       ) : (
@@ -209,13 +222,6 @@ const ExamStart = () => {
             isLastResults={isLastResults}
             toggleDisplayResult={toggleDisplayResult}
           />
-
-          {userExamForm && isLastResults && isResultDisplayed && (
-            <ExamResult
-              exam={userExamForm}
-              setDisplayResult={setDisplayResult}
-            />
-          )}
 
           {questions.length === 0 ? (
             <View className="p-5 flex-1 items-center justify-center">
@@ -245,19 +251,19 @@ const ExamStart = () => {
           )}
         </ScrollView>
       )}
+
       {examForm.duration > 0 && bioUserState && (
         <CountdownTimer
           durationInSeconds={duration}
-          isActive={isActive}
-          startCountdown={startCountdown}
+          startCountdown={() => startCountdown()}
           isLastResults={isLastResults}
           setDisplayResult={setDisplayResult}
           isLoading={isLoading}
-          submit={submitData}
+          submit={() => submitData()}
           total={count}
           answered={answeredQuestions}
           timeLeft={timeLeft}
-          totalAttempts={bioUserState.examAttempts}
+          totalAttempts={4}
         />
       )}
     </>
