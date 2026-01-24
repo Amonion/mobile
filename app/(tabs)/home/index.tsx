@@ -76,7 +76,6 @@ const Home = () => {
   }, [postResults])
 
   const fetchMorePosts = () => {
-    console.log('End reached', hasMore)
     if (user && hasMore) getMoreSavedPosts(user)
   }
 

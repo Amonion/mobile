@@ -38,7 +38,7 @@ export default function VerificationSettings() {
   const [isFullScreen, setIsFullScreen] = useState(false)
   const [imageSource, setImageSource] = useState('')
   const [username, setUsername] = useState('')
-  const url = '/users/bio-user/'
+  const url = '/biousers/'
   // const [location, setLocation] = useState<Location.LocationObject | null>(null)
 
   const handleUsernameSearch = _debounce(async (name: string) => {

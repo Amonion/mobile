@@ -19,7 +19,7 @@ export default function VerificationOriginSettings() {
   const { user, bioUser, bioUserState } = AuthStore()
   const { setMessage } = MessageStore()
   const { setAlert } = AlartStore()
-  const url = '/users/bio-user/'
+  const url = '/biousers/'
   const router = useRouter()
   const [isOEdit, setOEdit] = useState(false)
   const { getArea, area } = AreaStore()

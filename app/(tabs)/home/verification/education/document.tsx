@@ -26,7 +26,7 @@ export default function VerificationDocumentSettings() {
   const [isFullScreen, setIsFullScreen] = useState(false)
   const [imageSource, setImageSource] = useState('')
   const isDark = useColorScheme() === 'dark'
-  const url = '/users/bio-user/school/'
+  const url = '/biousers-school/schools/'
 
   const handlePick = async (index: number) => {
     const permissionResult =

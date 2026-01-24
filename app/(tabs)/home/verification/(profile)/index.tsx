@@ -29,7 +29,7 @@ export default function VerificationBioSettings() {
   const [calendarVisible, setCalendarVisible] = useState(false)
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
 
-  const url = '/users/bio-user/'
+  const url = '/biousers/'
   const router = useRouter()
 
   useEffect(() => {
@@ -327,7 +327,7 @@ export default function VerificationBioSettings() {
             <CustomBtn
               label="Edit Bio"
               loading={loading}
-              handleSubmit={handleSubmit}
+              handleSubmit={() => setIsBioEdit(true)}
               style="outline"
             />
           </View>

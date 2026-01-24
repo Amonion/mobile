@@ -151,7 +151,7 @@ const ObjectiveStore = create<ObjectiveState>((set, get) => ({
       pageSize: 100,
     })
     const answeredQuestions = totalQuestions.filter((item) => item.isClicked)
-    set({ answeredQuestions: answeredQuestions.length })
+    set({ answeredQuestions: answeredQuestions.length + 1 })
   },
 
   getObjectives: async (url) => {

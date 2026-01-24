@@ -18,7 +18,7 @@ export default function VerificationLayout() {
   useEffect(() => {
     if (!bioUserSchoolInfo) return
     BioUserSchoolInfoStore.setState({ bioUserSchoolForm: bioUserSchoolInfo })
-    getPastSchools(`/users/bio-user/school/${bioUserSchoolInfo.bioUserId}`)
+    getPastSchools(`/biousers-school/schools/${bioUserSchoolInfo.bioUserId}`)
   }, [bioUserSchoolInfo])
 
   return (
@@ -45,8 +45,8 @@ export default function VerificationLayout() {
               pathname === '/home/verification/education'
                 ? 'text-custom'
                 : bioUserState?.isEducation
-                ? 'text-success dark:text-dark-success'
-                : 'text-primary dark:text-dark-primary'
+                  ? 'text-success dark:text-dark-success'
+                  : 'text-primary dark:text-dark-primary'
             } text-xl text-center`}
           >
             Current
@@ -60,8 +60,8 @@ export default function VerificationLayout() {
                 pathname === '/home/verification/education'
                   ? '#DA3986'
                   : isDark
-                  ? '#BABABA'
-                  : '#6E6E6E'
+                    ? '#BABABA'
+                    : '#6E6E6E'
               }
             />
           )}
@@ -87,8 +87,8 @@ export default function VerificationLayout() {
               pathname === '/home/verification/education/history'
                 ? 'text-custom'
                 : bioUserState?.isEducationHistory
-                ? 'text-success dark:text-dark-success'
-                : 'text-primary dark:text-dark-primary'
+                  ? 'text-success dark:text-dark-success'
+                  : 'text-primary dark:text-dark-primary'
             } text-xl text-center`}
           >
             History
@@ -123,8 +123,8 @@ export default function VerificationLayout() {
               pathname === '/home/verification/education/document'
                 ? 'text-custom'
                 : bioUserState?.isEducationDocument
-                ? 'text-success dark:text-dark-success'
-                : 'text-primary dark:text-dark-primary'
+                  ? 'text-success dark:text-dark-success'
+                  : 'text-primary dark:text-dark-primary'
             } text-xl text-center`}
           >
             Document

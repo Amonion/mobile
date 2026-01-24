@@ -387,62 +387,6 @@ const Chats = () => {
     }
   }
 
-  // const pickAudio = async () => {
-  //   try {
-  //     const result = await DocumentPicker.getDocumentAsync({
-  //       type: ['audio/*'],
-  //       multiple: true,
-  //       copyToCacheDirectory: true,
-  //     })
-
-  //     if (result.canceled || !result.assets) return
-
-  //     // Create chat_media folder if missing
-  //     const chatMediaDir = new Directory(Paths.cache, 'chat_media')
-  //     if (!chatMediaDir.exists) {
-  //       chatMediaDir.create({ intermediates: true })
-  //     }
-
-  //     const audioFiles = await Promise.all(
-  //       result.assets.map(async (asset, i) => {
-  //         const originalUri = asset.uri
-  //         const size = asset.size ?? 0
-  //         const name = asset.name || `audio_${Date.now()}.mp3`
-
-  //         const extMatch = name.match(/\.(\w+)$/)
-  //         const ext = extMatch ? extMatch[1] : 'mp3'
-
-  //         const finalName = `audio_${Date.now()}_${Math.random()
-  //           .toString(36)
-  //           .slice(2)}.${ext}`
-
-  //         const dest = new File(chatMediaDir, finalName)
-  //         if (dest.exists) await dest.delete()
-
-  //         // Copy file using react-native-file-access
-  //         new File(originalUri).copy(dest)
-
-  //         return {
-  //           index: i,
-  //           uri: dest.uri,
-  //           previewUrl: dest.uri,
-  //           name: finalName,
-  //           type: 'audio',
-  //           size,
-  //           duration: 0,
-  //           status: 'pending' as const,
-  //         }
-  //       })
-  //     )
-
-  //     setFiles((prev) => [...prev, ...audioFiles])
-
-  //     return audioFiles
-  //   } catch (err) {
-  //     console.error('Audio picker error:', err)
-  //   }
-  // }
-
   const postAudio = async () => {
     for (let i = 0; i < files.length; i++) {
       const el = files[i]

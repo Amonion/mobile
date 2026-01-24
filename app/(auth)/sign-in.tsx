@@ -87,7 +87,7 @@ const SignIn = () => {
         keyboardShouldPersistTaps="handled"
       >
         <View className="flex-1 px-[15px]">
-          <View className="w-full items-center justify-start mt-[20px]">
+          <View className="w-full items-center justify-start mb-5 mt-[20px]">
             <Image
               source={require('@/assets/images/app-icon.png')}
               resizeMode="contain"

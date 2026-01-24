@@ -78,7 +78,7 @@ export default function ExamTable() {
                     className="rounded-full w-12 h-12 mr-2"
                   /> */}
                   <Text className="text-secondary flex-1  dark:text-dark-secondary text-[12px]">
-                    {exam.username}
+                    {exam.bioUserUsername}
                   </Text>
                 </TouchableOpacity>
                 <Text className="text-secondary min-w-16 dark:text-dark-secondary text-[12px]  p-1">

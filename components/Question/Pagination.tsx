@@ -1,18 +1,19 @@
 import React from 'react'
 import { View, Text, Pressable, useColorScheme } from 'react-native'
 import { Feather } from '@expo/vector-icons'
-import ObjectiveStore from '@/store/exam/Objective'
 
 interface PaginationProps {
   currentPage: number
   totalItems: number
   pageSize: number
+  onPageChange: (i: number) => void
 }
 
 const Pagination: React.FC<PaginationProps> = ({
   currentPage,
   totalItems,
   pageSize,
+  onPageChange,
 }) => {
   const totalPages = Math.ceil(totalItems / pageSize)
   const pages = Array.from(
@@ -38,10 +39,6 @@ const Pagination: React.FC<PaginationProps> = ({
 
   const colorScheme = useColorScheme()
   const isDark = colorScheme === 'dark' ? true : false
-
-  const onPageChange = (i: number) => {
-    ObjectiveStore.setState({ currentPage: i })
-  }
 
   return (
     <View className="flex-row items-center">

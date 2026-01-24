@@ -161,6 +161,10 @@ const ExamStart = () => {
     }
   }
 
+  const onPageChange = (i: number) => {
+    ObjectiveStore.setState({ currentPage: i })
+  }
+
   useEffect(() => {
     if (userExamForm.started && duration) {
       const now = new Date().getTime()
@@ -198,8 +202,7 @@ const ExamStart = () => {
         setTimeLeft((prev) => prev - 1)
       }, 1000)
     } else if (isActive && timeLeft === 0) {
-      // submitData()
-      console.log('Time left is 0')
+      submitData()
     }
     return () => clearInterval(timer)
   }, [isActive, timeLeft])
@@ -245,6 +248,7 @@ const ExamStart = () => {
                   currentPage={currentPage}
                   totalItems={examForm.questions}
                   pageSize={examForm.questionsPerPage}
+                  onPageChange={onPageChange}
                 />
               </View>
             </>
@@ -260,10 +264,10 @@ const ExamStart = () => {
           setDisplayResult={setDisplayResult}
           isLoading={isLoading}
           submit={() => submitData()}
-          total={count}
+          total={examForm.questions}
           answered={answeredQuestions}
           timeLeft={timeLeft}
-          totalAttempts={4}
+          totalAttempts={userExamForm.attempts}
         />
       )}
     </>

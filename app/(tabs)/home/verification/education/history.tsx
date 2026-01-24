@@ -63,7 +63,7 @@ export default function VerificationEducationHistorySettings() {
   const [isAdvanced, setIsAdvanced] = useState(false)
   const [isHistoryEdit, setHistoryEdit] = useState(false)
   const { countries, getCountries } = CountryStore()
-  const url = '/users/bio-user/school/'
+  const url = '/biousers-school/schools/'
   const [isEditingSchool, setIsEditingSchool] = useState(false)
   const [editIndex, setEditIndex] = useState<number | null>(null)
   const [schoolName, setSchoolName] = useState('')

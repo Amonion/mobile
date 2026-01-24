@@ -56,7 +56,7 @@ export default function VerificationEducationSettings() {
   const colorScheme = useColorScheme()
   const isDark = colorScheme === 'dark' ? true : false
   const [maxLevels, setMaxLevel] = useState<MaxLevels[]>([])
-  const url = '/users/bio-user/school/'
+  const url = '/biousers-school/'
   const pathname = usePathname()
   const { toggleActive, getAcademics, academicResults, activeLevel } =
     AcademicStore()

@@ -18,7 +18,7 @@ export default function VerificationDocumentSettings() {
   const { setAlert } = AlartStore()
   const { documents, getDocuments } = DocumentStore()
   const isDark = useColorScheme() === 'dark'
-  const url = '/users/bio-user/'
+  const url = '/biousers/'
 
   useEffect(() => {
     getDocuments(`/documents/?country=${bioUser?.homeCountry}`)

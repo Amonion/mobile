@@ -440,8 +440,6 @@ export default function CreateMoment() {
         }
       }
 
-      console.log('The duration is: ', videoDuration)
-
       MomentStore.setState((prev) => ({
         momentMedia: {
           ...prev.momentMedia,
@@ -454,7 +452,6 @@ export default function CreateMoment() {
           ...(type.includes('video') && { duration: videoDuration }),
         },
       }))
-
       setPercents(0)
       return publicFileUrl
     } catch (error) {

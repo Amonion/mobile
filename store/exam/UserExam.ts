@@ -10,7 +10,7 @@ interface FetchResponse {
 
 export interface UserExam {
   _id: string
-  username: string
+  bioUserUsername: string
   userId: string
   picture: string
   paperId: string
@@ -35,7 +35,7 @@ export interface UserExam {
 
 export const UserExamEmpty = {
   _id: '',
-  username: '',
+  bioUserUsername: '',
   userId: '',
   picture: '',
   paperId: '',
@@ -144,7 +144,7 @@ const UserExamStore = create<UserExamState>((set) => ({
         // console.log(data.exam)
         set({
           userExamForm: data.exam,
-          duration: data.exam.started,
+          duration: data.exam.duration,
           isActive: data.exam.isActive,
         })
       }

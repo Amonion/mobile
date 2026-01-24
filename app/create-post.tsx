@@ -27,6 +27,8 @@ import { AuthStore } from '@/store/AuthStore'
 import Spinner from '@/components/Response/Spinner'
 import CreatePostMedia from '@/components/Posts/CreatePostMedia'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import * as FileSystem from 'expo-file-system/legacy'
+import { ImageManipulator } from 'expo-image-manipulator'
 
 interface Response {
   data: Post
@@ -208,18 +210,96 @@ const PostBox: React.FC = () => {
     }
   }
 
+  // const uploadFile = async (file: RNFile, index: number, type: string) => {
+  //   try {
+  //     setLoading(true)
+
+  //     let previewUri = file.uri
+  //     if (type.startsWith('video')) {
+  //       try {
+  //         const { uri: thumbnailUri } = await VideoThumbnails.getThumbnailAsync(
+  //           file.uri,
+  //           { time: 1000 }
+  //         )
+  //         previewUri = thumbnailUri
+  //       } catch (err) {
+  //         console.warn('Failed to generate video thumbnail:', err)
+  //       }
+  //     }
+
+  //     setFiles((prevs) => {
+  //       const updated = [...prevs]
+  //       updated[index] = {
+  //         ...updated[index],
+  //         preview: previewUri,
+  //       }
+  //       return updated
+  //     })
+
+  //     const { data } = await axios.post(`${baseURL}/s3-presigned-url`, {
+  //       fileName: file.name,
+  //       fileType: file.type,
+  //     })
+
+  //     const { uploadUrl } = data
+
+  //     const response = await fetch(file.uri)
+  //     const blob = await response.blob()
+
+  //     const arrayBuffer = await new Promise<ArrayBuffer>((resolve, reject) => {
+  //       const reader = new FileReader()
+  //       reader.onloadend = () => resolve(reader.result as ArrayBuffer)
+  //       reader.onerror = reject
+  //       reader.readAsArrayBuffer(blob)
+  //     })
+
+  //     await axios.put(uploadUrl, arrayBuffer, {
+  //       headers: { 'Content-Type': file.type },
+  //     })
+
+  //     const publicUrl = uploadUrl.split('?')[0]
+
+  //     setFiles((prevs) => {
+  //       const updated = [...prevs]
+  //       updated[index] = {
+  //         type,
+  //         source: publicUrl,
+  //         preview: previewUri,
+  //       }
+  //       return updated
+  //     })
+
+  //     console.log('The file is: ', type, publicUrl, previewUri)
+
+  //     setLoading(false)
+  //     return publicUrl
+  //   } catch (error) {
+  //     console.error('Upload failed:', error)
+  //     setLoading(false)
+  //   }
+  // }
+
   const uploadFile = async (file: RNFile, index: number, type: string) => {
     try {
       setLoading(true)
 
       let previewUri = file.uri
+      let uploadName = file.name
+      let uploadType = file.type
+
+      /** -------- FORCE IMAGE FORMAT (NO HEIC) -------- */
+      if (type.startsWith('image')) {
+        uploadType = 'image/jpeg'
+        uploadName = uploadName.replace(/\.[^/.]+$/, '.jpg')
+      }
+
+      /** -------- VIDEO THUMBNAIL -------- */
       if (type.startsWith('video')) {
         try {
-          const { uri: thumbnailUri } = await VideoThumbnails.getThumbnailAsync(
-            file.uri,
-            { time: 1000 }
-          )
-          previewUri = thumbnailUri
+          const { uri } = await VideoThumbnails.getThumbnailAsync(file.uri, {
+            time: 1000,
+          })
+          previewUri = uri
         } catch (err) {
           console.warn('Failed to generate video thumbnail:', err)
         }
@@ -227,36 +307,30 @@ const PostBox: React.FC = () => {
 
       setFiles((prevs) => {
         const updated = [...prevs]
-        updated[index] = {
-          ...updated[index],
-          preview: previewUri,
-        }
+        updated[index] = { ...updated[index], preview: previewUri }
         return updated
       })
 
-      const { data } = await axios.post(
-        `https://server1.kencoins.com/api/v1/s3-presigned-url`,
-        {
-          fileName: file.name,
-          fileType: file.type,
-        }
-      )
+      /** -------- PRESIGNED URL -------- */
+      const { data } = await axios.post(`${baseURL}/s3-presigned-url`, {
+        fileName: uploadName,
+        fileType: uploadType,
+      })
 
       const { uploadUrl } = data
 
-      const response = await fetch(file.uri)
-      const blob = await response.blob()
-
-      const arrayBuffer = await new Promise<ArrayBuffer>((resolve, reject) => {
-        const reader = new FileReader()
-        reader.onloadend = () => resolve(reader.result as ArrayBuffer)
-        reader.onerror = reject
-        reader.readAsArrayBuffer(blob)
+      /** -------- UPLOAD (SAME AS FIRST FUNCTION) -------- */
+      const uploadResult = await FileSystem.uploadAsync(uploadUrl, file.uri, {
+        httpMethod: 'PUT',
+        headers: {
+          'Content-Type': uploadType,
+        },
+        uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
       })
 
-      await axios.put(uploadUrl, arrayBuffer, {
-        headers: { 'Content-Type': file.type },
-      })
+      if (uploadResult.status !== 200) {
+        throw new Error('Failed to upload file to S3')
+      }
 
       const publicUrl = uploadUrl.split('?')[0]
 
@@ -270,10 +344,11 @@ const PostBox: React.FC = () => {
         return updated
       })
 
-      setLoading(false)
+      console.log('The file is:', type, publicUrl)
       return publicUrl
     } catch (error) {
-      console.error('Upload failed:', error)
+      console.error('❌ Upload failed:', error)
+    } finally {
       setLoading(false)
     }
   }

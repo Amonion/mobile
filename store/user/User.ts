@@ -23,7 +23,8 @@ interface UserState {
   searchedAccounts: User[]
   searchedAccountResults: User[]
   showProfileSheet: boolean
-
+  authEmail: string
+  authCode: string
   getUser: (
     url: string,
     setMessage?: (message: string, isError: boolean) => void
@@ -91,6 +92,8 @@ export const UserStore = create<UserState>((set) => ({
   count: 0,
   isAllChecked: false,
   loading: false,
+  authEmail: '',
+  authCode: '',
   page: 1,
   page_size: 20,
   selectedUsers: [],

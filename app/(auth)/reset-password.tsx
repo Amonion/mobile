@@ -1,11 +1,8 @@
-import { signUp } from '@/lib/auth'
-import { getUserIP } from '@/lib/helpers'
-import { Feather } from '@expo/vector-icons'
+import { submitPassword } from '@/lib/auth'
 import { router } from 'expo-router'
 import React, { useState } from 'react'
 import {
   Alert,
-  Linking,
   Platform,
   Pressable,
   ScrollView,
@@ -17,56 +14,42 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
 } from 'react-native'
-import { validateInputs, ValidationResult } from '@/lib/validateAuthInputs'
-import { MessageStore } from '@/store/notification/Message'
+import { validatePasswords, ValidationResult } from '@/lib/validateAuthInputs'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { signupBody, signupTitle } from '@/constants/Text'
 import { Eye, EyeOff } from 'lucide-react-native'
 import Spinner from '@/components/Response/Spinner'
+import { UserStore } from '@/store/user/User'
 
-const SignUp = () => {
+const ResetPassword = () => {
   const colorScheme = useColorScheme()
   const isDark = colorScheme === 'dark' ? true : false
-  const [isChecked, setIsChecked] = useState(false)
   const [loading, setLoading] = useState(false)
+  const { authEmail, authCode } = UserStore()
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState<ValidationResult | null>(null)
-  const { message } = MessageStore()
   const [form, setForm] = useState({
-    email: '',
     password: '',
     confirmPassword: '',
   })
 
   const handleSubmit = async () => {
-    const validation = validateInputs(
-      form.password,
-      form.email,
-      form.confirmPassword
-    )
+    const validation = validatePasswords(form.password, form.confirmPassword)
     if (!validation.valid) {
       setError(validation)
       return
     }
 
-    if (!isChecked) {
-      return Alert.alert('You must agree to the Terms & Conditions')
-    }
-    const operatingSystem = Platform.OS
-    const signupIp = await getUserIP()
-
     setLoading(true)
 
     try {
       const userDetails = new FormData()
-      userDetails.append('email', form.email)
       userDetails.append('password', form.password)
-      userDetails.append('operatingSystem', operatingSystem)
-      userDetails.append('signupIp', signupIp)
+      userDetails.append('email', authEmail)
+      userDetails.append('code', authCode)
 
-      const res = await signUp(userDetails)
+      const res = await submitPassword(userDetails)
       if (res) {
-        router.push('/signup-successful')
+        router.push('/reset-successful')
       }
     } catch (err: any) {
       console.log(err)
@@ -105,40 +88,17 @@ const SignUp = () => {
 
             <View className="mb-10">
               <Text className="text-[25px] text-secondary dark:text-dark-secondary mb-1 font-bold">
-                {signupTitle}
+                Reset your password
               </Text>
               <Text className="text-primary text-lg dark:text-dark-primary text-start">
-                {signupBody}
+                Enter a new valid password and confirm it to successfully reset
+                your forgotten password.
               </Text>
             </View>
 
             <View className="mb-[20px]">
               <Text className="text-primary dark:text-dark-primary mb-2 font-semibold">
-                Email
-              </Text>
-              <TextInput
-                className={`input ${
-                  error?.emailMessage ? 'border-red-500 border' : ''
-                } `}
-                placeholder="you@example.com"
-                keyboardType="email-address"
-                placeholderTextColor={isDark ? '#BABABA' : '#6E6E6E'}
-                value={form.email}
-                onChangeText={(e) => setForm({ ...form, email: e })}
-                autoCapitalize="none"
-                style={{ textAlignVertical: 'center' }}
-                importantForAutofill="noExcludeDescendants"
-              />
-              {error?.emailMessage ? (
-                <Text className="text-red-500 text-sm mt-1">
-                  {error?.emailMessage}
-                </Text>
-              ) : null}
-            </View>
-
-            <View className="mb-[20px]">
-              <Text className="text-primary dark:text-dark-primary mb-2 font-semibold">
-                Password
+                New Password
               </Text>
 
               <View className="relative">
@@ -212,37 +172,6 @@ const SignUp = () => {
               ) : null}
             </View>
 
-            <View className="flex-row flex-wrap items-center mt-2 mb-6">
-              <Pressable
-                onPress={() => setIsChecked(!isChecked)}
-                className="mr-2"
-              >
-                <Feather
-                  name={isChecked ? 'check-square' : 'square'}
-                  size={18}
-                  color={isChecked ? '#DA3986' : '#A4A2A2'}
-                />
-              </Pressable>
-              <Text className="text-primary dark:text-dark-primary text-lg mr-2">
-                I agree to the
-              </Text>
-              <Pressable onPress={() => router.push('/sign-in')}>
-                <Text
-                  className="text-custom text-lg"
-                  onPress={() =>
-                    Linking.openURL(
-                      'https://schoolingsocial.com/terms-conditions'
-                    )
-                  }
-                >
-                  {'Terms and Conditions'}
-                </Text>
-              </Pressable>
-              {message && (
-                <Text className="text-custom text-lg">{message}</Text>
-              )}
-            </View>
-
             <TouchableOpacity
               onPress={handleSubmit}
               activeOpacity={0.7}
@@ -273,4 +202,4 @@ const SignUp = () => {
   )
 }
 
-export default SignUp
+export default ResetPassword

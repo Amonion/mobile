@@ -1,4 +1,4 @@
-import FriendStore, { Friend } from '@/store/chat/Friend'
+import { Friend } from '@/store/chat/Friend'
 import EachChat from './EachChat'
 import { useEffect, useRef, useState } from 'react'
 import { ChatContent, ChatStore } from '@/store/chat/Chat'
@@ -37,7 +37,7 @@ const ChatBody = () => {
     updatePendingChat,
     addNewChat,
   } = ChatStore()
-  const { updatePendingFriendsChat } = FriendStore()
+  // const { updatePendingFriendsChat } = FriendStore()
   const { user } = AuthStore()
   const [isNearBottom, setIsNearBottom] = useState(true)
   const socket = SocketService.getSocket()

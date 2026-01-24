@@ -1,17 +1,19 @@
-import Spinner from '@/components/Response/Spinner'
+import CustomBtn from '@/components/General/CustomBtn'
 import { accountBody, accuountTitle } from '@/constants/Text'
+import { submitEmail } from '@/lib/auth'
 import { ValidationResult } from '@/lib/validateAuthInputs'
+import { UserStore } from '@/store/user/User'
 import { router } from 'expo-router'
 import React, { useState } from 'react'
 import {
   Pressable,
   ScrollView,
   Text,
-  TouchableOpacity,
   useColorScheme,
   View,
   Image,
   TextInput,
+  Alert,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
@@ -25,7 +27,31 @@ const ForgottenPassword = () => {
     email: '',
   })
 
-  const handleSubmit = () => {}
+  const handleSubmit = async () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(form.email)) {
+      setError({ emailMessage: 'Invalid email address', valid: false })
+      return
+    } else {
+      setError(null)
+    }
+
+    setLoading(true)
+    try {
+      const userDetails = new FormData()
+      userDetails.append('email', form.email.toLowerCase())
+      await submitEmail(userDetails)
+      UserStore.setState({ authEmail: form.email })
+      router.replace('/pass-code')
+    } catch (err: any) {
+      const msg =
+        err.response?.data?.message || 'Something went wrong. Try again.'
+      Alert.alert('Error', msg)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <SafeAreaView
       className={`${isDark ? 'bg-dark-primary' : 'bg-primary'} flex-1 `}
@@ -35,7 +61,7 @@ const ForgottenPassword = () => {
         keyboardShouldPersistTaps="handled"
       >
         <View className="flex-1 px-[15px]">
-          <View className="w-full items-center justify-start mb-10 mt-[20px]">
+          <View className="w-full items-center justify-start mb-5 mt-[20px]">
             <Image
               source={require('@/assets/images/app-icon.png')}
               resizeMode="contain"
@@ -79,23 +105,11 @@ const ForgottenPassword = () => {
             ) : null}
           </View>
 
-          <TouchableOpacity
-            style={{
-              minHeight: 50,
-            }}
-            onPress={handleSubmit}
-            activeOpacity={0.7}
-            disabled={loading}
-            className={`${loading ? 'opacity-50' : ''} customBtn`}
-          >
-            {loading ? (
-              <Spinner size={40} />
-            ) : (
-              <Text className={`text-xl text-white font-psemibold`}>
-                Submit
-              </Text>
-            )}
-          </TouchableOpacity>
+          <CustomBtn
+            label="Submit"
+            loading={loading}
+            handleSubmit={handleSubmit}
+          />
 
           <View className="flex-row justify-center mt-6">
             <Text className="text-primary dark:text-dark-primary mr-2 text-lg">

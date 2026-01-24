@@ -10,61 +10,44 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "scheme": "Schooling",
+    "scheme": ["schooling"],
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "jsEngine": "hermes",
+
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "com.schoolingsocial.schooling.app",
+      "buildNumber": "1.0.0",
       "infoPlist": {
         "NSCameraUsageDescription": "This app requires camera access to let users scan QR codes for school assignments.",
-        "UIBackgroundModes": ["remote-notification", "remote-notification"],
         "NSPhotoLibraryUsageDescription": "We need access to your photo library so you can upload images and videos.",
         "NSPhotoLibraryAddUsageDescription": "We need permission to save media to your photo library.",
-        "LSApplicationQueriesSchemes": [
-          "Schooling",
-          "http",
-          "https",
-          "Schooling",
-          "http",
-          "https"
-        ],
+        "UIBackgroundModes": ["remote-notification"],
         "UIStatusBarStyle": "automatic",
-        "associatedDomains": [
-          "applinks:schoolingsocial.com",
-          "applinks:schoolingsocial.com"
-        ],
+        "LSApplicationQueriesSchemes": ["schooling", "http", "https"],
         "ITSAppUsesNonExemptEncryption": false
       },
-      "buildNumber": "1.0.0",
       "entitlements": {
         "com.apple.developer.associated-domains": [
-          "applinks:schoolingsocial.com",
           "applinks:schoolingsocial.com"
         ]
       }
     },
+
     "android": {
       "versionCode": 2,
+      "package": "com.schoolingsocial.schooling.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon-foreground.png",
-        "backgroundImage": "./assets/images/adaptive-icon-background.png",
         "backgroundColor": "#ffffff"
       },
-      "jsEngine": "hermes",
       "permissions": [
         "android.permission.INTERNET",
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO",
         "android.permission.MODIFY_AUDIO_SETTINGS"
       ],
-      "package": "com.schoolingsocial.schooling.app",
-      "useNextNotificationsApi": true,
-      "notification": {
-        "icon": "./assets/notification_icon.png",
-        "color": "#ffffff"
-      },
       "intentFilters": [
         {
           "action": "VIEW",
@@ -83,27 +66,9 @@
           ],
           "category": ["BROWSABLE", "DEFAULT"]
         }
-      ],
-      "edgeToEdgeEnabled": false,
-      "parentTheme": "Default",
-      "enforceNavigationBarContrast": false,
-      "androidNavigationBar": {
-        "visible": "immersive",
-        "barStyle": "dark-content",
-        "backgroundColor": "#1C1E21"
-      },
-      "manifest": {
-        "supportsScreens": {
-          "smallScreens": true,
-          "normalScreens": true,
-          "largeScreens": false,
-          "xlargeScreens": false,
-          "anyDensity": true
-        }
-      },
-      "softwareKeyboardLayoutMode": "pan",
-      "windowSoftInputMode": "adjustResize"
+      ]
     },
+
     "plugins": [
       "expo-router",
       [
@@ -118,14 +83,6 @@
       "expo-secure-store",
       "expo-video",
       "expo-camera",
-      [
-        "expo-camera",
-        {
-          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
-          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
-          "recordAudioAndroid": true
-        }
-      ],
       "expo-audio",
       [
         "expo-build-properties",
@@ -136,6 +93,7 @@
         }
       ]
     ],
+
     "extra": {
       "eas": {
         "projectId": "e3553066-167e-4d82-85cb-257822e3b233"
