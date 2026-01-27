@@ -9,12 +9,14 @@ export type TableName =
   | 'exams'
   | 'friends'
   | 'chats'
+  | 'giveaway'
   | 'accounts'
   | 'people'
   | 'notifications'
   | 'personal_notifications'
   | 'questions'
   | 'last_questions'
+  | 'following_posts'
 
 const PREFIX = '@localdb:'
 

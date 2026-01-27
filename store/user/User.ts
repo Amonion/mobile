@@ -55,6 +55,7 @@ interface UserState {
 export const UserEmpty = {
   _id: '',
   bioUserId: '',
+  area: '',
   comments: 0,
   createdAt: new Date(),
   displayName: '',
@@ -323,6 +324,7 @@ export const UserStore = create<UserState>((set) => ({
 export interface User {
   _id: string
   bioUserId: string
+  area: string
   comments: number
   createdAt: Date
   displayName: string

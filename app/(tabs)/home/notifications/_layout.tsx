@@ -1,12 +1,7 @@
-import {
-  View,
-  ScrollView,
-  useColorScheme,
-  TouchableOpacity,
-  Text,
-} from 'react-native'
+import { View, useColorScheme, TouchableOpacity, Text } from 'react-native'
 import React from 'react'
 import { router, Slot, usePathname } from 'expo-router'
+
 export default function SettingsLayout() {
   const colorScheme = useColorScheme()
   const isDark = colorScheme === 'dark' ? true : false
@@ -14,30 +9,28 @@ export default function SettingsLayout() {
 
   return (
     <>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{
+      <View
+        style={{
           flexGrow: 1,
-          backgroundColor: isDark ? '#1C1E21' : '#FFFFFF',
+          backgroundColor: isDark ? '#121314' : '#FFFFFF',
           paddingBottom: 40,
         }}
         className="flex-1 bg-primary dark:bg-dark-primary relative py-3"
       >
-        <View className="flex-row border-b border-b-border dark:border-b-dark-border pt-2 pb-3 justify-center px-[10px] mb-5">
+        <View className="flex-row border-b border-b-border dark:border-b-dark-border pt-2 pb-3 justify-center px-[10px]">
           <TouchableOpacity
             onPress={() => {
-              if (pathname !== '/home/settings') {
-                router.push('/home/settings')
+              if (pathname !== '/home/notifications') {
+                router.push('/home/notifications')
               }
             }}
             className={`${
-              pathname === '/home/settings' ? 'pill' : 'pillInActive'
+              pathname === '/home/notifications' ? 'pill' : 'pillInActive'
             } mx-1`}
           >
             <Text
               className={`${
-                pathname === '/home/settings'
+                pathname === '/home/notifications'
                   ? 'text-white'
                   : 'text-primary dark:text-dark-primary'
               } text-lg`}
@@ -47,19 +40,19 @@ export default function SettingsLayout() {
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => {
-              if (pathname !== '/home/settings/notification') {
-                router.push('/home/settings/notification')
+              if (pathname !== '/home/notifications/personal') {
+                router.push('/home/notifications/personal')
               }
             }}
             className={`${
-              pathname === '/home/settings/notification'
+              pathname === '/home/notifications/personal'
                 ? 'pill'
                 : 'pillInActive'
             } mx-1`}
           >
             <Text
               className={`${
-                pathname === '/home/settings/notification'
+                pathname === '/home/notifications/personal'
                   ? 'text-white'
                   : 'text-primary dark:text-dark-primary'
               } text-lg`}
@@ -69,7 +62,7 @@ export default function SettingsLayout() {
           </TouchableOpacity>
         </View>
         <Slot />
-      </ScrollView>
+      </View>
     </>
   )
 }

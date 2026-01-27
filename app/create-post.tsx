@@ -236,7 +236,7 @@ const PostBox: React.FC = () => {
   //       return updated
   //     })
 
-  //     const { data } = await axios.post(`${baseURL}/s3-presigned-url`, {
+  //     const { data } = await axios.post(`https://server1.kencoins.com/api/v1/s3-presigned-url`, {
   //       fileName: file.name,
   //       fileType: file.type,
   //     })
@@ -312,10 +312,13 @@ const PostBox: React.FC = () => {
       })
 
       /** -------- PRESIGNED URL -------- */
-      const { data } = await axios.post(`${baseURL}/s3-presigned-url`, {
-        fileName: uploadName,
-        fileType: uploadType,
-      })
+      const { data } = await axios.post(
+        `https://server1.kencoins.com/api/v1/s3-presigned-url`,
+        {
+          fileName: uploadName,
+          fileType: uploadType,
+        }
+      )
 
       const { uploadUrl } = data
 

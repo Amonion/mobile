@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import _debounce from 'lodash/debounce'
 import isEqual from 'lodash/isEqual'
 import { customRequest } from '@/lib/api'
-import { getAll, saveAll, upsert } from '@/lib/localStorage/db'
+import { clearTable, getAll, saveAll, upsert } from '@/lib/localStorage/db'
 
 interface FetchResponse {
   message: string
@@ -184,6 +184,7 @@ const NewsStore = create<NewsState>((set) => ({
   getSavedNews: async () => {
     try {
       const news = await getAll<News>('news')
+      clearTable('news')
       if (news.length > 0) {
         set({ news })
       }

@@ -56,6 +56,7 @@ const MainAppBar = ({ onMenuPress }: { onMenuPress: () => void }) => {
       </View>
       <View className="flex  flex-row w-full items-center justify-between">
         <TouchableOpacity
+          onPress={() => router.push('/home/following')}
           hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
           className="p-4"
         >
@@ -73,17 +74,27 @@ const MainAppBar = ({ onMenuPress }: { onMenuPress: () => void }) => {
               pathname.includes('/home/news')
                 ? '#DA3986'
                 : isDark
-                ? '#BABABA'
-                : '#6E6E6E'
+                  ? '#BABABA'
+                  : '#6E6E6E'
             }
           />
         </TouchableOpacity>
-        <TouchableOpacity
+        {/* <TouchableOpacity
+          onPress={() => router.push('/home/giveaway')}
           hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
           className="p-4"
         >
-          <Gift size={23} color={isDark ? '#BABABA' : '#6E6E6E'} />
-        </TouchableOpacity>
+          <Gift
+            size={23}
+            color={
+              pathname.includes('/home/giveaway')
+                ? '#DA3986'
+                : isDark
+                  ? '#BABABA'
+                  : '#6E6E6E'
+            }
+          />
+        </TouchableOpacity> */}
         <TouchableOpacity
           onPress={() => router.push('/home/notifications')}
           hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}

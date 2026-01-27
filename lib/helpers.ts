@@ -455,6 +455,24 @@ export const cleanQuery = (queryString: string): string => {
   return queryString.endsWith('&') ? queryString.slice(0, -1) : queryString
 }
 
+export function formatMoney(num: number): string {
+  if (num < 100_000) {
+    // Add commas (e.g. 5,000)
+    return num.toLocaleString()
+  } else if (num < 1_000_000) {
+    // Thousands (K)
+    return (num / 1_000).toFixed(num % 1_000 === 0 ? 0 : 1) + 'K'
+  } else if (num < 1_000_000_000) {
+    // Millions (M)
+    return (num / 1_000_000).toFixed(num % 1_000_000 === 0 ? 0 : 1) + 'M'
+  } else {
+    // Billions (B)
+    return (
+      (num / 1_000_000_000).toFixed(num % 1_000_000_000 === 0 ? 0 : 1) + 'B'
+    )
+  }
+}
+
 export const formatCount = (num: number): string => {
   if (!num) {
     return '0'

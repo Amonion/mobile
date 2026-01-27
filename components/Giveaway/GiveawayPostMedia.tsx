@@ -17,13 +17,13 @@ interface MediaSource {
   type: string
 }
 
-interface HomePostMediaProps {
+interface GiveawayPostMediaProps {
   sources: MediaSource[]
 }
 
 const { width } = Dimensions.get('window')
 
-const HomePostMedia: React.FC<HomePostMediaProps> = ({ sources }) => {
+const GiveawayPostMedia: React.FC<GiveawayPostMediaProps> = ({ sources }) => {
   const { mediaResults, setSelectedMedia, setCurrentIndex, setFitMode } =
     PostStore()
   const { page_size, currentPage, getComments } = CommentStore()
@@ -43,7 +43,7 @@ const HomePostMedia: React.FC<HomePostMediaProps> = ({ sources }) => {
     CommentStore.setState({ mainPost: comment })
     if (mediaResults[index].postId) {
       getComments(
-        `/comments?page=${currentPage}&page_size=${20}&postId=${
+        `/posts/comments?page=${currentPage}&page_size=${20}&postId=${
           mediaResults[index].postId
         }&level=1`
       )
@@ -172,7 +172,7 @@ const HomePostMedia: React.FC<HomePostMediaProps> = ({ sources }) => {
   )
 }
 
-export default HomePostMedia
+export default GiveawayPostMedia
 
 // ---------------- STYLES ----------------
 const styles = StyleSheet.create({

@@ -8,7 +8,7 @@ import { View } from 'react-native'
 const AppBarWithDrawer = () => {
   const [drawerVisible, setDrawerVisible] = useState(false)
   const pathName = usePathname()
-  const mainPaths = ['/home', '/home/news']
+  const mainPaths = ['/home', '/home/news', '/home/giveaway']
 
   useEffect(() => {
     setDrawerVisible(false)
