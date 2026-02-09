@@ -50,6 +50,7 @@ interface UserState {
     url: string,
     updatedItem: FormData | Record<string, unknown>
   ) => Promise<void>
+  deleteUserAccount: (url: string, redirect: () => void) => Promise<void>
 }
 
 export const UserEmpty = {
@@ -313,6 +314,23 @@ export const UserStore = create<UserState>((set) => ({
           loading: false,
         })
       }
+    } catch (error) {
+      console.log(error)
+    } finally {
+      set({ loading: false })
+    }
+  },
+
+  deleteUserAccount: async (url, redirect) => {
+    try {
+      set({ loading: true })
+      await customRequest({
+        url,
+        method: 'DELETE',
+        showMessage: true,
+      })
+
+      if (redirect) redirect()
     } catch (error) {
       console.log(error)
     } finally {

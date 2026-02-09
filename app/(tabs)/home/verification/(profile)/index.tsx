@@ -116,7 +116,6 @@ export default function VerificationBioSettings() {
       },
     ]
     const { messages, valid } = validateInputs(inputsToValidate)
-    console.log('passed')
 
     if (!valid) {
       const getFirstNonEmptyMessage = (

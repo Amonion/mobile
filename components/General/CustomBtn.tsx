@@ -21,7 +21,11 @@ const CustomBtn: React.FC<CustomBtnProps> = ({
       activeOpacity={0.7}
       disabled={loading}
       className={`${loading ? 'opacity-50' : ''} ${
-        style === 'outline' ? 'outlineBtn' : 'customBtn'
+        style === 'outline'
+          ? 'outlineBtn'
+          : style === 'danger'
+            ? 'dangerBtn'
+            : 'customBtn'
       }`}
     >
       {loading ? (

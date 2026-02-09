@@ -9,7 +9,7 @@ import 'react-native-reanimated'
 import { useColorScheme } from '@/hooks/use-color-scheme'
 import '../global.css'
 import { useCallback, useEffect } from 'react'
-import { View } from 'react-native'
+import { Platform, View } from 'react-native'
 import { useFonts } from 'expo-font'
 import * as NavigationBar from 'expo-navigation-bar'
 import Message from '@/components/Response/Message'
@@ -46,12 +46,9 @@ export default function RootLayout() {
   })
 
   useEffect(() => {
-    if (isDark) {
-      NavigationBar.setBackgroundColorAsync('#1C1E21')
-      NavigationBar.setButtonStyleAsync('light')
-    } else {
-      NavigationBar.setBackgroundColorAsync('#FFFFFF')
-      NavigationBar.setButtonStyleAsync('dark')
+    const theme = isDark ? 'light' : 'dark'
+    if (Platform.OS === 'android') {
+      NavigationBar.setButtonStyleAsync(theme)
     }
   }, [isDark])
 
@@ -91,7 +88,7 @@ export default function RootLayout() {
                             </View>
                           </GestureHandlerRootView>
 
-                          <StatusBar style="auto" />
+                          <StatusBar style={isDark ? 'light' : 'dark'} />
                         </ExamProvider>
                       </MomentProvider>
                     </NewsProvider>

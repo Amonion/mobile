@@ -44,7 +44,7 @@ const ProfileTabs: React.FC<ProfileTabsProps> = ({ userForm, pathname }) => {
               Posts
             </Text>
           </TouchableOpacity>
-
+          {/*
           <TouchableOpacity
             onPress={() => {
               if (pathname !== `/home/profile/my-profile/comments`) {
@@ -71,7 +71,7 @@ const ProfileTabs: React.FC<ProfileTabsProps> = ({ userForm, pathname }) => {
             >
               Replies
             </Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
           <TouchableOpacity
             onPress={() => {

@@ -12,21 +12,26 @@ import { validateInputs } from '@/lib/validateInputs'
 import { appendForm, getDeviceWidth } from '@/lib/helpers'
 import { AuthStore } from '@/store/AuthStore'
 import { FileLike } from '@/store/place/Document'
-import { MessageStore } from '@/store/notification/Message'
+import { AlartStore, MessageStore } from '@/store/notification/Message'
 import CustomBtn from '@/components/General/CustomBtn'
 import InputField from '@/components/General/InputField'
 import { UserStore } from '@/store/user/User'
 import TextAreaField from '@/components/General/TextAreaField'
+import { useRouter } from 'expo-router'
 
 export default function ProfileSettings() {
-  const { user } = AuthStore()
+  const { user, logout } = AuthStore()
   const width = getDeviceWidth()
-  const { loading, userForm, updateUser, setForm } = UserStore()
+  const { loading, userForm, deleteUserAccount, updateUser, setForm } =
+    UserStore()
   const { setMessage } = MessageStore()
   const colorScheme = useColorScheme()
   const isDark = colorScheme === 'dark' ? true : false
   const [profileImage, setProfileImage] = useState<string | null>(null)
   const [mediaImage, setMediaImage] = useState<string | null>(null)
+  const { setAlert } = AlartStore()
+  const router = useRouter()
+
   const url = '/users/'
 
   useEffect(() => {
@@ -46,6 +51,24 @@ export default function ProfileSettings() {
       const uri = result.assets[0].uri
       setMediaImage(uri)
     }
+  }
+
+  const deleteUser = () => {
+    deleteUserAccount(`/users/delete-account/${user?._id}`, logUserOut)
+  }
+
+  const logUserOut = () => {
+    logout()
+    router.replace('/sign-in')
+  }
+
+  const startDelete = () => {
+    setAlert(
+      'Warning',
+      'You are about to delete your account including all your and public contents, do you want to continue?',
+      true,
+      deleteUser
+    )
   }
 
   const pickImage = async () => {
@@ -248,6 +271,13 @@ export default function ProfileSettings() {
           label="Upload"
           loading={loading}
           handleSubmit={handleSubmit}
+        />
+        <View className="mb-5" />
+        <CustomBtn
+          label="Delete Account"
+          loading={loading}
+          style="danger"
+          handleSubmit={startDelete}
         />
       </View>
     </>
